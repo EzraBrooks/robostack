@@ -106,6 +106,10 @@ moveit_visual_tools:
   add_host: ["${{ 'libgl-devel' if linux }}", "${{ 'libopengl-devel' if linux }}"]
 nav2_constrained_smoother:
   add_host: ["${{ 'openblas' if win }}", "ceres-solver"]
+opennav_coverage:
+  # package.xml misses deps that CMakeLists.txt finds
+  add_host: [ros2-rclcpp-components, ros2-std-msgs, ros2-visualization-msgs]
+  add_run: [ros2-rclcpp-components, ros2-std-msgs, ros2-visualization-msgs]
 openvdb_vendor:
   add_host: ["openvdb"]
 pcl_conversions:

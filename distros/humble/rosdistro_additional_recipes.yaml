@@ -89,3 +89,15 @@ mujoco_vendor:
   tag: release/jazzy/mujoco_vendor/0.1.0-1
   url: https://github.com/ros2-gbp/mujoco_vendor-release.git
   version: 0.1.0
+opennav_coverage:
+  # Not released in rosdistro; humble-v2 branch (Fields2Cover v2)
+  url: https://github.com/open-navigation/opennav_coverage.git
+  rev: 81b63a720d97e0966548d9f062fc6a723f329022
+  version: 0.0.1
+  additional_folder: opennav_coverage
+opennav_coverage_msgs:
+  # Not released in rosdistro; humble-v2 branch (Fields2Cover v2)
+  url: https://github.com/open-navigation/opennav_coverage.git
+  rev: 81b63a720d97e0966548d9f062fc6a723f329022
+  version: 0.0.1
+  additional_folder: opennav_coverage_msgs

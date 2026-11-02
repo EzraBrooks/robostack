@@ -225,6 +225,7 @@ packages_select_by_deps:
   - odom_to_tf_ros2
   - onnxruntime_vendor
   - open3d_conversions
+  - opennav_coverage_msgs
   - osrf_testing_tools_cpp
   - pal_statistics
   - perception
@@ -461,6 +462,7 @@ packages_select_by_deps:
       - navmap_tools
       - netft_driver  # ATI Net F/T driver: POSIX networking, Linux only; requested in https://github.com/RoboStack/robostack/issues/103
       - nobleo_socketcan_bridge # Depends on socketcan
+      - opennav_coverage
       - orbbec_camera
       - plansys2_core
       - plansys2_domain_expert

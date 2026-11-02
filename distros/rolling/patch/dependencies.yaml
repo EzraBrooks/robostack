@@ -104,6 +104,10 @@ moveit_core:
   add_host: ["eigen-abi-devel"]
 moveit_visual_tools:
   add_host: ["${{ 'libgl-devel' if linux }}", "${{ 'libopengl-devel' if linux }}", "libboost-devel"]
+opennav_coverage:
+  # package.xml misses deps that CMakeLists.txt finds
+  add_host: [ros2-rclcpp-components, ros2-std-msgs, ros2-visualization-msgs]
+  add_run: [ros2-rclcpp-components, ros2-std-msgs, ros2-visualization-msgs]
 pcl_conversions:
   add_host: ["${{ 'libgl-devel' if linux }}", "${{ 'libopengl-devel' if linux }}", "libboost-devel", "eigen-abi-devel"]
 pinocchio:

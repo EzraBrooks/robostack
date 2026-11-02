@@ -460,6 +460,18 @@ mocap4r2_robot_gt_msgs:
   url: https://github.com/MOCAP4ROS2-Project/mocap4r2.git
   version: 0.0.7
   additional_folder: mocap4r2_robot_gt/mocap4r2_robot_gt_msgs
+opennav_coverage:
+  # Not released in rosdistro; lyrical branch (Fields2Cover v2)
+  url: https://github.com/open-navigation/opennav_coverage.git
+  rev: 9f0cca9414cfcf4feb616fee3c35ac199b788ff3
+  version: 0.0.1
+  additional_folder: opennav_coverage
+opennav_coverage_msgs:
+  # Not released in rosdistro; lyrical branch (Fields2Cover v2)
+  url: https://github.com/open-navigation/opennav_coverage.git
+  rev: 9f0cca9414cfcf4feb616fee3c35ac199b788ff3
+  version: 0.0.1
+  additional_folder: opennav_coverage_msgs
 rclcpp_async:
   rev: 7a54000737ef97e833589f4fe37a5784691ce9ca
   url: https://github.com/otamachan/rclcpp_async.git

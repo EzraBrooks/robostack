@@ -112,6 +112,10 @@ nav2_mppi_controller:
   add_run: ["xtensor==0.25.0"]
 nav2_util:
   add_host: ["libboost-devel"]
+opennav_coverage:
+  # package.xml misses deps that CMakeLists.txt finds
+  add_host: [ros2-rclcpp-components, ros2-std-msgs, ros2-visualization-msgs]
+  add_run: [ros2-rclcpp-components, ros2-std-msgs, ros2-visualization-msgs]
 openvdb_vendor:
   add_host: ["openvdb"]
 pcl_conversions:
