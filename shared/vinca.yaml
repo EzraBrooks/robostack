@@ -226,6 +226,9 @@ packages_select_by_deps:
   - onnxruntime_vendor
   - open3d_conversions
   - opennav_coverage_msgs
+  - orbbec_camera
+  - orbbec_camera_msgs
+  - orbbec_description
   - osrf_testing_tools_cpp
   - pal_statistics
   - perception
