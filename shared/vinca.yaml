@@ -464,6 +464,9 @@ packages_select_by_deps:
       - nobleo_socketcan_bridge # Depends on socketcan
       - opennav_coverage
       - orbbec_camera
+      - orbbec_camera
+      - orbbec_camera_msgs
+      - orbbec_description
       - plansys2_core
       - plansys2_domain_expert
       - plansys2_executor
