@@ -116,3 +116,5 @@ zenoh_cpp_vendor:
 rviz_ogre_vendor:
   additional_cmake_args: "-DRVIZ_OGRE_VENDOR_MANGLE_NAME_OF_LIBRARIES_USED_BY_RVIZ=ON"
   build_number: 31  # built without the EXR codec (ros2-rviz-ogre-vendor.patch)
+spatio_temporal_voxel_layer:
+  build_number: 31

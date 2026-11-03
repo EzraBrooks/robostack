@@ -138,6 +138,8 @@ gz_ogre_next_vendor:
 rviz_ogre_vendor:
   additional_cmake_args: "-DRVIZ_OGRE_VENDOR_MANGLE_NAME_OF_LIBRARIES_USED_BY_RVIZ=ON"
   build_number: 28  # built without the EXR codec (ros2-rviz-ogre-vendor.patch)
+spatio_temporal_voxel_layer:
+  build_number: 28
 urdf:  # drop deprecated urdf_world/types.h include (ros2/urdf#54) for headers 3.x
   build_number: 28
 urdf_parser_plugin:  # use urdf_model/types.h (ros2/urdf#54) for headers 3.x

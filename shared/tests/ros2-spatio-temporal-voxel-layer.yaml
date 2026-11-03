@@ -1,0 +1,7 @@
+tests:
+  # Regression test: the core library loads. 13.2 and 13.1 are not ABI compatible for example.
+  - script:
+      - python -c "import ctypes, os; ctypes.CDLL(os.path.join(os.environ['PREFIX'], 'lib', 'libspatio_temporal_voxel_layer_core.so'))"
+    requirements:
+      run:
+        - python
