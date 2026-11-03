@@ -109,6 +109,8 @@ ament_cmake_gmock:  # as ament_cmake_gtest
   build_number: 23
 ament_cmake_gtest:  # uses conda-forge's gtest instead of gtest_vendor's sources
   build_number: 23
+spatio_temporal_voxel_layer:
+  build_number: 23
 urdf:  # drop deprecated urdf_world/types.h include (ros2/urdf#54) for headers 3.x
   build_number: 23
 urdf_parser_plugin:  # use urdf_model/types.h (ros2/urdf#54) for headers 3.x

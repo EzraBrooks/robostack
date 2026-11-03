@@ -174,6 +174,8 @@ slam_toolbox:
   add_host: ["${{ 'libgl-devel' if linux }}", "${{ 'libopengl-devel' if linux }}", "blas-devel"]
 spatio_temporal_voxel_layer:
   add_host: [libgl-devel, libopengl-devel, openvdb]
+  # openvdb may break its ABI on a minor release
+  add_run: ["${{ pin_compatible('openvdb', upper_bound='x.x') }}"]
 swri_console:
   add_build: ["${{ 'qt-main' if (build_platform != target_platform) }}"]
   add_host: ["libboost-devel", "qt-main", "${{ 'libgl-devel' if linux }}", "${{ 'libopengl-devel' if linux }}"]

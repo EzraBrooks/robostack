@@ -178,7 +178,9 @@ slam_toolbox:
   add_build: ["${{ 'qt-main' if (build_platform != target_platform) }}"]
   add_host: ["${{ 'libgl-devel' if linux }}", "${{ 'libopengl-devel' if linux }}"]
 spatio_temporal_voxel_layer:
-  add_host: ["${{ 'libgl-devel' if linux }}", "${{ 'libopengl-devel' if linux }}"]
+  add_host: ["${{ 'libgl-devel' if linux }}", "${{ 'libopengl-devel' if linux }}", "openvdb"]
+  # openvdb may break its ABI on a minor release
+  add_run: ["${{ pin_compatible('openvdb', upper_bound='x.x') }}"]
 spdlog_vendor:
   add_host: ["spdlog"]
   add_run: ["spdlog"]
