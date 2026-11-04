@@ -532,6 +532,8 @@ def task(distro: str, name: str, args: list[str]) -> int:
         return run(py + [str(TOOLS / "check_dependency_compat.py"), *args], w)
     if name == "gap-report":
         return run(py + [str(TOOLS / "build_gap_report.py"), *args], w)
+    if name == "python-audit":
+        return run(py + [str(TOOLS / "python_abi_audit.py"), "--channel", repodata_url(distro), *args], w)
     if name in ("build", "build-one"):
         if not (w / "recipes").is_dir():
             print(f"No {(w / 'recipes').relative_to(ROOT)}: run `pixi run rs {distro} generate-recipes` first",

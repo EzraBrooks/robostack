@@ -106,6 +106,16 @@ pixi run rs check                             # sanity checks (also run in CI)
 of a distribution uses `full_rebuild: true` there. A new build number goes into its
 `pkg_additional_info.yaml` (one package) or `vinca.yaml` (everything).
 
+**Python versions:** a distribution's `pinning_overrides` can list several Pythons, as
+lyrical does for 3.12-3.14. With `conditional_python_dependency: true` in its
+`vinca.yaml`, only packages with Python content (Python modules, rosidl Python bindings,
+extensions) get python in host/run and are built once per Python; the others are built
+once, without a `python_abi` dependency, and fail their build if they ship
+`site-packages` content or a CPython extension anyway. When vinca's guess from
+`package.xml` is wrong, add `python` to the package's `add_host` (or `remove_host`) in
+`patch/dependencies.yaml`. `pixi run rs <distro> python-audit [--elf]` compares the
+guess with the published packages and lists the misses.
+
 **Building only some distributions in a PR:** a PR builds the distributions it changes,
 and all of them as soon as it touches anything outside `distros/<distro>/`. To limit
 that (e.g. a humble rebuild that also changes `shared/` or `tools/`), add the label
