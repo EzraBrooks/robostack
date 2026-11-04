@@ -21,6 +21,10 @@ to read without Claude):
   into `distros/<d>/`.
 - Run everything per distribution with `pixi run rs <distro> <task>`, from the
   repository root. Package names are `ros2-<pkg>` (dashes), e.g. `ros2-rsl`.
+- lyrical builds packages with Python content for Python 3.12-3.14 and the others once
+  (`conditional_python_dependency`, see README "Python versions"). A built-once package
+  that fails its `package_contents` test ships Python after all: add `python` to its
+  `add_host` in `patch/dependencies.yaml`.
 - Never edit `conda_build_config.yaml` by hand: change `shared/pinning/` or the
   distribution's `distro.yaml`, then `pixi run rs <distro> render-pinning` (CI checks it).
 - A change outside `distros/` rebuilds every distribution in CI; keep such PRs focused.
@@ -51,6 +55,7 @@ pixi run rs <d> build --continue-on-failure     # everything missing on the chan
 pixi run rs <d> check-patches [--recipe ros2-<pkg>]
 pixi run rs <d> check-deps                      # pin conflicts, before building anything
 pixi run rs <d> gap-report                      # recipes without artifacts and vice versa
+pixi run rs <d> python-audit [--elf]            # per-Python vs built-once recipes against the published packages
 pixi run rs add-package <pkg>... [<d>...]       # select packages (as the bot does)
 pixi run rs check                               # sanity checks (CI)
 ```

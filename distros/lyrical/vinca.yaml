@@ -3,7 +3,12 @@ ros_distro: lyrical
 patch_dir: patch
 rosdistro_snapshot: rosdistro_snapshot.yaml
 rosdistro_additional_recipes: rosdistro_additional_recipes.yaml
-build_number: 30
+build_number: 31
+# Only packages with Python content get python in host/run, and with it the Python
+# variants of distro.yaml (cp312-cp314); the others are built once, without a
+# python_abi dependency. Override the classification per package with python in
+# add_host (or remove_host) in patch/dependencies.yaml.
+conditional_python_dependency: true
 
 mutex_package:
   version: 0.22.0
