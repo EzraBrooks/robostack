@@ -253,6 +253,8 @@ jobs:
 
     - name: Build recipes
       id: build-recipes
+      # Leave time for cleanup and cache upload before the six-hour job limit.
+      timeout-minutes: 340
       shell: bash -l {0}
       run: |
         set +e
@@ -262,7 +264,11 @@ jobs:
         # independent recipes side by side, with a shared jobserver keeping them at the
         # runner's cores in total; Windows has no jobserver, and was no faster with two
         [ "$PLATFORM" != "win-64" ] && extra+=(--parallel-builds "3:$(getconf _NPROCESSORS_ONLN)")
-        pixi run rs "$DISTRO" build --target-platform "$PLATFORM" "${extra[@]}" 2>&1 | tee rattler-build.log
+        build=(python tools/robostack.py "$DISTRO" build --target-platform "$PLATFORM" "${extra[@]}")
+        if [ "$PLATFORM" != "win-64" ]; then
+          build=(python tools/ci_build.py --cache-dir "$CACHE_DIR" --timeout 19800 -- "${build[@]}")
+        fi
+        pixi run "${build[@]}" 2>&1 | tee rattler-build.log
         status=${PIPESTATUS[0]}
         echo "exit-code=${status}" >> "$GITHUB_OUTPUT"
         exit "$status"
@@ -302,11 +308,9 @@ jobs:
         if-no-files-found: warn
         retention-days: 7
 
-    - name: Drop the package a cancellation may have cut short
-      # Cancelling can kill the compiler while the build script carries on, and
-      # rattler-build then packages an empty build (seen on Windows); the newest
-      # artifact is the only one that can be affected.
-      if: ${{ always() && steps.build-recipes.outcome == 'cancelled' }}
+    - name: Drop the Windows package a cancellation may have cut short
+      # Windows builds one package at a time; POSIX builds are cleaned by ci_build.py.
+      if: ${{ always() && runner.os == 'Windows' && steps.build-recipes.outcome == 'cancelled' }}
       shell: bash -l {0}
       run: |
         newest=$(ls -t "$CACHE_DIR"/*.conda 2>/dev/null | head -1)
@@ -314,7 +318,7 @@ jobs:
 
     - name: Save build cache
       id: save-cache
-      if: ${{ always() && contains(fromJSON('["success","failure","cancelled"]'), steps.build-recipes.outcome) }}
+      if: ${{ always() && contains(fromJSON('["success","failure","cancelled"]'), steps.build-recipes.outcome) && (runner.os == 'Windows' || steps.build-recipes.outputs.cache-ready == 'true') }}
       uses: actions/cache/save@v5
       with:
         path: ${{ env.CACHE_DIR }}
@@ -322,9 +326,9 @@ jobs:
 
     # Only the newest cache of a pull request/distribution/platform is restored; the ones
     # of earlier runs and attempts only push others out of the repository's 10 GB, so
-    # full rebuilds lost their progress. (Read-only token on forks: then this is skipped.)
+    # full rebuilds lost their progress. Forks have a read-only token, so skip deletion.
     - name: Drop this pull request's superseded build caches
-      if: ${{ always() && steps.save-cache.outcome == 'success' && github.event.pull_request.number }}
+      if: ${{ always() && steps.save-cache.outcome == 'success' && github.event.pull_request.number && github.event.pull_request.head.repo.full_name == github.repository }}
       continue-on-error: true
       shell: bash -l {0}
       env:
@@ -332,12 +336,16 @@ jobs:
         PREFIX: ${{ runner.os }}-${{ matrix.distro }}-${{ matrix.target.platform }}-pr-${{ github.event.pull_request.number }}-
         KEEP: ${{ runner.os }}-${{ matrix.distro }}-${{ matrix.target.platform }}-pr-${{ github.event.pull_request.number }}-${{ github.run_id }}-${{ github.run_attempt }}
       run: |
-        # pixi's gh: the runner's is not on PATH on Windows (Clean up PATH)
-        pixi run gh cache list --repo "$GITHUB_REPOSITORY" --key "$PREFIX" --limit 100 --json id,key \
-          --jq ".[] | select(.key != \"$KEEP\") | .id" |
+        # cache/save reports success even on upload failure: verify the replacement exists.
+        if ! ids=$(pixi run gh cache list --repo "$GITHUB_REPOSITORY" --ref "$GITHUB_REF" --key "$PREFIX" --limit 100 --json id,key \
+          --jq "if any(.[]; .key == \"$KEEP\") then .[] | select(.key != \"$KEEP\") | .id else error(\"New cache not found\") end"); then
+          echo "::warning::Could not verify the new build cache; keeping all previous caches."
+          exit 0
+        fi
         while read -r id; do
+          [ -n "$id" ] || continue
           pixi run gh cache delete "$id" --repo "$GITHUB_REPOSITORY" && echo "deleted cache $id"
-        done
+        done <<< "$ids"
 
     - name: Generate the staged build workflows (catches post-merge problems)
       shell: bash -l {0}
