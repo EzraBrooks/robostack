@@ -40,7 +40,13 @@ pixi run -v rs "${ROBOSTACK_DISTRO}" build-ci "${recipe_args[@]}" --output-dir $
 
 # Check if it build something, this is a hotfix for the skips inside additional_recipes
 shopt -s nullglob
-conda_packages=( "${CONDA_BLD_PATH}/${target}"*/*.conda )
+if [[ -n "$target" ]]; then
+    # noarch packages (e.g. the compatibility packages) are uploaded from every platform;
+    # the first upload wins and the others skip
+    conda_packages=( "${CONDA_BLD_PATH}/${target}"*/*.conda "${CONDA_BLD_PATH}/noarch/"*.conda )
+else
+    conda_packages=( "${CONDA_BLD_PATH}/"*/*.conda )
+fi
 if (( ${#conda_packages[@]} > 0 )); then
     # Upload packages one-by-one; the upload task (tools/robostack.py) uploads them to
     # prefix.dev and anaconda.org and skips packages that are already there.

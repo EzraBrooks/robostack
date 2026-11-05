@@ -27,6 +27,7 @@ import shutil
 import subprocess
 import sys
 import time
+from collections.abc import Callable
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -372,8 +373,9 @@ def upload(distro: str, files: list[str], cwd: Path) -> int:
         return 1
     missing = [f for f in files if not on_anaconda(channel, Path(cwd, f))]
     if missing:
+        # another platform's job can upload the same noarch package at the same time
         rc |= retry(["rattler-build", "upload", "anaconda", "-o", channel, "--api-key", token, *missing], cwd,
-                    "anaconda.org")
+                    "anaconda.org", done=lambda: all(on_anaconda(channel, Path(cwd, f)) for f in missing))
     return rc
 
 
@@ -381,11 +383,14 @@ UPLOAD_ATTEMPTS = 5
 UPLOAD_WAIT = 30  # doubled on each retry: 30 s, 1, 2, 4 minutes (anaconda.org's 503s can last minutes)
 
 
-def retry(cmd: list[str], cwd: Path, what: str) -> int:
+def retry(cmd: list[str], cwd: Path, what: str, done: Callable[[], bool] | None = None) -> int:
     # the channels (and Sigstore, for attestations) fail now and then; uploads are
-    # idempotent, so retry
+    # idempotent, so retry. done: whether a failed upload is there anyway
     for attempt in range(1, UPLOAD_ATTEMPTS + 1):
         rc = run(cmd, cwd)
+        if rc and done is not None and done():
+            print(f"{what} upload failed, but the packages are there", file=sys.stderr)
+            return 0
         if rc == 0 or attempt == UPLOAD_ATTEMPTS:
             return rc
         wait = UPLOAD_WAIT * 2 ** (attempt - 1)

@@ -39,12 +39,13 @@ def duration(seconds: float) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--recipes", required=True, type=Path)
-    parser.add_argument("--cache-dir", required=True, type=Path)
+    parser.add_argument("--cache-dir", required=True, type=Path, action="append",
+                        help="A directory of cached packages (repeatable: the platform's and noarch)")
     parser.add_argument("--platform", required=True)
     args = parser.parse_args()
 
     recipes = {p.name for p in args.recipes.iterdir() if (p / "recipe.yaml").is_file()} if args.recipes.is_dir() else set()
-    cached = {f.name.rsplit("-", 2)[0] for f in args.cache_dir.glob("*.conda")} if args.cache_dir.is_dir() else set()
+    cached = {f.name.rsplit("-", 2)[0] for d in args.cache_dir for f in d.glob("*.conda")}
     to_build = sorted(recipes - cached)
     skipped = len(recipes & cached)
     build, skip = SECONDS.get(args.platform, max(SECONDS.values()))

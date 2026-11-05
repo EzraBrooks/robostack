@@ -114,12 +114,15 @@ def test_ci_estimate_uses_the_measured_times(tmp_path, monkeypatch, capsys):
     cache = tmp_path / "cache"
     cache.mkdir()
     (cache / "ros2-b-1.0-h0_1.conda").write_text("")
+    noarch = tmp_path / "noarch"
+    noarch.mkdir()
+    (noarch / "ros-jazzy-a-1.0-h0_1.conda").write_text("")
     monkeypatch.setenv("GITHUB_STEP_SUMMARY", "")
     monkeypatch.setattr("sys.argv", ["ci_estimate.py", "--recipes", str(recipes), "--cache-dir", str(cache),
-                                     "--platform", "linux-64"])
+                                     "--cache-dir", str(noarch), "--platform", "linux-64"])
     assert ci_estimate.main() == 0
-    # ros2-a 150 s (average), its alias 0.3 s, ros2-new the median 80 s, ros2-b cached 2 s
-    assert capsys.readouterr().out.startswith("3 packages to build, 1 restored from the cache: roughly 4 min")
+    # ros2-a 150 s (average), ros2-new the median 80 s, ros2-b and the noarch alias cached 2 s each
+    assert capsys.readouterr().out.startswith("2 packages to build, 2 restored from the cache: roughly 4 min")
 
 
 def test_build_ci_parallel_times_each_build(tmp_path, monkeypatch, capsys):

@@ -16,7 +16,8 @@ distribution comes from the channel. The older names keep working: for every pac
 there is also a small `ros-<distro>-<package>` package that just depends on
 `ros2-<package>` of the same version (vinca's `package_name_mode: both` in
 `shared/vinca.yaml`), so existing environments and instructions such as
-`pixi add ros-jazzy-desktop` don't break.
+`pixi add ros-jazzy-desktop` don't break. These are `noarch` packages, built once for
+all platforms: each platform's build uploads them, and whichever comes first wins.
 
 **A package is missing?** Open a *Package request* issue. robostack-bot opens a pull
 request that adds it to the build, and a maintainer reviews it.

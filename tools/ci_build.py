@@ -16,9 +16,13 @@ class Interrupted(Exception):
         self.code = 124 if signum == signal.SIGALRM else 128 + signum
 
 
-def run(cmd: list[str], cache_dir: Path, timeout: float) -> int:
-    cache_dir = cache_dir.resolve()
-    original = {p: (p.stat().st_mtime_ns, p.stat().st_size) for p in cache_dir.glob("*.conda")}
+def run(cmd: list[str], cache_dirs: list[Path], timeout: float) -> int:
+    cache_dirs = [d.resolve() for d in cache_dirs]
+
+    def archives():
+        return [p for d in cache_dirs for p in d.glob("*.conda")]
+
+    original = {p: (p.stat().st_mtime_ns, p.stat().st_size) for p in archives()}
     completed = set()
 
     def output(line):
@@ -57,7 +61,7 @@ def run(cmd: list[str], cache_dir: Path, timeout: float) -> int:
                 output(line)
             proc.stdout.close()
             # Parallel builds can leave several partial archives, not just the newest one.
-            for p in cache_dir.glob("*.conda"):
+            for p in archives():
                 if p not in completed and original.get(p) != (p.stat().st_mtime_ns, p.stat().st_size):
                     print(f"Removing unfinished archive: {p}", flush=True)
                     p.unlink()
@@ -72,7 +76,8 @@ def run(cmd: list[str], cache_dir: Path, timeout: float) -> int:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--cache-dir", type=Path, required=True)
+    parser.add_argument("--cache-dir", type=Path, required=True, action="append",
+                        help="A directory of cached packages (repeatable: the platform's and noarch)")
     parser.add_argument("--timeout", type=float, required=True, help="Build budget in seconds")
     parser.add_argument("command", nargs=argparse.REMAINDER)
     args = parser.parse_args()

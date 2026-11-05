@@ -156,6 +156,8 @@ jobs:
       ROBOSTACK_UPLOAD_CHANNEL: ${{ vars.ROBOSTACK_UPLOAD_CHANNEL }}
       # rattler-build writes to distros/<d>/work/output, or to CONDA_BLD_PATH (win-64)
       CACHE_DIR: ${{ matrix.target.platform == 'win-64' && 'D:/bld/win-64' || format('distros/{0}/work/output/{1}', matrix.distro, matrix.target.platform) }}
+      # and the noarch packages (e.g. the compatibility packages) next to it
+      NOARCH_CACHE_DIR: ${{ matrix.target.platform == 'win-64' && 'D:/bld/noarch' || format('distros/{0}/work/output/noarch', matrix.distro) }}
     steps:
     - uses: actions/checkout@v6
       with:
@@ -226,7 +228,9 @@ jobs:
     - name: Restore build cache
       uses: actions/cache/restore@v5
       with:
-        path: ${{ env.CACHE_DIR }}
+        path: |
+          ${{ env.CACHE_DIR }}
+          ${{ env.NOARCH_CACHE_DIR }}
         key: ${{ runner.os }}-${{ matrix.distro }}-${{ matrix.target.platform }}-pr-${{ github.event.pull_request.number }}
         restore-keys: |
           ${{ runner.os }}-${{ matrix.distro }}-${{ matrix.target.platform }}-pr-${{ github.event.pull_request.number }}-
@@ -235,7 +239,7 @@ jobs:
     - name: Apply ci.yaml cache controls
       shell: bash -l {0}
       run: |
-        pixi run python tools/ci_config.py --cache-dir "$CACHE_DIR" --config "distros/$DISTRO/ci.yaml" --vinca "distros/$DISTRO/vinca.yaml"
+        pixi run python tools/ci_config.py --cache-dir "$CACHE_DIR" --cache-dir "$NOARCH_CACHE_DIR" --config "distros/$DISTRO/ci.yaml" --vinca "distros/$DISTRO/vinca.yaml"
         mkdir -p "$CACHE_DIR"
         pixi run rattler-index fs "$CACHE_DIR/.." --force
 
@@ -243,13 +247,13 @@ jobs:
       shell: bash -l {0}
       run: |
         shopt -s nullglob
-        packages=("$CACHE_DIR"/*.conda)
+        packages=("$CACHE_DIR"/*.conda "$NOARCH_CACHE_DIR"/*.conda)
         echo "${#packages[@]} packages restored from the cache"
         for package in "${packages[@]}"; do basename "$package"; done
 
     - name: Estimate the build time
       shell: bash -l {0}
-      run: pixi run python tools/ci_estimate.py --recipes "distros/$DISTRO/work/recipes" --cache-dir "$CACHE_DIR" --platform "$PLATFORM"
+      run: pixi run python tools/ci_estimate.py --recipes "distros/$DISTRO/work/recipes" --cache-dir "$CACHE_DIR" --cache-dir "$NOARCH_CACHE_DIR" --platform "$PLATFORM"
 
     - name: Build recipes
       id: build-recipes
@@ -266,7 +270,7 @@ jobs:
         [ "$PLATFORM" != "win-64" ] && extra+=(--parallel-builds "3:$(getconf _NPROCESSORS_ONLN)")
         build=(python tools/robostack.py "$DISTRO" build --target-platform "$PLATFORM" "${extra[@]}")
         if [ "$PLATFORM" != "win-64" ]; then
-          build=(python tools/ci_build.py --cache-dir "$CACHE_DIR" --timeout 19800 -- "${build[@]}")
+          build=(python tools/ci_build.py --cache-dir "$CACHE_DIR" --cache-dir "$NOARCH_CACHE_DIR" --timeout 19800 -- "${build[@]}")
         fi
         pixi run "${build[@]}" 2>&1 | tee rattler-build.log
         status=${PIPESTATUS[0]}
@@ -313,7 +317,7 @@ jobs:
       if: ${{ always() && runner.os == 'Windows' && steps.build-recipes.outcome == 'cancelled' }}
       shell: bash -l {0}
       run: |
-        newest=$(ls -t "$CACHE_DIR"/*.conda 2>/dev/null | head -1)
+        newest=$(ls -t "$CACHE_DIR"/*.conda "$NOARCH_CACHE_DIR"/*.conda 2>/dev/null | head -1)
         if [ -n "$newest" ]; then echo "Removing $newest"; rm -f "$newest"; fi
 
     - name: Save build cache
@@ -321,7 +325,9 @@ jobs:
       if: ${{ always() && contains(fromJSON('["success","failure","cancelled"]'), steps.build-recipes.outcome) && (runner.os == 'Windows' || steps.build-recipes.outputs.cache-ready == 'true') }}
       uses: actions/cache/save@v5
       with:
-        path: ${{ env.CACHE_DIR }}
+        path: |
+          ${{ env.CACHE_DIR }}
+          ${{ env.NOARCH_CACHE_DIR }}
         key: ${{ runner.os }}-${{ matrix.distro }}-${{ matrix.target.platform }}-pr-${{ github.event.pull_request.number }}-${{ github.run_id }}-${{ github.run_attempt }}
 
     # Only the newest cache of a pull request/distribution/platform is restored; the ones

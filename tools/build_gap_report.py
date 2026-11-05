@@ -2,7 +2,8 @@
 """Report gaps between generated recipes and built conda artifacts.
 
 Default behavior is platform-agnostic: it inspects all output/<platform> folders that
-contain conda artifacts and reports gaps per platform. Only artifacts built with the
+contain conda artifacts and reports gaps per platform; output/noarch artifacts count for
+every platform. Only artifacts built with the
 CURRENT build_number (and, for the mutex package, its own build_number) are counted —
 older-build_number leftovers from a previous full rebuild are ignored, since counting
 them makes the report claim far more packages are done than the current build actually
@@ -293,8 +294,12 @@ def main() -> int:
         )
         print(f"Filtering to build_number {build_number}{mutex_note}{override_note}\n")
 
+    # noarch packages (e.g. the compatibility packages) count as built on every platform
+    built_noarch = built_packages_for_platform(
+        output_root, "noarch", build_number, mutex_norm_name, mutex_build_number, pkg_build_number_overrides
+    )
     for idx, platform in enumerate(selected_platforms):
-        built = built_packages_for_platform(
+        built = built_noarch | built_packages_for_platform(
             output_root, platform, build_number, mutex_norm_name, mutex_build_number, pkg_build_number_overrides
         )
 
