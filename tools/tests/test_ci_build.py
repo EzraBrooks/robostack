@@ -14,21 +14,21 @@ ROOT = Path(__file__).resolve().parents[2]
 pytestmark = pytest.mark.skipif(os.name != "posix", reason="POSIX CI supervisor")
 
 
-def command(cache, timeout, script):
-    return [sys.executable, str(ROOT / "tools/ci_build.py"), "--cache-dir", str(cache),
+def command(output_dir, timeout, script):
+    return [sys.executable, str(ROOT / "tools/ci_build.py"), "--output-dir", str(output_dir), "--platform", "linux-64",
             "--timeout", str(timeout), "--", sys.executable, str(script)]
 
 
 @pytest.mark.parametrize("signum", [signal.SIGINT, signal.SIGTERM, None])
 def test_interruption_stops_descendants_and_preserves_only_finished_archives(tmp_path, signum):
-    cache = tmp_path / "packages"
+    cache = tmp_path / "linux-64"
     cache.mkdir()
     (cache / "restored.conda").write_text("cached")
     script = tmp_path / "build.py"
     # A descendant that ignores graceful termination and keeps modifying the output.
     script.write_text('''import os, signal, subprocess, sys, time
 from pathlib import Path
-cache = Path(sys.argv[0]).parent / "packages"
+cache = Path(sys.argv[0]).parent / "linux-64"
 (cache / "completed.conda").write_text("complete")
 print(f"Archive written to '{cache / 'completed.conda'}'", flush=True)
 for i in range(3):
@@ -47,7 +47,7 @@ child.wait()
 ''')
     output = tmp_path / "github-output"
     env = {**os.environ, "GITHUB_OUTPUT": str(output)}
-    proc = subprocess.Popen(command(cache, 2 if signum is None else 30, script), env=env,
+    proc = subprocess.Popen(command(tmp_path, 2 if signum is None else 30, script), env=env,
                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     group = None
     try:

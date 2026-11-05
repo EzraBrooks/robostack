@@ -112,15 +112,17 @@ def test_ci_estimate_uses_the_measured_times(tmp_path, monkeypatch, capsys):
     for r in ("ros2-a", "ros-jazzy-a", "ros2-b", "ros2-new"):
         (recipes / r).mkdir(parents=True)
         (recipes / r / "recipe.yaml").write_text("")
-    cache = tmp_path / "cache"
-    cache.mkdir()
-    (cache / "ros2-b-1.0-h0_1.conda").write_text("")
+    output = tmp_path / "output"
+    (output / "linux-64").mkdir(parents=True)
+    (output / "linux-64" / "ros2-b-1.0-h0_1.conda").write_text("")
+    (output / "noarch").mkdir()
+    (output / "noarch" / "ros-jazzy-a-1.0-h0_1.conda").write_text("")
     monkeypatch.setenv("GITHUB_STEP_SUMMARY", "")
-    monkeypatch.setattr("sys.argv", ["ci_estimate.py", "--recipes", str(recipes), "--cache-dir", str(cache),
+    monkeypatch.setattr("sys.argv", ["ci_estimate.py", "--recipes", str(recipes), "--output-dir", str(output),
                                      "--platform", "linux-64"])
     assert ci_estimate.main() == 0
-    # ros2-a 150 s (average), its alias 0.3 s, ros2-new the median 80 s, ros2-b cached 2 s
-    assert capsys.readouterr().out.startswith("3 packages to build, 1 restored from the cache: roughly 4 min")
+    # ros2-a 150 s (average), ros2-new the median 80 s, ros2-b and the noarch alias cached 2 s each
+    assert capsys.readouterr().out.startswith("2 packages to build, 2 restored from the cache: roughly 4 min")
 
 
 def test_build_ci_parallel_times_each_build(tmp_path, monkeypatch, capsys):
@@ -236,13 +238,13 @@ def test_ci_estimate_counts_each_variant(tmp_path, monkeypatch, capsys):
         {"ros2-cpp": {"lyrical": 60.0}, "ros2-py": {"lyrical": 100.0}, "ros2-py-hdf5": {"lyrical": 10.0},
          "ros2-win-py": {"lyrical": 30.0}}))
     monkeypatch.setattr(build_timings, "TIMINGS", timings)
-    cache = tmp_path / "cache"
-    cache.mkdir()
+    cache = tmp_path / "output" / "linux-64"
+    cache.mkdir(parents=True)
     for f in ("ros2-py-1.0-py312h0_1.conda", "ros2-cpp-1.0-h0_1.conda"):
         (cache / f).write_text("")
     monkeypatch.setenv("GITHUB_STEP_SUMMARY", "")
-    monkeypatch.setattr("sys.argv", ["ci_estimate.py", "--recipes", str(recipes), "--cache-dir", str(cache),
-                                     "--platform", "linux-64"])
+    monkeypatch.setattr("sys.argv", ["ci_estimate.py", "--recipes", str(recipes), "--output-dir",
+                                     str(tmp_path / "output"), "--platform", "linux-64"])
     assert ci_estimate.main() == 0
     # ros2-py: 2 of 3 builds left, 200 s; ros2-py-hdf5 6 x 10 s; ros2-win-py 30 s; 2 cached x 2 s
     out = capsys.readouterr().out

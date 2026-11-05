@@ -37,17 +37,19 @@ for %%X in (%CURRENT_RECIPES%) do set "RECIPE_ARGS=!RECIPE_ARGS! --recipe %FEEDS
 pixi run -v rs %ROBOSTACK_DISTRO% build-ci !RECIPE_ARGS! --output-dir %CONDA_BLD_PATH%
 if errorlevel 1 exit 1
 
-:: Check if .conda files exist in the win-64 directory
-if exist "%CONDA_BLD_PATH%\win-64\*.conda" (
-    echo Found .conda files, starting upload...
-    rem Upload packages one-by-one; the upload task (tools/robostack.py) uploads them to
-    rem prefix.dev and anaconda.org and skips packages that are already there.
-    for %%F in ("%CONDA_BLD_PATH%\win-64\*.conda") do (
+:: Upload the win-64 and noarch packages one-by-one; the upload task (tools/robostack.py)
+:: uploads them to prefix.dev and anaconda.org and skips packages that are already there
+:: (noarch ones, e.g. the compatibility packages, are uploaded from every platform).
+set FOUND=0
+for %%D in (win-64 noarch) do (
+    for %%F in ("%CONDA_BLD_PATH%\%%D\*.conda") do (
+        set FOUND=1
         echo Uploading %%~fF
         pixi run rs %ROBOSTACK_DISTRO% upload "%%~fF"
         if errorlevel 1 exit 1
     )
-) else (
-    echo Warning: No .conda files found in %CONDA_BLD_PATH%\win-64
+)
+if "!FOUND!" == "0" (
+    echo Warning: No .conda files found in %CONDA_BLD_PATH%\win-64 or %CONDA_BLD_PATH%\noarch
     echo This might be due to all the packages being skipped
 )

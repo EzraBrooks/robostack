@@ -441,7 +441,8 @@ def upload(distro: str, files: list[str], cwd: Path) -> int:
 
     def anaconda_upload() -> list[str] | None:
         # asked again before every attempt: an upload that timed out may still have
-        # arrived, and uploading it again fails with "already exists"
+        # arrived, or another platform's job uploaded the same noarch package, and
+        # uploading it again fails with "already exists"
         missing = [f for f in files if not on_anaconda(channel, Path(cwd, f))]
         return ["rattler-build", "upload", "anaconda", "-o", channel, "--api-key", token, *missing] if missing else None
 

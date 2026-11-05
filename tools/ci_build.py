@@ -10,15 +10,21 @@ import signal
 import subprocess
 import sys
 
+from ci_config import cache_dirs
+
 
 class Interrupted(Exception):
     def __init__(self, signum):
         self.code = 124 if signum == signal.SIGALRM else 128 + signum
 
 
-def run(cmd: list[str], cache_dir: Path, timeout: float) -> int:
-    cache_dir = cache_dir.resolve()
-    original = {p: (p.stat().st_mtime_ns, p.stat().st_size) for p in cache_dir.glob("*.conda")}
+def run(cmd: list[str], package_dirs: list[Path], timeout: float) -> int:
+    package_dirs = [d.resolve() for d in package_dirs]
+
+    def archives():
+        return [p for d in package_dirs for p in d.glob("*.conda")]
+
+    original = {p: (p.stat().st_mtime_ns, p.stat().st_size) for p in archives()}
     completed = set()
 
     def output(line):
@@ -57,7 +63,7 @@ def run(cmd: list[str], cache_dir: Path, timeout: float) -> int:
                 output(line)
             proc.stdout.close()
             # Parallel builds can leave several partial archives, not just the newest one.
-            for p in cache_dir.glob("*.conda"):
+            for p in archives():
                 if p not in completed and original.get(p) != (p.stat().st_mtime_ns, p.stat().st_size):
                     print(f"Removing unfinished archive: {p}", flush=True)
                     p.unlink()
@@ -72,10 +78,11 @@ def run(cmd: list[str], cache_dir: Path, timeout: float) -> int:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--cache-dir", type=Path, required=True)
+    parser.add_argument("--output-dir", type=Path, required=True, help="rattler-build's output directory")
+    parser.add_argument("--platform", required=True)
     parser.add_argument("--timeout", type=float, required=True, help="Build budget in seconds")
     parser.add_argument("command", nargs=argparse.REMAINDER)
     args = parser.parse_args()
     if args.timeout <= 0 or not args.command or args.command[0] != "--" or len(args.command) < 2:
         parser.error("provide a positive timeout and a command after --")
-    sys.exit(run(args.command[1:], args.cache_dir, args.timeout))
+    sys.exit(run(args.command[1:], cache_dirs(args.output_dir, args.platform), args.timeout))

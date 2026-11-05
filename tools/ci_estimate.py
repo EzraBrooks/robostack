@@ -1,6 +1,6 @@
 """How much a pull-request build still has to do, and roughly how long it takes.
 
-    python tools/ci_estimate.py --recipes distros/<d>/work/recipes --cache-dir <dir> --platform <p>
+    python tools/ci_estimate.py --recipes distros/<d>/work/recipes --output-dir <dir> --platform <p>
 
 A recipe makes one build per variant: per Python version for the packages with Python
 content, when the distribution pins several (build_timings.variant_builds). Builds whose
@@ -19,6 +19,7 @@ from collections import Counter
 from pathlib import Path
 
 import build_timings
+from ci_config import cache_dirs
 
 SECONDS = {  # platform: (per built package, per skipped package)
     "linux-64": (19, 2),
@@ -42,14 +43,15 @@ def duration(seconds: float) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--recipes", required=True, type=Path)
-    parser.add_argument("--cache-dir", required=True, type=Path)
+    parser.add_argument("--output-dir", required=True, type=Path, help="rattler-build's output directory")
     parser.add_argument("--platform", required=True)
     args = parser.parse_args()
 
     recipes = {p.name for p in args.recipes.iterdir() if (p / "recipe.yaml").is_file()} if args.recipes.is_dir() else set()
     variants = build_timings.variant_builds(args.recipes, args.platform) if recipes else {}
     builds = {r: variants.get(r, 1) for r in recipes}
-    cached = Counter(f.name.rsplit("-", 2)[0] for f in args.cache_dir.glob("*.conda")) if args.cache_dir.is_dir() else Counter()
+    cached = Counter(f.name.rsplit("-", 2)[0] for d in cache_dirs(args.output_dir, args.platform)
+                     for f in d.glob("*.conda"))
     to_build = {r: n - min(n, cached[r]) for r, n in builds.items() if n > cached[r]}
     skipped = sum(min(n, cached[r]) for r, n in builds.items())
     build, skip = SECONDS.get(args.platform, max(SECONDS.values()))

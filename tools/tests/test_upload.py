@@ -55,3 +55,19 @@ def test_anaconda_only(calls, monkeypatch):
     monkeypatch.setattr(rs, "on_anaconda", lambda channel, package: False)
     assert rs.upload("humble", ["linux-64/a-1-0.conda"], Path(".")) == 0
     assert [c[2] for c in calls] == ["anaconda"] and calls[0][4] == "robostack-humble"
+
+
+def test_on_anaconda_looks_up_noarch_packages_in_noarch(monkeypatch):
+    import urllib.error
+    import urllib.request
+
+    urls = []
+
+    def urlopen(request, timeout):
+        urls.append(request.full_url)
+        raise urllib.error.HTTPError(request.full_url, 404, "Not Found", {}, None)
+
+    monkeypatch.setattr(urllib.request, "urlopen", urlopen)
+    assert rs.on_anaconda("robostack-lyrical", Path("out/noarch/ros-lyrical-a-1.0.0-h0_31.conda")) is False
+    assert urls == ["https://api.anaconda.org/dist/robostack-lyrical/ros-lyrical-a/1.0.0/noarch/"
+                    "ros-lyrical-a-1.0.0-h0_31.conda"]

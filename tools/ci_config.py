@@ -30,9 +30,17 @@ import yaml
 MARKER = ".ci-controls"
 
 
+def cache_dirs(output_dir: Path, platform: str) -> list[Path]:
+    """The cached package directories in rattler-build's output directory: the
+    platform's and noarch (its other contents, e.g. bld/ and src_cache/, are not
+    cached)."""
+    return [output_dir / platform, output_dir / "noarch"]
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--cache-dir", required=True, type=Path)
+    parser.add_argument("--output-dir", required=True, type=Path, help="rattler-build's output directory")
+    parser.add_argument("--platform", required=True)
     parser.add_argument("--config", default="ci.yaml", type=Path)
     parser.add_argument("--vinca", default="vinca.yaml", type=Path)
     args = parser.parse_args()
@@ -41,7 +49,12 @@ def main() -> int:
     if args.config.exists():
         config = yaml.safe_load(args.config.read_text()) or {}
     distro = yaml.safe_load(args.vinca.read_text())["ros_distro"]
-    cache = args.cache_dir
+    for cache in cache_dirs(args.output_dir, args.platform):
+        apply(cache, config, distro)
+    return 0
+
+
+def apply(cache: Path, config: dict, distro: str) -> None:
     controls = json.dumps({"full_rebuild": bool(config.get("full_rebuild", False)),
                            "evict_cache": [str(e) for e in config.get("evict_cache") or []]}, sort_keys=True)
     marker = cache / MARKER
@@ -50,11 +63,11 @@ def main() -> int:
         print(f"No cache directory {cache}; nothing to do.")
         cache.mkdir(parents=True)
         marker.write_text(controls)
-        return 0
+        return
 
     if marker.is_file() and marker.read_text() == controls:
         print("ci.yaml: controls already applied to this cache (a retry); keeping its packages.")
-        return 0
+        return
 
     if config.get("full_rebuild", False):
         print("ci.yaml: full_rebuild is set, ignoring the restored cache.")
@@ -64,7 +77,7 @@ def main() -> int:
             else:
                 child.unlink()
         marker.write_text(controls)
-        return 0
+        return
 
     for entry in config.get("evict_cache") or []:
         name = str(entry).replace("_", "-")
@@ -76,7 +89,6 @@ def main() -> int:
                 print(f"ci.yaml: evicting {path.name}")
                 path.unlink()
     marker.write_text(controls)
-    return 0
 
 
 if __name__ == "__main__":
