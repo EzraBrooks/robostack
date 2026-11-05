@@ -35,19 +35,10 @@ import tarfile
 from pathlib import Path
 
 import yaml
-from ruamel.yaml import YAML
 
 import robostack as rs
 
 DERIVED_KEYS = ("conda_index", "patch_dir", "rosdistro_snapshot", "rosdistro_additional_recipes", "skip_existing")
-
-
-def _ry() -> YAML:
-    ry = YAML()
-    ry.preserve_quotes = True
-    ry.width = 4096
-    ry.indent(mapping=2, sequence=4, offset=2)
-    return ry
 
 
 def _norm(x):
@@ -125,7 +116,7 @@ class Source:
 
 
 def import_distro(src: Source, distro: str | None) -> str:
-    ry = _ry()
+    ry = rs.ruamel_yaml()
     vinca = ry.load(src.text("vinca.yaml"))
     # the old repository's names (ros-<source>-*) follow its distribution, also when
     # --distro imports it under another name
