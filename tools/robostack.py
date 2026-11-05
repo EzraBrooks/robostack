@@ -321,7 +321,7 @@ def rattler_build(distro: str, args: list[str], skip_existing: bool = True) -> l
     cmd = ["rattler-build", "build", "-m", "./conda_build_config.yaml",
            *(["-c", extra] if extra else []),
            "-c", channel_url(distro), "-c", CONDA_FORGE, "--channel-priority", "disabled"]
-    return cmd + (["--skip-existing"] if skip_existing else []) + args
+    return cmd + (["--skip-existing=all"] if skip_existing else []) + args
 
 
 UPLOAD_HOSTS = ("prefix", "anaconda")

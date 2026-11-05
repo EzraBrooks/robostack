@@ -23,4 +23,33 @@ full_rebuild: false
 #
 # Remember that dependents are not rebuilt automatically: evict them as well if
 # they must pick up the change.
-evict_cache: []
+evict_cache:
+  # built against qt6-main 6.11.3, which rules out pyqt6; rebuilt with the 6.11.2 pin
+  - fuse-viz
+  - grid-map-rviz-plugin
+  - gz-gui-vendor
+  - gz-sim-vendor
+  - moveit-ros-visualization
+  - moveit-setup-assistant
+  - moveit-task-constructor-visualization
+  - mrpt-gui
+  - nav2-rviz-plugins
+  - python-qt-binding
+  - qt-gui-cpp
+  - rqt-gui-cpp
+  - rqt-image-view
+  - rqt-mocap4r2-control
+  - rqt-plot
+  - rqt-py-common
+  - rviz-common
+  - rviz-default-plugins
+  - rviz-imu-plugin
+  - rviz-rendering
+  - rviz-rendering-tests
+  - rviz-satellite
+  - rviz-visual-testing-framework
+  - rviz-visual-tools
+  - rviz2
+  - slam-toolbox
+  - swri-console
+  - turtlesim

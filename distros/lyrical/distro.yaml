@@ -6,3 +6,13 @@ channel_name: robostack-lyrical
 upload_to: [prefix, anaconda]
 read_from: prefix
 rosdistro_sync: lyrical/2026-10-05
+pinning_overrides:
+  # build every python package for 3.14 (the shared default) and 3.12;
+  # is_python_min is zipped with python, so it needs one entry per version
+  python: [3.14.* *_cp314, 3.12.* *_cpython]
+  is_python_min: [false, false]
+  # every pyqt6 6.11.0 build on conda-forge needs qt6-main <=6.11.2, but the shared
+  # `6.11` pin resolves to 6.11.3, whose run export (>=6.11.3) rules pyqt6 out: the
+  # rqt packages then can't be installed with python_qt_binding. The published
+  # packages were built with 6.11.2; drop this once pyqt6 is rebuilt for 6.11.3+.
+  qt6_main: ['6.11.2']

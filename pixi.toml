@@ -17,7 +17,7 @@ PYTHONIOENCODING = "utf-8"
 
 [dependencies]
 python = ">=3.14.0,<3.15"
-rattler-build = ">=0.79.0,<0.80"
+rattler-build = ">=0.80.0,<0.81"
 cmake = "<4.0"
 setuptools = "<82.0"
 rattler-index = ">=0.27.16"
@@ -36,7 +36,7 @@ git = "*"
 
 [pypi-dependencies]
 # One vinca for all distributions.
-vinca = { git = "https://github.com/RoboStack/vinca.git", rev = "d6aa28ff0477f6656865db95461001fb4ace40c7" }
+vinca = { git = "https://github.com/RoboStack/vinca.git", rev = "a7041a71550b388990aa42b2b86a360d93ea6dbe" }
 # For local development, temporarily use (and regenerate pixi.lock):
 # vinca = { path = "../vinca", editable = true }
 
