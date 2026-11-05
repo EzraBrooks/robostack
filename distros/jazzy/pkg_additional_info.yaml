@@ -133,11 +133,35 @@ ament_cmake_gmock:  # as ament_cmake_gtest
   build_number: 28
 ament_cmake_gtest:  # uses conda-forge's gtest instead of gtest_vendor's sources
   build_number: 28
+fuse_viz:
+  build_number: 28
+grid_map_rviz_plugin:
+  build_number: 28
 gz_ogre_next_vendor:
+  build_number: 28
+moveit_ros_visualization:
+  build_number: 28
+moveit_task_constructor_visualization:
+  build_number: 28
+nav2_rviz_plugins:
+  build_number: 28
+octomap_rviz_plugins:
+  build_number: 28
+rviz_2d_overlay_plugins:
+  build_number: 28
+rviz_common:
+  build_number: 28
+rviz_default_plugins:
+  build_number: 28
+rviz_imu_plugin:
   build_number: 28
 rviz_ogre_vendor:
   additional_cmake_args: "-DRVIZ_OGRE_VENDOR_MANGLE_NAME_OF_LIBRARIES_USED_BY_RVIZ=ON"
-  build_number: 28  # built without the EXR codec (ros2-rviz-ogre-vendor.patch)
+  build_number: 29  # built without the EXR codec (ros2-rviz-ogre-vendor.patch), absolute install names on macOS (.osx.patch)
+rviz_rendering:
+  build_number: 28
+rviz_satellite:
+  build_number: 28
 spatio_temporal_voxel_layer:
   build_number: 28
 urdf:  # drop deprecated urdf_world/types.h include (ros2/urdf#54) for headers 3.x

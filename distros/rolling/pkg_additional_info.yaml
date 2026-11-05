@@ -71,6 +71,24 @@ urdfdom_headers:
     override_version: '3.0.0'
 zenoh_cpp_vendor:
   additional_cmake_args: "-DAMENT_VENDOR_POLICY=NEVER_VENDOR_IGNORE_SATISFIED_CHECK -DUSE_SYSTEM_ZENOH=ON"
+fuse_viz:
+  build_number: 33
+moveit_ros_visualization:
+  build_number: 33
+moveit_task_constructor_visualization:
+  build_number: 33
+rviz_2d_overlay_plugins:
+  build_number: 33
+rviz_common:
+  build_number: 33
+rviz_default_plugins:
+  build_number: 33
+rviz_imu_plugin:
+  build_number: 33
 rviz_ogre_vendor:
   additional_cmake_args: "-DRVIZ_OGRE_VENDOR_MANGLE_NAME_OF_LIBRARIES_USED_BY_RVIZ=ON"
-  build_number: 33  # built without the EXR codec (ros2-rviz-ogre-vendor.patch)
+  build_number: 34  # built without the EXR codec (ros2-rviz-ogre-vendor.patch), absolute install names on macOS (.osx.patch)
+rviz_rendering:
+  build_number: 33
+rviz_satellite:
+  build_number: 33

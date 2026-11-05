@@ -1,0 +1,14 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -45,3 +45,10 @@
+ 
++if(APPLE)
++  # Consumers record this path, so they find Ogre without an RPATH to opt/.
++  list(APPEND OGRE_CMAKE_ARGS
++    "-DCMAKE_INSTALL_NAME_DIR=${CMAKE_INSTALL_PREFIX}/opt/rviz_ogre_vendor/lib"
++    -DCMAKE_MACOSX_RPATH:BOOL=OFF)
++endif()
++
+ ament_vendor(ogre_vendor
+   VCS_URL https://github.com/OGRECave/ogre.git
