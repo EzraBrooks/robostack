@@ -81,7 +81,7 @@ combines the two, and the files next to each:
 - **`patch/*.patch` and `tests/`:** per package, the distribution's file replaces the shared one. In tests, `- if: ros_distro in ["humble", "jazzy"]` blocks select distribution-specific parts.
 - **`vinca_pinning.yaml`:** the shared pinning, adjusted by `distro.yaml`:
   - `conda_forge_pinning_version` and `conda_forge_migrations` keep a distribution on its own conda-forge pinning, for example until its next full rebuild;
-  - `pinning_overrides` replace shared pins by name, for example jazzy's Python 3.12.
+  - `pinning_overrides` replace shared pins by name, for example jazzy's Python 3.12. Items written as a block list keep their conda-build selectors (`- 3.12.*  # [not riscv64]`).
   - `pixi run rs <distro> render-pinning` turns this into the committed `conda_build_config.yaml`.
 
 A fix that applies to every distribution goes into `shared/`, a version-specific one into `distros/<distro>/`.

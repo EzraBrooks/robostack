@@ -90,16 +90,6 @@ def snapshot_changes(old: dict[str, str], new: dict[str, str]) -> str:
     return "\n".join(lines)
 
 
-def _ruamel():
-    from ruamel.yaml import YAML
-
-    ry = YAML()
-    ry.preserve_quotes = True
-    ry.width = 4096
-    ry.indent(mapping=2, sequence=4, offset=2)
-    return ry
-
-
 REPODATA_SUBDIRS = ("noarch", "linux-64", "linux-aarch64", "osx-64", "osx-arm64", "win-64")
 
 
@@ -167,7 +157,7 @@ def bump_rebuild(distro: str) -> list[str]:
     lines = [f"`build_number` {current} → {number} ({source} + 1), mutex {old_mutex} → {new_mutex} (rebuilds every package)"]
 
     if info.is_file():
-        ry = _ruamel()
+        ry = rs.ruamel_yaml()
         data = ry.load(info.read_text()) or {}
         dropped = []
         for pkg in list(data):
@@ -246,7 +236,7 @@ def bump_partial(distro: str, packages: dict[str, str]) -> list[str]:
     number = (current if released is None else max(current, released)) + 1
 
     info = rs.DISTROS / distro / "pkg_additional_info.yaml"
-    ry = _ruamel()
+    ry = rs.ruamel_yaml()
     data = (ry.load(info.read_text()) if info.is_file() else None) or {}
     for pkg in packages:
         entry = data.get(pkg)
@@ -709,7 +699,7 @@ def _available(distro: str) -> set[str]:
 
 def _append_selection(path: Path, packages: list[str]) -> None:
     """Append to packages_select_by_deps keeping the file's comments (round trip)."""
-    ry = _ruamel()
+    ry = rs.ruamel_yaml()
     data = ry.load(path.read_text()) if path.is_file() else {}
     data.setdefault("packages_select_by_deps", [])
     items = data["packages_select_by_deps"]
@@ -874,7 +864,7 @@ def merge_build_numbers(path: Path, entries: dict[str, int]) -> list[str]:
     packages that changed."""
     from vinca.sort_yaml_keys import sort_mapping_keys
 
-    ry = _ruamel()
+    ry = rs.ruamel_yaml()
     data = (ry.load(path.read_text()) if path.is_file() else None) or {}
     changed = []
     for name, number in sorted(entries.items()):
