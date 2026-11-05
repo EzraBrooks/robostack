@@ -258,6 +258,7 @@ packages_select_by_deps:
   - rclc_lifecycle
   - rclc_parameter
   - rclcpp
+  - rclcpp_async
   - rclcpp_cascade_lifecycle
   - rclpy
   - rclpy_cascade_lifecycle
