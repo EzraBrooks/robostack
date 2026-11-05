@@ -127,6 +127,13 @@ opennav_coverage_msgs:
   rev: c02a41e739ab51c558d1c4c81d6c9ff154ee80f3
   version: 0.0.1
   additional_folder: opennav_coverage_msgs
+psdk_interfaces:
+  # upstream only releases psdk_ros2 for humble
+  url: https://github.com/umdlife/psdk_ros2.git
+  rev: 1d9ce02ed52a02ff114155d1fab1bf4d86ca7892
+  version: 1.3.2
+  additional_folder: psdk_interfaces
+
 rclcpp_async:
   rev: 7a54000737ef97e833589f4fe37a5784691ce9ca
   url: https://github.com/otamachan/rclcpp_async.git
