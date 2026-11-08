@@ -120,7 +120,8 @@ plotjuggler:
   # PlotJuggler 3.17 is Qt5-only (find_package(Qt5 ...)); the Qt rosdep keys map to Qt6 here
   remove_host: ["qt6-main"]
   remove_run: ["qt6-main"]
-  add_host: ["libxcb", "${{ 'elfutils' if linux }}", "ros2-ros-workspace", "qt-main"]
+  # python: embeds the interpreter (links libpython) without declaring it
+  add_host: ["libxcb", "${{ 'elfutils' if linux }}", "ros2-ros-workspace", "qt-main", "python"]
   add_run: ["qt-main"]
 plotjuggler_ros:
   # Qt5-only like plotjuggler, which it links
