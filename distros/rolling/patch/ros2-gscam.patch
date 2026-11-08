@@ -1,0 +1,16 @@
+diff --git a/src/gscam.cpp b/src/gscam.cpp
+index e670b21..aa6896a 100644
+--- a/src/gscam.cpp
++++ b/src/gscam.cpp
+@@ -42,7 +42,10 @@ GSCam::GSCam(const rclcpp::NodeOptions & options)
+   gsconfig_(""),
+   pipeline_(NULL),
+   sink_(NULL),
+-  camera_info_manager_(this, "camera", ""),
++  // RoboStack: camera_info_manager 7 only takes the node interfaces (no rclcpp::Node *)
++  camera_info_manager_(
++    get_node_base_interface(), get_node_services_interface(), get_node_logging_interface(),
++    "camera", ""),
+   stop_signal_(false)
+ {
+   pipeline_thread_ = std::thread(

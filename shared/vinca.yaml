@@ -563,6 +563,7 @@ packages_select_by_deps:
       - foxglove_compressed_video_transport
       - grid_map # rviz linking problems on Windows, see https://github.com/RoboStack/ros-jazzy/pull/79#issuecomment-2993499990
       - grid_map_rviz_plugin # rviz linking problems on Windows, see https://github.com/RoboStack/ros-jazzy/pull/79#issuecomment-2993499990
+      - gscam
       - ign_ros2_control
       - iiwa14_moveit_config # Windows error C1083: Cannot open compiler generated file: ''
       - iiwa7_moveit_config
