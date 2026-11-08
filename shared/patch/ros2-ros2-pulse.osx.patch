@@ -1,0 +1,30 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 2b9c638..5f5983d 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -10,6 +10,10 @@ if(NOT CMAKE_CXX_STANDARD)
+ endif()
+ set(CMAKE_CXX_STANDARD_REQUIRED ON)
+ 
++# RoboStack: floating-point std::from_chars, which libc++ marks unavailable on macOS (the
++# system libc++ lacks it); conda-forge ships its own libc++, which has it
++add_compile_definitions(_LIBCPP_DISABLE_AVAILABILITY)
++
+ # Standalone (no-ROS) build path: builds the pure-C++ core + the gtest unit suite via
+ # find_package(GTest)/find_package(Threads), with NO ament/colcon. Lets the fast core lane and
+ # the sanitizer lanes run on a plain ubuntu image without a ROS container. The ament build below
+@@ -89,8 +93,14 @@ else()
+   target_compile_options(${PROJECT_NAME}_core PRIVATE -fvisibility=hidden -fvisibility-inlines-hidden)
+   # Version script localizes the vague-linkage std:: instantiations that header pragmas force
+   # back to default visibility, the export list is the script's global clause, nothing else.
++  # RoboStack: Apple's ld has no version scripts; export the same symbols (exports.map's
++  # global clause, with Mach-O's leading underscore)
++  if(APPLE)
++    target_link_options(${PROJECT_NAME} PRIVATE "-Wl,-exported_symbol,_ros_trace_*")
++  else()
+   target_link_options(${PROJECT_NAME} PRIVATE
+     "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/src/probe/exports.map")
++  endif()
+   set_target_properties(${PROJECT_NAME} PROPERTIES
+     LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/probe/exports.map")
+ 
