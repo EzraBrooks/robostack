@@ -118,6 +118,7 @@ packages_select_by_deps:
   - diagnostic_remote_logging
   - diagnostics
   - diff_drive_controller
+  - domain_bridge
   - dynamixel_sdk
   - flex_sync
   - foxglove_bridge

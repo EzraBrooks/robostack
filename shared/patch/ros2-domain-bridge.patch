@@ -1,0 +1,50 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 1686882..88c3d50 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -66,6 +66,9 @@ rosidl_get_typesupport_target(cpp_typesupport_target
+ target_link_libraries(${PROJECT_NAME}_lib "${cpp_typesupport_target}")
+ 
+ set_target_properties(${PROJECT_NAME}_lib PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
++# RoboStack: visibility_control.hpp exports with this defined, else imports (Windows: the
++# library imported its own symbols, LNK2019)
++target_compile_definitions(${PROJECT_NAME}_lib PRIVATE DOMAIN_BRIDGE_BUILDING_LIBRARY)
+ 
+ add_executable(${PROJECT_NAME}_exec
+   src/domain_bridge.cpp
+@@ -74,7 +77,11 @@ add_executable(${PROJECT_NAME}_exec
+ ament_target_dependencies(${PROJECT_NAME}_exec
+   "rclcpp_components")
+ 
+-set_target_properties(${PROJECT_NAME}_exec PROPERTIES OUTPUT_NAME ${PROJECT_NAME} PREFIX "")
++# RoboStack: build the executable in bin/: rosidl_generate_interfaces(${PROJECT_NAME}) adds a
++# target named ${PROJECT_NAME}, which with Ninja clashes with the executable ${PROJECT_NAME} in the
++# build directory ("multiple rules generate domain_bridge"); installed as before
++set_target_properties(${PROJECT_NAME}_exec PROPERTIES OUTPUT_NAME ${PROJECT_NAME} PREFIX ""
++  RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
+ 
+ target_link_libraries(${PROJECT_NAME}_exec
+   ${PROJECT_NAME}_lib
+diff --git a/src/domain_bridge/parse_domain_bridge_yaml_config.cpp b/src/domain_bridge/parse_domain_bridge_yaml_config.cpp
+index 9e299b6..8038389 100644
+--- a/src/domain_bridge/parse_domain_bridge_yaml_config.cpp
++++ b/src/domain_bridge/parse_domain_bridge_yaml_config.cpp
+@@ -173,7 +173,8 @@ update_domain_bridge_config_from_yaml(
+     throw YamlParsingError(file_path, "file does not exist");
+   }
+ 
+-  YAML::Node config = YAML::LoadFile(file_path);
++  // RoboStack: .string(): Windows paths don't convert to std::string implicitly (wide chars)
++  YAML::Node config = YAML::LoadFile(file_path.string());
+ 
+   if (config["name"]) {
+     domain_bridge_config.options.name(config["name"].as<std::string>());
+@@ -248,7 +249,7 @@ update_domain_bridge_config_from_yaml(
+       if (topic_info["remap"]) {
+         options.remap_name(topic_info["remap"].as<std::string>());
+       }
+-      options.qos_options(parse_qos_options(topic_info, file_path));
++      options.qos_options(parse_qos_options(topic_info, file_path.string()));
+ 
+       if (topic_info["bidirectional"]) {
+         options.bidirectional(topic_info["bidirectional"].as<bool>());
