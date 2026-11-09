@@ -109,6 +109,10 @@ ament_cmake_gmock:  # as ament_cmake_gtest
   build_number: 23
 ament_cmake_gtest:  # uses conda-forge's gtest instead of gtest_vendor's sources
   build_number: 23
+aruco_ros:  # its recipe test stops the node for sure (package tests hung on macOS)
+  build_number: 23
+rtabmap_slam:  # its recipe test stops the node for sure (package tests hung on macOS)
+  build_number: 23
 spatio_temporal_voxel_layer:
   build_number: 23
 urdf:  # drop deprecated urdf_world/types.h include (ros2/urdf#54) for headers 3.x

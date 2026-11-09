@@ -133,6 +133,8 @@ ament_cmake_gmock:  # as ament_cmake_gtest
   build_number: 28
 ament_cmake_gtest:  # uses conda-forge's gtest instead of gtest_vendor's sources
   build_number: 28
+aruco_ros:  # its recipe test stops the node for sure (package tests hung on macOS)
+  build_number: 28
 fuse_viz:
   build_number: 28
 grid_map_rviz_plugin:
@@ -146,6 +148,8 @@ moveit_task_constructor_visualization:
 nav2_rviz_plugins:
   build_number: 28
 octomap_rviz_plugins:
+  build_number: 28
+rtabmap_slam:  # its recipe test stops the node for sure (package tests hung on macOS)
   build_number: 28
 rviz_2d_overlay_plugins:
   build_number: 28

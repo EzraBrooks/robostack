@@ -113,6 +113,8 @@ urdfdom_headers:
 zenoh_cpp_vendor:
   additional_cmake_args: "-DAMENT_VENDOR_POLICY=NEVER_VENDOR_IGNORE_SATISFIED_CHECK -DUSE_SYSTEM_ZENOH=ON"
 # Remove build_number fields below on new full rebuild
+aruco_ros:  # its recipe test stops the node for sure (package tests hung on macOS)
+  build_number: 31
 fuse_viz:
   build_number: 31
 grid_map_rviz_plugin:
@@ -124,6 +126,8 @@ moveit_task_constructor_visualization:
 nav2_rviz_plugins:
   build_number: 31
 rtabmap_rviz_plugins:
+  build_number: 31
+rtabmap_slam:  # its recipe test stops the node for sure (package tests hung on macOS)
   build_number: 31
 rviz_2d_overlay_plugins:
   build_number: 31
