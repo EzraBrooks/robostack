@@ -1,3 +1,4 @@
+import subprocess
 """robostack-bot: command parsing and the pure helpers of rebuild, rebuild-dependents,
 update-vinca and dependency-report (no network)."""
 
@@ -317,3 +318,42 @@ def test_uploads_retry_five_times_waiting_longer(monkeypatch):
     monkeypatch.setattr(rs.time, "sleep", waits.append)
     assert rs.retry(["upload"], rs.ROOT, "anaconda.org") == 0
     assert waits == [30, 60, 120, 240]
+
+
+def test_update_pixi_parsing():
+    assert jobs("@robostack-bot update-pixi") == [{"command": "update-pixi", "distro": "", "args": "", "preview": False}]
+    assert maintenance.parse_command("@robostack-bot update-pixi", "NONE") == []
+
+
+def test_update_pixi_holds_back_python_and_caps():
+    manifest = {"dependencies": {"python": ">=3.14,<3.15", "cmake": "<4.0", "gh": ">=2.1,<3"},
+                "target": {"win-64": {"dependencies": {"m2-patch": "*", "foo": {"version": " <2"}}}}}
+    assert maintenance.held_back(manifest) == ["cmake", "foo", "python"]
+    import tomllib
+    assert maintenance.held_back(tomllib.loads((rs.ROOT / "pixi.toml").read_text())) == ["cmake", "python", "setuptools"]
+
+
+def test_update_pixi_without_changes_opens_no_pr(monkeypatch):
+    calls = []
+
+    def run(cmd, **kwargs):
+        calls.append(cmd)
+        return subprocess.CompletedProcess(cmd, 0, stdout="{}", stderr="")
+
+    monkeypatch.setattr(maintenance.subprocess, "run", run)
+    result = maintenance.update_pixi()
+    assert result.ok and not result.changed
+    assert calls[0] == ["pixi", "upgrade", "--json", "--exclude", "cmake", "--exclude", "python", "--exclude", "setuptools"]
+
+
+def test_update_pixi_takes_an_earlier_upgrade(monkeypatch, tmp_path):
+    calls = []
+
+    def run(cmd, **kwargs):
+        calls.append(cmd)
+        return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(maintenance.subprocess, "run", run)
+    (tmp_path / "upgrade.json").write_text("{}")
+    assert not maintenance.update_pixi(tmp_path / "upgrade.json").changed
+    assert all(cmd[:2] != ["pixi", "upgrade"] for cmd in calls)  # the bot upgraded before `pixi run`

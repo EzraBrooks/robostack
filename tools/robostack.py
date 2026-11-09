@@ -692,7 +692,7 @@ def changed_distros(base: str) -> list[str]:
 
 
 REPO_COMMANDS = ("check", "update-pinning", "new-distro", "parse-command", "add-package", "rosdistro-syncs",
-                 "rebuild", "rebuild-dependents", "update-vinca", "update-build-timings")
+                 "rebuild", "rebuild-dependents", "update-vinca", "update-build-timings", "update-pixi")
 
 
 def main() -> int:

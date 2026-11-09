@@ -10,13 +10,14 @@
 #   distribution ("<distro>: dependency report", label dependency-report), closed when
 #   nothing conflicts; and a PR with the build times the week's build-branch runs
 #   recorded (shared/build_timings/, for packing the build jobs by time).
+# - monthly (the 1st): a PR upgrading the tooling's pixi dependencies (pixi.toml / pixi.lock).
 # - on demand (owners, members and collaborators):
 #     Actions > robostack-bot > Run workflow, an issue from the "robostack-bot command"
 #     template, or a comment: @robostack-bot <command> [<distro>]
 #   commands: update-rosdistro-snapshot [<distro>...|all] | find-stale-packages [<distro>...|all] |
 #             update-conda-forge-pinning [<distro>...|all] | add-package <pkg>... [<distro>...] |
 #             rebuild <pkg>... [<distro>...|all] [--with-dependents] | update-vinca [<ref>] |
-#             dependency-report [<distro>...|all] | update-build-timings |
+#             dependency-report [<distro>...|all] | update-build-timings | update-pixi |
 #             rebuild-dependents (a comment on a pull request: commits the rebuilds its ABI
 #             check suggests to its branch; not possible for pull requests from forks)
 # - package requests (the "Package request" issue form or `@robostack-bot add-package`,
@@ -31,12 +32,13 @@ on:
   schedule:
     - cron: "17 3 * * *"
     - cron: "43 4 * * 1"  # weekly dependency report (the plan job matches this string)
+    - cron: "29 5 1 * *"  # monthly pixi upgrade (the plan job matches this string)
   workflow_dispatch:
     inputs:
       command:
         type: choice
         options: [add-package, update-rosdistro-snapshot, find-stale-packages, update-conda-forge-pinning, rebuild,
-                  update-vinca, dependency-report, update-build-timings]
+                  update-vinca, dependency-report, update-build-timings, update-pixi]
       distro:
         description: Distribution (for the per-distribution commands; empty = all)
         required: false
@@ -90,6 +92,10 @@ jobs:
         run: |
           case "$EVENT" in
             schedule)
+              if [ "$SCHEDULE" = "29 5 1 * *" ]; then
+                echo 'jobs=[{"command":"update-pixi","distro":"","args":"","preview":false}]' | tee -a "$GITHUB_OUTPUT"
+                exit 0
+              fi
               if [ "$SCHEDULE" = "43 4 * * 1" ]; then
                 # weekly: the dependency reports, and the build times of the week's builds
                 jobs=$(ROBOSTACK_BOT_BODY="@robostack-bot dependency-report all" ROBOSTACK_BOT_ASSOCIATION=OWNER pixi run -q rs parse-command |
@@ -166,6 +172,12 @@ jobs:
             update-vinca) pixi run rs update-vinca $ARGS --summary "$RUNNER_TEMP/summary.md" ;;
             # the build-branch runs' build-times artifacts (actions: read)
             update-build-timings) pixi run rs update-build-timings --summary "$RUNNER_TEMP/summary.md" ;;
+            # pixi upgrade (pixi.toml, pixi.lock) first, outside pixi run: it reinstalls the
+            # environment the command would run in
+            update-pixi)
+              # shellcheck disable=SC2046  # the --exclude arguments, one word each
+              pixi upgrade --json $(pixi run -q rs update-pixi --excludes) > "$RUNNER_TEMP/pixi-upgrade.json" &&
+                pixi run rs update-pixi --changes "$RUNNER_TEMP/pixi-upgrade.json" --summary "$RUNNER_TEMP/summary.md" ;;
             # creates / updates the distribution's dependency-report issue
             dependency-report) pixi run rs "$DISTRO" dependency-report --summary "$RUNNER_TEMP/summary.md" ;;
           esac
