@@ -50,6 +50,14 @@ PER_DISTRO_COMMANDS = ("update-rosdistro-snapshot", "find-stale-packages", "upda
 ALLOWED_ASSOCIATIONS = {"OWNER", "MEMBER", "COLLABORATOR"}
 
 
+# The bot's PRs that don't change packages get build:none (only the checks run), so that
+# they don't build every distribution (they change files outside distros/) while a
+# build is under way; a maintainer removes the label (or adds build:<distro>... after
+# removing it) to build them.
+NO_BUILD_NOTE = ("Labelled `build:none` ({what}): only the checks run. Remove the label to build "
+                 "every distribution, or replace it with `build:<distro>` labels to build some.")
+
+
 @dataclass
 class Result:
     title: str
@@ -1046,7 +1054,8 @@ def update_vinca(ref: str | None = None) -> Result:
     checked = subprocess.run(["pixi", "run", "rs", "check"], cwd=rs.ROOT, capture_output=True, text=True)
     lines += ["", "`pixi run rs check`: " + ("✅ ok" if checked.returncode == 0 else
                                             f"❌ problems:\n\n```\n{tail(checked.stdout + checked.stderr, 40)}\n```")]
-    return Result(f"Update vinca to {new[:10]}", "\n".join(lines), changed=True)
+    lines += ["", NO_BUILD_NOTE.format(what="a new vinca regenerates the recipes of every distribution")]
+    return Result(f"Update vinca to {new[:10]}", "\n".join(lines), changed=True, labels=[rs.NO_BUILD_LABEL])
 
 
 REPORT_LABEL = "dependency-report"
@@ -1172,7 +1181,9 @@ def update_build_timings() -> Result:
         return Result("Build times are up to date", "No new build times in the last week's build-branch runs.")
     return Result("Update the build times", f"{count} build times from the last week's build-branch runs, in "
                   + ", ".join(f"`shared/build_timings/{name}`" for name in changed)
-                  + ". `rs <distro> gha` packs each stage's recipes into jobs by them.", changed=True)
+                  + ". `rs <distro> gha` packs each stage's recipes into jobs by them.\n\n"
+                  + NO_BUILD_NOTE.format(what="the times only change how the build jobs are packed"),
+                  changed=True, labels=[rs.NO_BUILD_LABEL])
 
 
 def _default_ci_yaml() -> str:

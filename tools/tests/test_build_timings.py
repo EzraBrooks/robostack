@@ -69,6 +69,7 @@ def test_update_build_timings_command(tmp_path, monkeypatch):
     monkeypatch.setattr(build_timings, "collect", collect)
     result = maintenance.update_build_timings()
     assert result.changed and "linux-64.json" in result.summary
+    assert result.labels == ["build:none"]  # only the checks: no package changes
     assert not maintenance.update_build_timings().changed  # nothing new: no PR
 
 
