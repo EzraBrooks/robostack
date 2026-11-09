@@ -119,6 +119,14 @@ fuse_viz:
   build_number: 31
 grid_map_rviz_plugin:
   build_number: 31
+gz_gui_vendor:
+  build_number: 33
+gz_sensors_vendor:
+  build_number: 33
+gz_sim_vendor:
+  build_number: 33
+gz_transport_vendor:
+  build_number: 33
 moveit_ros_visualization:
   build_number: 31
 moveit_task_constructor_visualization:

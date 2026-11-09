@@ -46,8 +46,8 @@ gz_fuel_tools_vendor:
   add_host: ["gz-fuel-tools"]
   add_run: ["gz-fuel-tools"]
 gz_gui_vendor:
-  add_host: ["gz-gui"]
-  add_run: ["gz-gui"]
+  add_host: ["gz-gui 10.*"]
+  add_run: ["gz-gui 10.*"]
 gz_launch_vendor:
   add_host: ["gz-launch"]
   add_run: ["gz-launch"]
@@ -76,17 +76,19 @@ gz_ros2_control:
 gz_ros2_control_demos:
   add_host: ["${{ 'libgl-devel' if linux }}", "${{ 'libopengl-devel' if linux }}"]
 gz_sensors_vendor:
-  add_host: ["gz-sensors"]
-  add_run: ["gz-sensors"]
+  add_host: ["gz-sensors 10.*"]
+  add_run: ["gz-sensors 10.*"]
 gz_sim_vendor:
-  add_host: ["libgz-sim"]
-  add_run: ["libgz-sim"]
+  add_host: ["libgz-sim 10.*"]
+  add_run: ["libgz-sim 10.*"]
 gz_tools_vendor:
   add_host: ["gz-tools"]
   add_run: ["gz-tools"]
 gz_transport_vendor:
-  add_host: ["libgz-transport"]
-  add_run: ["libgz-transport"]
+  # the vendor needs Jetty's major version: unpinned, an osx-arm64 py312 solve took
+  # gz-transport 14 (Ionic), whose builds go with a newer libabseil than Jetty's
+  add_host: ["libgz-transport 15.*"]
+  add_run: ["libgz-transport 15.*"]
 gz_utils_vendor:
   add_host: ["gz-utils"]
   add_run: ["gz-utils"]

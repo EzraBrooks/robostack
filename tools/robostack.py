@@ -557,6 +557,8 @@ def task(distro: str, name: str, args: list[str]) -> int:
     if name == "build-one":
         pkg = args[0] if args else "ros2-ros-workspace"
         for patch in (d / "patch").glob(f"{pkg}.*patch"):
+            # a recipe without a patch for this platform has no patch/ directory
+            (w / "recipes" / pkg / "patch").mkdir(exist_ok=True)
             shutil.copy(patch, w / "recipes" / pkg / "patch" / patch.name)
         return run(rattler_build(distro, ["--recipe", f"./recipes/{pkg}/recipe.yaml", *args[1:]], False), w)
     if name == "gha":  # staged build workflows for one platform, see .github/workflows/main.yaml
