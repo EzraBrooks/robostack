@@ -25,6 +25,7 @@ import json
 import os
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
@@ -45,6 +46,11 @@ OLD_TITLE = re.compile(r"^\S+: package tests$")
 USER_AGENT = "robostack-package-tests"
 MAX_ISSUE_BODY = 60000  # GitHub's limit is 65536 characters
 LOG_TAIL = 60  # lines of a failed test's output kept in the results
+# a package's tests that run longer are stopped and reported as failed: a test that hangs
+# (e.g. a node that ignores SIGTERM, holding the test's output open) otherwise runs into the
+# job's time limit, and the platform's results of every package are lost
+TEST_TIMEOUT = 20 * 60
+TIMED_OUT = "package-tests: stopped, the tests ran longer than {minutes} min"
 # a test that rattler-build ran: a script test prints "Testing commands:", the others
 # "✔ <kind> test passed!" (not its closing "all tests passed!", which it also prints
 # for a package without tests)
@@ -131,12 +137,33 @@ def test_command(distro: str, package_file: Path) -> list[str]:
             "-c", rs.CONDA_FORGE, "--channel-priority", "disabled", "--log-style", "plain"]
 
 
-def test_package(distro: str, package_file: Path) -> tuple[bool, str, int]:
-    """Run the package's bundled tests: (passed, output, number of tests that ran)."""
-    proc = subprocess.run(test_command(distro, package_file), capture_output=True, text=True,
-                          encoding="utf-8", errors="replace", check=False)
-    log = proc.stdout + proc.stderr
-    return proc.returncode == 0, log, sum(bool(RAN_TEST.search(line.strip())) for line in log.splitlines())
+def kill_tree(proc: subprocess.Popen) -> None:
+    """Stop a process and everything it started (its process group, started with
+    start_new_session): a test's leftover processes would keep its output pipe open."""
+    if sys.platform == "win32":
+        subprocess.run(["taskkill", "/F", "/T", "/PID", str(proc.pid)], capture_output=True, check=False)
+    else:
+        try:
+            os.killpg(proc.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+
+
+def test_package(distro: str, package_file: Path, timeout: float = TEST_TIMEOUT) -> tuple[bool, str, int]:
+    """Run the package's bundled tests: (passed, output, number of tests that ran); stopped
+    and failed after *timeout* seconds."""
+    proc = subprocess.Popen(test_command(distro, package_file), stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace",
+                            start_new_session=True)
+    try:
+        log, _ = proc.communicate(timeout=timeout)
+        ok = proc.returncode == 0
+    except subprocess.TimeoutExpired:
+        kill_tree(proc)
+        log, _ = proc.communicate()
+        log += "\n" + TIMED_OUT.format(minutes=round(timeout / 60))
+        ok = False
+    return ok, log, sum(bool(RAN_TEST.search(line.strip())) for line in log.splitlines())
 
 
 def tail(text: str, lines: int) -> str:
@@ -163,9 +190,9 @@ def run(distro: str, platform: str, results: Path, only: list[str] | None = None
                 download(package["url"], package_file)
                 ok, log, count = test_package(distro, package_file)
                 # launch tests can time out on DDS discovery: a failure is tried once more,
-                # and a pass then is reported as flaky
+                # and a pass then is reported as flaky (not a test that hung: it would again)
                 flaky = False
-                if not ok:
+                if not ok and not log.endswith(TIMED_OUT.format(minutes=round(TEST_TIMEOUT / 60))):
                     print(log, "\n❌ failed, trying again", flush=True)
                     ok, log, count = test_package(distro, package_file)
                     flaky = ok

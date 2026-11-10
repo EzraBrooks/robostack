@@ -1,3 +1,4 @@
+import subprocess
 """robostack-bot: command parsing and the pure helpers of rebuild, rebuild-dependents,
 update-vinca and dependency-report (no network)."""
 
@@ -317,3 +318,62 @@ def test_uploads_retry_five_times_waiting_longer(monkeypatch):
     monkeypatch.setattr(rs.time, "sleep", waits.append)
     assert rs.retry(["upload"], rs.ROOT, "anaconda.org") == 0
     assert waits == [30, 60, 120, 240]
+
+
+def test_anaconda_retry_skips_an_upload_that_arrived_despite_failing(monkeypatch):
+    # the first upload times out (HTTP 524) although anaconda.org stored the file:
+    # the retry must not upload it again ("already exists") but find nothing left
+    calls, uploaded = [], set()
+
+    def run(cmd, cwd):
+        calls.append(cmd)
+        uploaded.update(f for f in cmd if f.endswith(".conda"))
+        return 1
+
+    monkeypatch.setattr(rs, "run", run)
+    monkeypatch.setattr(rs, "on_anaconda", lambda channel, path: str(path.relative_to(rs.ROOT)) in uploaded)
+    monkeypatch.setattr(rs, "upload_hosts", lambda distro: ["anaconda"])
+    monkeypatch.setattr(rs.time, "sleep", lambda seconds: None)
+    monkeypatch.setenv("ANACONDA_API_TOKEN", "test")
+    monkeypatch.delenv("ROBOSTACK_UPLOAD_CHANNEL", raising=False)
+    assert rs.upload("lyrical", ["osx-64/ros2-a-1.0.0-h_30.conda"], rs.ROOT) == 0
+    assert len(calls) == 1
+
+
+def test_update_pixi_parsing():
+    assert jobs("@robostack-bot update-pixi") == [{"command": "update-pixi", "distro": "", "args": "", "preview": False}]
+    assert maintenance.parse_command("@robostack-bot update-pixi", "NONE") == []
+
+
+def test_update_pixi_holds_back_python_and_caps():
+    manifest = {"dependencies": {"python": ">=3.14,<3.15", "cmake": "<4.0", "gh": ">=2.1,<3"},
+                "target": {"win-64": {"dependencies": {"m2-patch": "*", "foo": {"version": " <2"}}}}}
+    assert maintenance.held_back(manifest) == ["cmake", "foo", "python"]
+    import tomllib
+    assert maintenance.held_back(tomllib.loads((rs.ROOT / "pixi.toml").read_text())) == ["cmake", "python", "setuptools"]
+
+
+def test_update_pixi_without_changes_opens_no_pr(monkeypatch):
+    calls = []
+
+    def run(cmd, **kwargs):
+        calls.append(cmd)
+        return subprocess.CompletedProcess(cmd, 0, stdout="{}", stderr="")
+
+    monkeypatch.setattr(maintenance.subprocess, "run", run)
+    result = maintenance.update_pixi()
+    assert result.ok and not result.changed
+    assert calls[0] == ["pixi", "upgrade", "--json", "--exclude", "cmake", "--exclude", "python", "--exclude", "setuptools"]
+
+
+def test_update_pixi_takes_an_earlier_upgrade(monkeypatch, tmp_path):
+    calls = []
+
+    def run(cmd, **kwargs):
+        calls.append(cmd)
+        return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(maintenance.subprocess, "run", run)
+    (tmp_path / "upgrade.json").write_text("{}")
+    assert not maintenance.update_pixi(tmp_path / "upgrade.json").changed
+    assert all(cmd[:2] != ["pixi", "upgrade"] for cmd in calls)  # the bot upgraded before `pixi run`

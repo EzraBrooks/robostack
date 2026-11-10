@@ -10,6 +10,7 @@
     pixi run rs rebuild PKG... [DISTRO...] [--with-dependents]  # per-package build-number bumps
     pixi run rs rebuild-dependents PR                 # commit the ABI check's suggested rebuilds to the PR
     pixi run rs update-vinca [REF]                    # move the vinca pin to the newest commit of its branch
+    pixi run rs update-pixi                           # `pixi upgrade` the tooling's dependencies
     pixi run rs <distro> dependency-report            # dependency check, kept in a dependency-report issue
     pixi run rs parse-command --body TEXT --association ROLE   # for @robostack-bot comments
 
@@ -42,12 +43,21 @@ BOT_COMMANDS = {
     "rebuild": "new builds of ROS packages, optionally with everything depending on them (opens a PR)",
     "rebuild-dependents": "on a pull request: add the rebuilds its ABI check suggests (pushes to its branch)",
     "update-vinca": "move the vinca pin to the newest commit of its branch (opens a PR)",
+    "update-pixi": "upgrade the tooling's dependencies in pixi.toml / pixi.lock to their newest versions (opens a PR)",
     "dependency-report": "check the dependencies against the pins, in the distribution's dependency-report issue",
     "update-build-timings": "record the build times of the last week's build-branch runs, for batching by time (opens a PR)",
 }
 PER_DISTRO_COMMANDS = ("update-rosdistro-snapshot", "find-stale-packages", "update-conda-forge-pinning",
                        "dependency-report")
 ALLOWED_ASSOCIATIONS = {"OWNER", "MEMBER", "COLLABORATOR"}
+
+
+# The bot's PRs that don't change packages get build:none (only the checks run), so that
+# they don't build every distribution (they change files outside distros/) while a
+# build is under way; a maintainer removes the label (or adds build:<distro>... after
+# removing it) to build them.
+NO_BUILD_NOTE = ("Labelled `build:none` ({what}): only the checks run. Remove the label to build "
+                 "every distribution, or replace it with `build:<distro>` labels to build some.")
 
 
 @dataclass
@@ -1046,7 +1056,67 @@ def update_vinca(ref: str | None = None) -> Result:
     checked = subprocess.run(["pixi", "run", "rs", "check"], cwd=rs.ROOT, capture_output=True, text=True)
     lines += ["", "`pixi run rs check`: " + ("✅ ok" if checked.returncode == 0 else
                                             f"❌ problems:\n\n```\n{tail(checked.stdout + checked.stderr, 40)}\n```")]
-    return Result(f"Update vinca to {new[:10]}", "\n".join(lines), changed=True)
+    lines += ["", NO_BUILD_NOTE.format(what="a new vinca regenerates the recipes of every distribution")]
+    return Result(f"Update vinca to {new[:10]}", "\n".join(lines), changed=True, labels=[rs.NO_BUILD_LABEL])
+
+
+def held_back(manifest: dict) -> list[str]:
+    """The dependencies update-pixi leaves alone: Python (a new minor version comes
+    before builds of everything the tooling needs, so it is moved by hand), and every
+    requirement that is only an upper bound, like `cmake = "<4.0"` (a deliberate cap)."""
+    tables = [manifest.get("dependencies", {})]
+    tables += [target.get("dependencies", {}) for target in manifest.get("target", {}).values()]
+    held = {"python"}
+    for table in tables:
+        for name, spec in table.items():
+            version = spec if isinstance(spec, str) else spec.get("version", "")
+            if version.strip().startswith("<"):
+                held.add(name)
+    return sorted(held)
+
+
+def pixi_upgrade_args() -> list[str]:
+    """`pixi upgrade` of everything except held_back()."""
+    import tomllib
+
+    held = held_back(tomllib.loads((rs.ROOT / "pixi.toml").read_text()))
+    return ["pixi", "upgrade", "--json", *(a for name in held for a in ("--exclude", name))]
+
+
+def update_pixi(changes: Path | None = None) -> Result:
+    """`pixi upgrade`: the newest versions of the tooling's dependencies in pixi.toml and
+    pixi.lock (except held_back()), with pixi-diff-to-markdown's table of the changes,
+    then the repository checks. vinca's pin is update-vinca's.
+
+    changes: the output of an earlier `pixi upgrade --json` (`rs update-pixi --excludes`
+    gives its arguments). The bot upgrades before `pixi run`, so that the environment
+    isn't reinstalled under the running command; without it, this runs `pixi upgrade`."""
+    import tomllib
+
+    held = held_back(tomllib.loads((rs.ROOT / "pixi.toml").read_text()))
+    if changes is not None:
+        upgrade = subprocess.CompletedProcess([], 0, stdout=changes.read_text(), stderr="")
+    else:
+        print("pixi upgrade", flush=True)
+        upgrade = subprocess.run(pixi_upgrade_args(), cwd=rs.ROOT, capture_output=True, text=True)
+    if upgrade.returncode:
+        return Result("update-pixi: pixi upgrade failed", f"```\n{tail(upgrade.stdout + upgrade.stderr, 40)}\n```", ok=False)
+    kept = ", ".join(f"`{name}`" for name in held)
+    if subprocess.run(["git", "diff", "--quiet", "--", "pixi.toml", "pixi.lock"], cwd=rs.ROOT).returncode == 0:
+        return Result("pixi dependencies are up to date", f"`pixi upgrade` found nothing newer (held back: {kept}).")
+    table = subprocess.run(["pixi", "exec", "pixi-diff-to-markdown"], input=upgrade.stdout,
+                           cwd=rs.ROOT, capture_output=True, text=True)
+    changes = table.stdout.strip() if table.returncode == 0 and table.stdout.strip() else (
+        f"```json\n{tail(upgrade.stdout, 80)}\n```")
+    lines = [f"`pixi upgrade`: the newest versions of the tooling's dependencies in `pixi.toml` and `pixi.lock`. "
+             f"Held back: {kept} (Python is moved by hand, the others are capped on purpose); "
+             "the vinca pin is `update-vinca`'s.", "", changes, ""]
+    print("pixi run rs check", flush=True)
+    checked = subprocess.run(["pixi", "run", "rs", "check"], cwd=rs.ROOT, capture_output=True, text=True)
+    lines.append("`pixi run rs check`: " + ("✅ ok" if checked.returncode == 0 else
+                                            f"❌ problems:\n\n```\n{tail(checked.stdout + checked.stderr, 40)}\n```"))
+    lines += ["", NO_BUILD_NOTE.format(what="the tooling's dependencies; a new rattler-build is worth a build")]
+    return Result("Upgrade pixi dependencies", "\n".join(lines), changed=True, labels=[rs.NO_BUILD_LABEL])
 
 
 REPORT_LABEL = "dependency-report"
@@ -1172,7 +1242,9 @@ def update_build_timings() -> Result:
         return Result("Build times are up to date", "No new build times in the last week's build-branch runs.")
     return Result("Update the build times", f"{count} build times from the last week's build-branch runs, in "
                   + ", ".join(f"`shared/build_timings/{name}`" for name in changed)
-                  + ". `rs <distro> gha` packs each stage's recipes into jobs by them.", changed=True)
+                  + ". `rs <distro> gha` packs each stage's recipes into jobs by them.\n\n"
+                  + NO_BUILD_NOTE.format(what="the times only change how the build jobs are packed"),
+                  changed=True, labels=[rs.NO_BUILD_LABEL])
 
 
 def _default_ci_yaml() -> str:
@@ -1371,6 +1443,9 @@ def main(command: str, argv: list[str], distro: str | None = None) -> int:
         parser.add_argument("--with-dependents", action="store_true", help="also every package depending on them")
     if command == "rebuild-dependents":
         parser.add_argument("pull_request")
+    if command == "update-pixi":
+        parser.add_argument("--changes", type=Path, help="output of an earlier `pixi upgrade --json`")
+        parser.add_argument("--excludes", action="store_true", help="print the --exclude arguments for pixi upgrade")
     if command == "update-vinca":
         parser.add_argument("ref", nargs="?", help="vinca branch, tag or commit (default: the pinned branch)")
     args = parser.parse_args(argv)
@@ -1390,6 +1465,11 @@ def main(command: str, argv: list[str], distro: str | None = None) -> int:
         return report(dependency_report(distro), args.summary)
     if command == "update-build-timings":
         return report(update_build_timings(), args.summary)
+    if command == "update-pixi":
+        if args.excludes:
+            print(" ".join(pixi_upgrade_args()[3:]))
+            return 0
+        return report(update_pixi(args.changes), args.summary)
     if command == "add-package":
         known = set(rs.distros())
         distros = [n for n in args.names if n in known]

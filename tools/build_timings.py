@@ -6,7 +6,9 @@ and keeps that file as an artifact (vinca-gha --keep-file). `robostack-bot
 update-build-timings` merges the last week's into shared/build_timings/<platform>.json,
 {recipe: {distro: seconds}}, one recipe per line, and `rs <distro> gha` hands vinca-gha
 each recipe's average over the distributions: a recipe new to one distribution still has a
-time (the names are the same, ros2-<package>). The compatibility recipes
+time (the names are the same, ros2-<package>). A time is per build: a recipe built for
+several variants (Python versions) records each build's average, and counts once per
+variant it builds (variant_builds). The compatibility recipes
 (ros-<distro>-<name>) aren't kept: they get ALIAS_SECONDS, and their uploads count for
 ros2-<name>, which they are built right after.
 
@@ -16,6 +18,7 @@ ros2-<name>, which they are built right after.
 from __future__ import annotations
 
 import json
+import math
 import statistics
 import subprocess
 import sys
@@ -87,6 +90,37 @@ def dumps(recipes: dict) -> str:
     return "{\n" + ",\n".join(lines) + "\n}\n"
 
 
+def variant_builds(recipes: Path, platform: str) -> dict[str, int]:
+    """How many builds each recipe in the directory makes on the platform: one per
+    combination of the multi-valued variant keys (conda_build_config.yaml next to the
+    directory) its build and host requirements name without a version, zipped keys
+    counting as one; e.g. 3 for a Python package when three Python versions are pinned.
+    Requirements under a condition count when it holds for a native build."""
+    import yaml
+
+    import check_dependency_compat as cdc
+
+    config = recipes.parent / "conda_build_config.yaml"
+    if not config.is_file():
+        return {}
+    key = lambda name: name.replace("-", "_")  # noqa: E731
+    values = {key(k): len(v) for k, v in cdc.variant_values(config, platform).items() if len(v) > 1}
+    axis = {k: frozenset(group) for group in cdc.zip_groups(config) for k in map(key, group)}
+    flags = {**cdc.platform_flags(platform), "build_platform": platform}
+    counts = {}
+    for path in sorted(recipes.glob("*/recipe.yaml")):
+        recipe = yaml.load(path.read_text(encoding="utf-8"), Loader=yaml.CSafeLoader) or {}
+        requirements = recipe.get("requirements") or {}
+        axes: dict[frozenset, int] = {}
+        for section in ("build", "host"):
+            for condition, spec in cdc.walk_requirements(requirements.get(section)):
+                name = key(spec)
+                if name in values and (condition is None or cdc.eval_selector(condition, flags)):
+                    axes[axis.get(name, frozenset([name]))] = values[name]
+        counts[path.parent.name] = math.prod(axes.values())
+    return counts
+
+
 def timings(distro: str, platform: str) -> dict | None:
     """{"recipes": {recipe: seconds}, "default": seconds} for the platform: each recipe's
     average over the distributions, and ALIAS_SECONDS for the distribution's compatibility
@@ -102,10 +136,14 @@ def timings(distro: str, platform: str) -> dict | None:
 
 
 def vinca_timings(distro: str, platform: str, path: Path) -> bool:
-    """Write vinca-gha's --timings file for the platform (timings()); False when there are
-    no times yet."""
+    """Write vinca-gha's --timings file for the platform (timings(), each recipe's time
+    times the builds it makes, variant_builds); False when there are no times yet."""
     if (data := timings(distro, platform)) is None:
         return False
+    builds = variant_builds(path.parent / "recipes", platform)
+    data["recipes"] = {r: round(s * builds.get(r, 1), 1) for r, s in data["recipes"].items()}
+    data["recipes"].update({r: round(data["default"] * n, 1) for r, n in builds.items()
+                            if n > 1 and r not in data["recipes"]})
     path.write_text(json.dumps(data) + "\n")
     return True
 

@@ -28,6 +28,7 @@ import shutil
 import subprocess
 import sys
 import time
+from collections.abc import Callable
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -123,12 +124,14 @@ PARALLEL_BUILDS = "1" if sys.platform == "win32" else f"3:{os.cpu_count()}"
 def build_ci_parallel(distro: str, recipes: list[str], args: list[str], cwd: Path) -> int:
     """build-ci for all of a build job's recipes in one rattler-build run, building
     independent ones in parallel. Its JSON log tells which recipe each line belongs to:
-    printed as "HH:MM:SS [recipe] message", and each recipe's time (first to last line of
-    its build) is recorded for packing the build jobs, scaled so that the times add up to
-    the builds' wall time: overlapping builds share it. The compatibility recipes
+    printed as "HH:MM:SS [recipe] message", and each recipe's time per build (first to last
+    line of each of its builds, one per variant, averaged) is recorded for packing the build
+    jobs, scaled so that the times add up to the builds' wall time: overlapping builds share
+    it. The compatibility recipes
     (ros-<distro>-<name>) only repackage, but wait for others while building alongside:
     they are left out (build_timings gives them ALIAS_SECONDS)."""
     span: dict[str, list[str]] = {}  # recipe -> [first, last] timestamp
+    builds: dict[str, list[str]] = {}  # each build (name-version-build) -> [first, last]
     finished: set[str] = set()
 
     def show(line: bytes) -> None:
@@ -140,6 +143,7 @@ def build_ci_parallel(distro: str, recipes: list[str], args: list[str], cwd: Pat
             # the build itself: rattler-build renders every recipe up front
             if name and any(s.get("name") == "Running build for" for s in spans):
                 span.setdefault(name, [entry["timestamp"]] * 2)[1] = entry["timestamp"]
+                builds.setdefault(recipe, [entry["timestamp"]] * 2)[1] = entry["timestamp"]
                 if str(entry["fields"].get("message", "")).startswith("Archive written to"):
                     finished.add(name)
             text = f"{entry['timestamp'][11:19]} [{name or '-'}] {entry['fields'].get('message', '')}\n"
@@ -157,13 +161,18 @@ def build_ci_parallel(distro: str, recipes: list[str], args: list[str], cwd: Pat
         import build_timings  # for packing the build jobs by time
         from datetime import datetime
 
-        times = {r: [datetime.fromisoformat(t.replace("Z", "+00:00")) for t in span[r]]
-                 for r in recipes if r in span and not r.startswith(f"ros-{distro}-")}
-        measured = {r: (last - first).total_seconds() for r, (first, last) in times.items()}
+        keep = set(recipes)
+        times = {b: [datetime.fromisoformat(t.replace("Z", "+00:00")) for t in builds[b]]
+                 for b in builds if b.rsplit("-", 2)[0] in keep and not b.startswith(f"ros-{distro}-")}
+        measured = {b: (last - first).total_seconds() for b, (first, last) in times.items()}
         if times and sum(measured.values()):
             wall = (max(last for _, last in times.values()) - min(first for first, _ in times.values())).total_seconds()
-            for recipe, seconds in measured.items():
-                build_timings.note(distro, recipe, seconds * wall / sum(measured.values()))
+            per_recipe: dict[str, list[float]] = {}
+            for build, seconds in measured.items():
+                per_recipe.setdefault(build.rsplit("-", 2)[0], []).append(seconds * wall / sum(measured.values()))
+            for recipe in recipes:  # in the job's order
+                if recipe in per_recipe:
+                    build_timings.note(distro, recipe, sum(per_recipe[recipe]) / len(per_recipe[recipe]))
     return rc
 
 
@@ -429,22 +438,31 @@ def upload(distro: str, files: list[str], cwd: Path) -> int:
         print(f"no ANACONDA_API_TOKEN (repository secret {anaconda_token_secret(distro)}): not uploading to "
               f"anaconda.org/{channel}", file=sys.stderr)
         return 1
-    missing = [f for f in files if not on_anaconda(channel, Path(cwd, f))]
-    if missing:
-        rc |= retry(["rattler-build", "upload", "anaconda", "-o", channel, "--api-key", token, *missing], cwd,
-                    "anaconda.org")
-    return rc
+
+    def anaconda_upload() -> list[str] | None:
+        # asked again before every attempt: an upload that timed out may still have
+        # arrived, and uploading it again fails with "already exists"
+        missing = [f for f in files if not on_anaconda(channel, Path(cwd, f))]
+        return ["rattler-build", "upload", "anaconda", "-o", channel, "--api-key", token, *missing] if missing else None
+
+    return rc | retry(anaconda_upload, cwd, "anaconda.org")
 
 
 UPLOAD_ATTEMPTS = 5
 UPLOAD_WAIT = 30  # doubled on each retry: 30 s, 1, 2, 4 minutes (anaconda.org's 503s can last minutes)
 
 
-def retry(cmd: list[str], cwd: Path, what: str) -> int:
+def retry(cmd: list[str] | Callable[[], list[str] | None], cwd: Path, what: str) -> int:
+    """Runs an upload, retrying when it fails. `cmd` may be a function that returns the
+    command for what is still to upload, or None when nothing is."""
     # the channels (and Sigstore, for attestations) fail now and then; uploads are
     # idempotent, so retry
+    rc = 0
     for attempt in range(1, UPLOAD_ATTEMPTS + 1):
-        rc = run(cmd, cwd)
+        command = cmd() if callable(cmd) else cmd
+        if command is None:
+            return 0
+        rc = run(command, cwd)
         if rc == 0 or attempt == UPLOAD_ATTEMPTS:
             return rc
         wait = UPLOAD_WAIT * 2 ** (attempt - 1)
@@ -559,6 +577,8 @@ def task(distro: str, name: str, args: list[str]) -> int:
     if name == "build-one":
         pkg = args[0] if args else "ros2-ros-workspace"
         for patch in (d / "patch").glob(f"{pkg}.*patch"):
+            # a recipe without a patch for this platform has no patch/ directory
+            (w / "recipes" / pkg / "patch").mkdir(exist_ok=True)
             shutil.copy(patch, w / "recipes" / pkg / "patch" / patch.name)
         return run(rattler_build(distro, ["--recipe", f"./recipes/{pkg}/recipe.yaml", *args[1:]], False), w)
     if name == "gha":  # staged build workflows for one platform, see .github/workflows/main.yaml
@@ -694,7 +714,7 @@ def changed_distros(base: str) -> list[str]:
 
 
 REPO_COMMANDS = ("check", "update-pinning", "new-distro", "parse-command", "add-package", "rosdistro-syncs",
-                 "rebuild", "rebuild-dependents", "update-vinca", "update-build-timings")
+                 "rebuild", "rebuild-dependents", "update-vinca", "update-build-timings", "update-pixi")
 
 
 def main() -> int:

@@ -1,4 +1,7 @@
 import json
+import sys
+import time
+from pathlib import Path
 
 import package_tests
 
@@ -109,3 +112,27 @@ def test_report_publishes_one_issue_and_closes_the_old_ones(tmp_path, monkeypatc
 def test_requests_send_a_user_agent():
     # packages.prefix.dev answers Python-urllib's default User-Agent with 403
     assert package_tests.request("https://repo.prefix.dev/x").get_header("User-agent") == package_tests.USER_AGENT
+
+
+def test_a_test_that_hangs_is_stopped_and_failed(monkeypatch):
+    # the test leaves a process behind that ignores SIGTERM and keeps the output open,
+    # like a node the test didn't stop: the whole process group is killed at the timeout
+    hang = ("import signal, subprocess, sys, time; signal.signal(signal.SIGTERM, signal.SIG_IGN); "
+            "subprocess.Popen([sys.executable, '-c', 'import signal, time; "
+            "signal.signal(signal.SIGTERM, signal.SIG_IGN); time.sleep(60)']); "
+            "print('Testing commands:', flush=True); time.sleep(60)")
+    monkeypatch.setattr(package_tests, "test_command", lambda *_: [sys.executable, "-c", hang])
+    started = time.monotonic()
+
+    ok, log, count = package_tests.test_package("humble", Path("p.conda"), timeout=2)
+
+    assert time.monotonic() - started < 30
+    assert not ok and count == 1
+    assert log.endswith(package_tests.TIMED_OUT.format(minutes=0))
+
+
+def test_a_test_that_finishes_passes(monkeypatch):
+    monkeypatch.setattr(package_tests, "test_command",
+                        lambda *_: [sys.executable, "-c", "print('Testing commands:'); print('✔ all tests passed!')"])
+    assert package_tests.test_package("humble", Path("p.conda"), timeout=30) == (
+        True, "Testing commands:\n✔ all tests passed!\n", 1)

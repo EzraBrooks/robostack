@@ -69,6 +69,7 @@ def test_update_build_timings_command(tmp_path, monkeypatch):
     monkeypatch.setattr(build_timings, "collect", collect)
     result = maintenance.update_build_timings()
     assert result.changed and "linux-64.json" in result.summary
+    assert result.labels == ["build:none"]  # only the checks: no package changes
     assert not maintenance.update_build_timings().changed  # nothing new: no PR
 
 
@@ -176,3 +177,117 @@ def test_build_ci_parallel_names_the_unfinished_builds(tmp_path, monkeypatch, ca
     monkeypatch.setattr(robostack, "rattler_build", lambda distro, args, skip_existing=True: ["rattler-build", *args])
     assert robostack.build_ci_parallel("rolling", ["ros2-a", "ros2-b"], ["--recipe", "a", "--recipe", "b"], tmp_path) == 1
     assert "Started but not finished: ros2-b" in capsys.readouterr().err
+
+
+VARIANT_CONFIG = """\
+python:
+  - 3.12.* *_cpython   # [not riscv64]
+  - 3.13.* *_cp313     # [not riscv64]
+  - 3.14.* *_cp314
+is_python_min:
+  - true               # [not riscv64]
+  - false              # [not riscv64]
+  - false              # [not riscv64]
+  - true               # [riscv64]
+hdf5:
+  - '2'
+  - 1.14.6
+zip_keys:
+  -   - python
+      - is_python_min
+"""
+
+
+def variant_recipes(tmp_path, distro="lyrical"):
+    work = tmp_path / "distros" / distro / "work"
+    (work / "recipes").mkdir(parents=True)
+    (work / "conda_build_config.yaml").write_text(VARIANT_CONFIG)
+    recipes = {
+        # C++ only: Python pinned to python_min in build, Python only for cross-compiling
+        "ros2-cpp": "requirements:\n  build:\n    - python ${{ python_min }}.*\n"
+                    "    - if: build_platform != target_platform\n      then:\n        - python\n"
+                    "  host:\n    - eigen\n",
+        "ros2-py": "requirements:\n  host:\n    - python\n    - numpy\n  run:\n    - python\n",
+        "ros2-py-hdf5": "requirements:\n  host:\n    - python\n    - hdf5\n",
+        "ros2-win-py": "requirements:\n  host:\n    - if: win\n      then:\n        - python\n",
+    }
+    for name, text in recipes.items():
+        (work / "recipes" / name).mkdir()
+        (work / "recipes" / name / "recipe.yaml").write_text(text)
+    return work / "recipes"
+
+
+def test_variant_builds_counts_the_python_versions(tmp_path):
+    recipes = variant_recipes(tmp_path)
+    assert build_timings.variant_builds(recipes, "linux-64") == {
+        "ros2-cpp": 1, "ros2-py": 3, "ros2-py-hdf5": 6, "ros2-win-py": 1}
+    assert build_timings.variant_builds(recipes, "win-64")["ros2-win-py"] == 3
+    # conda-forge has only 3.14 for riscv64: python and is_python_min are zipped, one variant
+    assert build_timings.variant_builds(recipes, "linux-riscv64")["ros2-py"] == 1
+
+
+def test_ci_estimate_counts_each_variant(tmp_path, monkeypatch, capsys):
+    import ci_estimate
+
+    recipes = variant_recipes(tmp_path)
+    timings = tmp_path / "timings"
+    timings.mkdir()
+    (timings / "linux-64.json").write_text(build_timings.dumps(
+        {"ros2-cpp": {"lyrical": 60.0}, "ros2-py": {"lyrical": 100.0}, "ros2-py-hdf5": {"lyrical": 10.0},
+         "ros2-win-py": {"lyrical": 30.0}}))
+    monkeypatch.setattr(build_timings, "TIMINGS", timings)
+    cache = tmp_path / "cache"
+    cache.mkdir()
+    for f in ("ros2-py-1.0-py312h0_1.conda", "ros2-cpp-1.0-h0_1.conda"):
+        (cache / f).write_text("")
+    monkeypatch.setenv("GITHUB_STEP_SUMMARY", "")
+    monkeypatch.setattr("sys.argv", ["ci_estimate.py", "--recipes", str(recipes), "--cache-dir", str(cache),
+                                     "--platform", "linux-64"])
+    assert ci_estimate.main() == 0
+    # ros2-py: 2 of 3 builds left, 200 s; ros2-py-hdf5 6 x 10 s; ros2-win-py 30 s; 2 cached x 2 s
+    out = capsys.readouterr().out
+    assert out.startswith("9 packages to build (3 recipes, 2 of them in several variants, e.g. one per "
+                          "Python version), 2 restored from the cache: roughly 5 min")
+
+
+def test_vinca_timings_count_each_variant(tmp_path, monkeypatch):
+    recipes = variant_recipes(tmp_path)
+    timings = tmp_path / "timings"
+    timings.mkdir()
+    (timings / "linux-64.json").write_text(build_timings.dumps(
+        {"ros2-cpp": {"lyrical": 60.0}, "ros2-py": {"lyrical": 100.0}}))
+    monkeypatch.setattr(build_timings, "TIMINGS", timings)
+    out = recipes.parent / "build_timings.json"
+    assert build_timings.vinca_timings("lyrical", "linux-64", out)
+    data = json.loads(out.read_text())
+    # measured: per build times the builds; unmeasured with several builds: the default times them
+    assert data["recipes"]["ros2-cpp"] == 60.0 and data["recipes"]["ros2-py"] == 300.0
+    assert data["recipes"]["ros2-py-hdf5"] == 6 * data["default"]
+    assert "ros2-win-py" not in data["recipes"]
+
+
+def test_build_ci_parallel_times_each_variant(tmp_path, monkeypatch):
+    import robostack
+
+    def line(t, build, message):
+        return (json.dumps({"timestamp": f"2026-10-24T07:00:{t:02d}.0Z", "fields": {"message": message},
+                            "spans": [{"recipe": build, "name": "Running build for"}]}) + "\n").encode()
+
+    # ros2-a's two Python variants side by side (10 s each), then ros2-b alone (10 s)
+    log = [line(0, "ros2-a-1.0-py312h0_1", "Fetching source"), line(0, "ros2-a-1.0-py313h1_1", "Fetching source"),
+           line(10, "ros2-a-1.0-py312h0_1", "Artifact"), line(10, "ros2-a-1.0-py313h1_1", "Artifact"),
+           line(10, "ros2-b-1.0-h0_1", "Fetching source"), line(20, "ros2-b-1.0-h0_1", "Artifact")]
+
+    def run_build(cmd, cwd, show=None):
+        for entry in log:
+            show(entry)
+        return 0
+
+    noted = []
+    monkeypatch.setattr(robostack, "run_build", run_build)
+    monkeypatch.setattr(robostack, "rattler_build", lambda distro, args, skip_existing=True: ["rattler-build", *args])
+    monkeypatch.setattr(build_timings, "note", lambda distro, recipe, seconds: noted.append((recipe, seconds)))
+    monkeypatch.setenv("GITHUB_ACTIONS", "true")
+    assert robostack.build_ci_parallel("lyrical", ["ros2-a", "ros2-b"], [], tmp_path) == 0
+    # 30 s of builds in 20 s: each build's share, ros2-a's the average of its two builds
+    assert [(r, round(s, 2)) for r, s in noted] == [("ros2-a", 6.67), ("ros2-b", 6.67)]

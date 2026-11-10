@@ -867,21 +867,21 @@ _CBC_KEY_RE = re.compile(r"^([A-Za-z0-9_.-]+):\s*(?:#\s*\[(.+?)\])?\s*$")
 _CBC_ITEM_RE = re.compile(r"^\s+-\s*(?P<value>.*?)\s*(?:#\s*\[(?P<sel>.+?)\])?\s*$")
 
 
-def variant_pins(variant_config: Path, platform: str) -> dict[str, str]:
-    """Single-valued pins from conda_build_config.yaml for this platform, keyed by dep name.
+def variant_values(variant_config: Path, platform: str) -> dict[str, list[str]]:
+    """Every variant key of conda_build_config.yaml with its values for this platform.
 
     The file is scanned line by line (not YAML-loaded) so that values such as ``2.10``
     keep their exact spelling and the ``# [selector]`` comments stay attached.
     """
     flags = platform_flags(platform)
-    pins: dict[str, str] = {}
+    values: dict[str, list[str]] = {}
     key: Optional[str] = None
     key_active = False
     chosen: list[str] = []
 
     def flush() -> None:
-        if key and key_active and len(chosen) == 1:
-            pins[normalized(key)] = chosen[0].split()[0]
+        if key and key_active:
+            values[key] = chosen
 
     for raw in variant_config.read_text(encoding="utf-8").splitlines():
         line = raw.rstrip()
@@ -905,7 +905,35 @@ def variant_pins(variant_config: Path, platform: str) -> dict[str, str]:
             if value and not value.startswith(("-", "[", "{")):
                 chosen.append(value)
     flush()
-    return pins
+    return values
+
+
+def zip_groups(variant_config: Path) -> list[set[str]]:
+    """The keys of each zip_keys entry: zipped keys vary together, as one variant axis."""
+    groups: list[set[str]] = []
+    inside = False
+    for raw in variant_config.read_text(encoding="utf-8").splitlines():
+        line = raw.split("#", 1)[0].rstrip()
+        if not line:
+            continue
+        if not line[0].isspace():
+            inside = line.startswith("zip_keys:")
+            continue
+        item = line.strip()
+        if not inside or not item.startswith("-"):
+            continue
+        if "[" in item:  # - [a, b]
+            groups.append({k.strip() for k in item.strip("- []").split(",") if k.strip()})
+        elif match := re.match(r"-\s+-\s*(\S+)$", item):  # - - a  (a new group)
+            groups.append({match.group(1)})
+        elif groups:  # - b  (another key of the group)
+            groups[-1].add(item.lstrip("- ").strip())
+    return groups
+
+
+def variant_pins(variant_config: Path, platform: str) -> dict[str, str]:
+    """Single-valued pins from conda_build_config.yaml for this platform, keyed by dep name."""
+    return {normalized(k): v[0].split()[0] for k, v in variant_values(variant_config, platform).items() if len(v) == 1}
 
 
 def load_repodata(source: str, platform: str) -> tuple[dict[str, Any], bool]:

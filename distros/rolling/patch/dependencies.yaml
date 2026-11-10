@@ -31,63 +31,66 @@ grid_map_octomap:
   add_host: ["octomap"]
   add_run: ["octomap"]
 gz_cmake_vendor:
-  # Major version pin selects the Gazebo release matching rolling (applies to all gz-* vendor packages).
-  add_host: ["gz-cmake"]
-  add_run: ["gz-cmake"]
+  # Every gz-*/sdformat vendor pins the majors of one Gazebo release, so that no solve mixes releases
+  # (unpinned, a solve can fall back to an older release whose builds go with other abseil/protobuf).
+  # rolling's vendors already target the next Gazebo (prereleases, e.g. gz-sim 11), which conda-forge
+  # does not ship yet: build against Jetty, as lyrical does, and move once conda-forge has it.
+  add_host: ["gz-cmake 5.*"]
+  add_run: ["gz-cmake 5.*"]
 gz_common_vendor:
-  add_host: ["gz-common"]
-  add_run: ["gz-common"]
+  add_host: ["gz-common 7.*"]
+  add_run: ["gz-common 7.*"]
 gz_dartsim_vendor:
   add_host: ["dartsim-cpp", "eigen-abi-devel"]
   add_run: ["dartsim-cpp"]
 gz_fuel_tools_vendor:
-  add_host: ["gz-fuel-tools"]
-  add_run: ["gz-fuel-tools"]
+  add_host: ["gz-fuel-tools 11.*"]
+  add_run: ["gz-fuel-tools 11.*"]
 gz_gui_vendor:
-  add_host: ["gz-gui"]
-  add_run: ["gz-gui"]
+  add_host: ["gz-gui 10.*"]
+  add_run: ["gz-gui 10.*"]
 gz_launch_vendor:
-  add_host: ["gz-launch"]
-  add_run: ["gz-launch"]
+  add_host: ["gz-launch 9.*"]
+  add_run: ["gz-launch 9.*"]
 gz_math_vendor:
-  add_host: ["gz-math"]
-  add_run: ["gz-math"]
+  add_host: ["gz-math 9.*"]
+  add_run: ["gz-math 9.*"]
 gz_msgs_vendor:
-  add_host: ["gz-msgs"]
-  add_run: ["gz-msgs"]
+  add_host: ["gz-msgs 12.*"]
+  add_run: ["gz-msgs 12.*"]
 gz_ogre_next_vendor:
   add_host: ["ogre-next"]
   add_run: ["ogre-next"]
   remove_host: ["shaderc"]
   remove_run: ["shaderc"]
 gz_physics_vendor:
-  add_host: ["gz-physics"]
-  add_run: ["gz-physics"]
+  add_host: ["gz-physics 9.*"]
+  add_run: ["gz-physics 9.*"]
 gz_plugin_vendor:
-  add_host: ["gz-plugin"]
-  add_run: ["gz-plugin"]
+  add_host: ["gz-plugin 4.*"]
+  add_run: ["gz-plugin 4.*"]
 gz_rendering_vendor:
-  add_host: ["gz-rendering", "swig"]
-  add_run: ["gz-rendering", "swig"]
+  add_host: ["gz-rendering 10.*", "swig"]
+  add_run: ["gz-rendering 10.*", "swig"]
 gz_ros2_control:
   add_host: ["${{ 'libgl-devel' if linux }}", "${{ 'libopengl-devel' if linux }}", "ros2-gz-sensors-vendor"]
 gz_ros2_control_demos:
   add_host: ["${{ 'libgl-devel' if linux }}", "${{ 'libopengl-devel' if linux }}"]
 gz_sensors_vendor:
-  add_host: ["gz-sensors"]
-  add_run: ["gz-sensors"]
+  add_host: ["gz-sensors 10.*"]
+  add_run: ["gz-sensors 10.*"]
 gz_sim_vendor:
-  add_host: ["libgz-sim"]
-  add_run: ["libgz-sim"]
+  add_host: ["libgz-sim 10.*"]
+  add_run: ["libgz-sim 10.*"]
 gz_tools_vendor:
-  add_host: ["gz-tools"]
-  add_run: ["gz-tools"]
+  add_host: ["gz-tools 2.*"]
+  add_run: ["gz-tools 2.*"]
 gz_transport_vendor:
-  add_host: ["libgz-transport"]
-  add_run: ["libgz-transport"]
+  add_host: ["libgz-transport 15.*"]
+  add_run: ["libgz-transport 15.*"]
 gz_utils_vendor:
-  add_host: ["gz-utils"]
-  add_run: ["gz-utils"]
+  add_host: ["gz-utils 4.*"]
+  add_run: ["gz-utils 4.*"]
 image_view:
   add_host: ["${{ 'libgl-devel' if linux }}", "${{ 'libopengl-devel' if linux }}"]
   # Depends on opencv with gui support, see  https://github.com/ros-perception/image_pipeline/blob/746268fcfd21b389bc39ae60bb6345a53c838558/image_view/src/stereo_view_node.cpp#L253
@@ -173,11 +176,11 @@ rviz_ogre_vendor:
   add_build: ["vcstool"]
   add_run: ["assimp"]
 sdformat_urdf:
-  add_host: ["sdformat"]
-  add_run: ["sdformat"]
+  add_host: ["sdformat 16.*"]
+  add_run: ["sdformat 16.*"]
 sdformat_vendor:
-  add_host: ["sdformat"]
-  add_run: ["sdformat"]
+  add_host: ["sdformat 16.*"]
+  add_run: ["sdformat 16.*"]
 slam_toolbox:
   add_build: ["${{ 'qt6-main' if (build_platform != target_platform) }}"]
   add_host: ["${{ 'libgl-devel' if linux }}", "${{ 'libopengl-devel' if linux }}", "blas-devel", "ceres-solver * cpu*"]
