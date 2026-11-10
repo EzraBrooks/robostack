@@ -41,6 +41,21 @@ def test_newest_builds_keeps_every_variant_of_the_newest_build():
     assert package_tests.newest_builds([], ["ros2-a"]) == []
 
 
+def test_select_reads_the_platform_and_noarch_once(monkeypatch):
+    calls = []
+
+    def get_channel_records(channel, platform):
+        calls.append((channel, platform))
+        return [{**record("a-1-h_3.conda", "ros2-a", "1", "h_3", 3), "subdir": "linux-64", "url": "u/a"},
+                {**record("b-1-h_3.conda", "ros-jazzy-b", "1", "h_3", 3), "subdir": "noarch", "url": "u/b"}]
+
+    monkeypatch.setattr(package_tests, "get_channel_records", get_channel_records)
+    monkeypatch.setattr(package_tests, "tested_packages", lambda distro: ["ros-jazzy-b", "ros2-a"])
+    assert [(p["name"], p["subdir"], p["url"]) for p in package_tests.select("jazzy", "linux-64")] == [
+        ("ros-jazzy-b", "noarch", "u/b"), ("ros2-a", "linux-64", "u/a")]
+    assert calls == [(package_tests.rs.repodata_url("jazzy"), "linux-64")]
+
+
 def test_ran_test_counts_the_tests_rattler_build_ran():
     log = ["Testing commands:", "✔ python imports test passed!", "✔ package contents test passed!",
            "✔ all tests passed!", "✔ Successfully updated the test environment"]

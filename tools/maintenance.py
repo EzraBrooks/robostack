@@ -100,7 +100,7 @@ def snapshot_changes(old: dict[str, str], new: dict[str, str]) -> str:
     return "\n".join(lines)
 
 
-REPODATA_SUBDIRS = ("noarch", "linux-64", "linux-aarch64", "osx-64", "osx-arm64", "win-64")
+REPODATA_SUBDIRS = ("linux-64", "linux-aarch64", "osx-64", "osx-arm64", "win-64")  # get_channel_records adds noarch
 
 
 def released_builds(distro: str) -> dict[str, int] | None:

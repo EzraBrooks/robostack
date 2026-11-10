@@ -37,7 +37,7 @@ git = "*"
 
 [pypi-dependencies]
 # One vinca for all distributions.
-vinca = { git = "https://github.com/RoboStack/vinca.git", rev = "6022f01558a4f954bffb01d4c9d8e66af733a9a3" }
+vinca = { git = "https://github.com/EzraBrooks/vinca.git", rev = "ec69ef82c330e52496bb11a60004a9d06a80ae0b" }
 # For local development, temporarily use (and regenerate pixi.lock):
 # vinca = { path = "../vinca", editable = true }
 

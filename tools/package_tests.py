@@ -98,12 +98,10 @@ def newest_builds(channel_records: list[dict], names: list[str]) -> list[dict]:
 def select(distro: str, platform: str) -> list[dict]:
     """The package files to test on this platform: {name, version, build, subdir, url}."""
     names = tested_packages(distro)
-    base = rs.repodata_url(distro)
     selected = []
-    for subdir in (platform, "noarch"):
-        for record in newest_builds(get_channel_records(base, subdir), names):
-            selected.append({"name": record["name"], "version": record["version"], "build": record["build"],
-                             "subdir": subdir, "url": record["url"]})
+    for record in newest_builds(get_channel_records(rs.repodata_url(distro), platform), names):
+        selected.append({"name": record["name"], "version": record["version"], "build": record["build"],
+                         "subdir": record["subdir"], "url": record["url"]})
     return selected
 
 
