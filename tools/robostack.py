@@ -124,12 +124,14 @@ PARALLEL_BUILDS = "1" if sys.platform == "win32" else f"3:{os.cpu_count()}"
 def build_ci_parallel(distro: str, recipes: list[str], args: list[str], cwd: Path) -> int:
     """build-ci for all of a build job's recipes in one rattler-build run, building
     independent ones in parallel. Its JSON log tells which recipe each line belongs to:
-    printed as "HH:MM:SS [recipe] message", and each recipe's time (first to last line of
-    its build) is recorded for packing the build jobs, scaled so that the times add up to
-    the builds' wall time: overlapping builds share it. The compatibility recipes
+    printed as "HH:MM:SS [recipe] message", and each recipe's time per build (first to last
+    line of each of its builds, one per variant, averaged) is recorded for packing the build
+    jobs, scaled so that the times add up to the builds' wall time: overlapping builds share
+    it. The compatibility recipes
     (ros-<distro>-<name>) only repackage, but wait for others while building alongside:
     they are left out (build_timings gives them ALIAS_SECONDS)."""
     span: dict[str, list[str]] = {}  # recipe -> [first, last] timestamp
+    builds: dict[str, list[str]] = {}  # each build (name-version-build) -> [first, last]
     finished: set[str] = set()
 
     def show(line: bytes) -> None:
@@ -141,6 +143,7 @@ def build_ci_parallel(distro: str, recipes: list[str], args: list[str], cwd: Pat
             # the build itself: rattler-build renders every recipe up front
             if name and any(s.get("name") == "Running build for" for s in spans):
                 span.setdefault(name, [entry["timestamp"]] * 2)[1] = entry["timestamp"]
+                builds.setdefault(recipe, [entry["timestamp"]] * 2)[1] = entry["timestamp"]
                 if str(entry["fields"].get("message", "")).startswith("Archive written to"):
                     finished.add(name)
             text = f"{entry['timestamp'][11:19]} [{name or '-'}] {entry['fields'].get('message', '')}\n"
@@ -158,13 +161,18 @@ def build_ci_parallel(distro: str, recipes: list[str], args: list[str], cwd: Pat
         import build_timings  # for packing the build jobs by time
         from datetime import datetime
 
-        times = {r: [datetime.fromisoformat(t.replace("Z", "+00:00")) for t in span[r]]
-                 for r in recipes if r in span and not r.startswith(f"ros-{distro}-")}
-        measured = {r: (last - first).total_seconds() for r, (first, last) in times.items()}
+        keep = set(recipes)
+        times = {b: [datetime.fromisoformat(t.replace("Z", "+00:00")) for t in builds[b]]
+                 for b in builds if b.rsplit("-", 2)[0] in keep and not b.startswith(f"ros-{distro}-")}
+        measured = {b: (last - first).total_seconds() for b, (first, last) in times.items()}
         if times and sum(measured.values()):
             wall = (max(last for _, last in times.values()) - min(first for first, _ in times.values())).total_seconds()
-            for recipe, seconds in measured.items():
-                build_timings.note(distro, recipe, seconds * wall / sum(measured.values()))
+            per_recipe: dict[str, list[float]] = {}
+            for build, seconds in measured.items():
+                per_recipe.setdefault(build.rsplit("-", 2)[0], []).append(seconds * wall / sum(measured.values()))
+            for recipe in recipes:  # in the job's order
+                if recipe in per_recipe:
+                    build_timings.note(distro, recipe, sum(per_recipe[recipe]) / len(per_recipe[recipe]))
     return rc
 
 

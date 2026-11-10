@@ -2,8 +2,10 @@
 
     python tools/ci_estimate.py --recipes distros/<d>/work/recipes --cache-dir <dir> --platform <p>
 
-Recipes whose package is in the restored cache are skipped by rattler-build; the rest
-are built, each taking its measured time (shared/build_timings, see build_timings.py).
+A recipe makes one build per variant: per Python version for the packages with Python
+content, when the distribution pins several (build_timings.variant_builds). Builds whose
+package is in the restored cache are skipped by rattler-build; the rest are built, each
+taking its recipe's measured time per build (shared/build_timings, see build_timings.py).
 The seconds per package below are rough averages from the jazzy full rebuild in October
 2026 (wall clock of the build step, including environment setup): building one package,
 for platforms without measured times, and skipping one that is already in the cache.
@@ -13,6 +15,7 @@ import argparse
 import datetime
 import os
 import sys
+from collections import Counter
 from pathlib import Path
 
 import build_timings
@@ -44,22 +47,26 @@ def main() -> int:
     args = parser.parse_args()
 
     recipes = {p.name for p in args.recipes.iterdir() if (p / "recipe.yaml").is_file()} if args.recipes.is_dir() else set()
-    cached = {f.name.rsplit("-", 2)[0] for f in args.cache_dir.glob("*.conda")} if args.cache_dir.is_dir() else set()
-    to_build = sorted(recipes - cached)
-    skipped = len(recipes & cached)
+    variants = build_timings.variant_builds(args.recipes, args.platform) if recipes else {}
+    builds = {r: variants.get(r, 1) for r in recipes}
+    cached = Counter(f.name.rsplit("-", 2)[0] for f in args.cache_dir.glob("*.conda")) if args.cache_dir.is_dir() else Counter()
+    to_build = {r: n - min(n, cached[r]) for r, n in builds.items() if n > cached[r]}
+    skipped = sum(min(n, cached[r]) for r, n in builds.items())
     build, skip = SECONDS.get(args.platform, max(SECONDS.values()))
     distro = args.recipes.resolve().parent.parent.name  # distros/<distro>/work/recipes
     measured = build_timings.timings(distro, args.platform)
     if measured:
-        seconds = sum(measured["recipes"].get(r, measured["default"]) for r in to_build) + skipped * skip
+        seconds = sum(measured["recipes"].get(r, measured["default"]) * n for r, n in to_build.items()) + skipped * skip
     else:
-        seconds = len(to_build) * build + skipped * skip
+        seconds = sum(to_build.values()) * build + skipped * skip
     hours = seconds / 3600
     rounds = int(hours // JOB_LIMIT_HOURS) + 1
     done = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(seconds=seconds)
 
+    several = sum(1 for n in to_build.values() if n > 1)
+    packages = f" ({len(to_build)} recipes, {several} of them in several variants, e.g. one per Python version)" if several else ""
     text = (
-        f"{len(to_build)} packages to build, {skipped} restored from the cache: "
+        f"{sum(to_build.values())} packages to build{packages}, {skipped} restored from the cache: "
         f"roughly {duration(seconds)} (done around {done:%H:%M} UTC)"
     )
     if hours > JOB_LIMIT_HOURS:
