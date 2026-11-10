@@ -6,8 +6,8 @@ from pathlib import Path
 import package_tests
 
 
-def record(name, version, build, number, timestamp=0):
-    return {"name": name, "version": version, "build": build, "build_number": number, "timestamp": timestamp}
+def record(fn, name, version, build, number, timestamp=0):
+    return {"fn": fn, "name": name, "version": version, "build": build, "build_number": number, "timestamp": timestamp}
 
 
 def test_tested_packages_are_the_test_files(tmp_path, monkeypatch):
@@ -23,24 +23,22 @@ def test_tested_packages_are_the_test_files(tmp_path, monkeypatch):
 
 
 def test_newest_builds_keeps_every_variant_of_the_newest_build():
-    repodata = {
-        "packages.conda": {
-            "a-1-py312_25.conda": record("ros2-a", "1", "py312_25", 25, 1),
-            "a-1-py314_27.conda": record("ros2-a", "1", "py314_27", 27, 2),
-            "a-1-py313_27.conda": record("ros2-a", "1", "py313_27", 27, 3),
-            "b-2-h1_3.conda": record("ros2-b", "2", "h1_3", 3),
-            "c-1-h_1.conda": record("ros2-untested", "1", "h_1", 1),
-        },
+    records = [
+        record("a-1-py312_25.conda", "ros2-a", "1", "py312_25", 25, 1),
+        record("a-1-py314_27.conda", "ros2-a", "1", "py314_27", 27, 2),
         # the same build in the old format too: the .conda one is tested
-        "packages": {"a-1-py314_27.tar.bz2": record("ros2-a", "1", "py314_27", 27, 2)},
-    }
-    selected = package_tests.newest_builds(repodata, ["ros2-a", "ros2-b"])
+        record("a-1-py314_27.tar.bz2", "ros2-a", "1", "py314_27", 27, 2),
+        record("a-1-py313_27.conda", "ros2-a", "1", "py313_27", 27, 3),
+        record("b-2-h1_3.conda", "ros2-b", "2", "h1_3", 3),
+        record("c-1-h_1.conda", "ros2-untested", "1", "h_1", 1),
+    ]
+    selected = package_tests.newest_builds(records, ["ros2-a", "ros2-b"])
     assert [(r["name"], r["build"], r["fn"]) for r in selected] == [
         ("ros2-a", "py313_27", "a-1-py313_27.conda"),
         ("ros2-a", "py314_27", "a-1-py314_27.conda"),
         ("ros2-b", "h1_3", "b-2-h1_3.conda"),
     ]
-    assert package_tests.newest_builds({}, ["ros2-a"]) == []
+    assert package_tests.newest_builds([], ["ros2-a"]) == []
 
 
 def test_ran_test_counts_the_tests_rattler_build_ran():
@@ -107,11 +105,6 @@ def test_report_publishes_one_issue_and_closes_the_old_ones(tmp_path, monkeypatc
     assert published == [("Package tests", "package-tests", True)]
     closed = [a for a in calls if "PATCH" in a]
     assert closed == [["api", "-X", "PATCH", "repos/o/r/issues/149", "-f", "state=closed", "-f", "state_reason=not_planned"]]
-
-
-def test_requests_send_a_user_agent():
-    # packages.prefix.dev answers Python-urllib's default User-Agent with 403
-    assert package_tests.request("https://repo.prefix.dev/x").get_header("User-agent") == package_tests.USER_AGENT
 
 
 def test_a_test_that_hangs_is_stopped_and_failed(monkeypatch):

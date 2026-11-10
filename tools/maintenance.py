@@ -106,25 +106,14 @@ REPODATA_SUBDIRS = ("noarch", "linux-64", "linux-aarch64", "osx-64", "osx-arm64"
 def released_builds(distro: str) -> dict[str, int] | None:
     """Highest build number of every package on the distribution's channel (all
     platforms), or None when the channel can't be read."""
-    import urllib.error
-    import urllib.request
+    from vinca.utils import get_channel_records
 
     base = rs.repodata_url(distro)
     builds: dict[str, int] = {}
-    read = False
     for subdir in REPODATA_SUBDIRS:
-        try:
-            request = urllib.request.Request(f"{base}/{subdir}/repodata.json", headers={"User-Agent": "robostack-bot"})
-            with urllib.request.urlopen(request, timeout=300) as response:
-                data = json.load(response)
-        except urllib.error.HTTPError as error:
-            if error.code == 404:
-                continue
-            raise
-        read = True
-        for record in [*data.get("packages", {}).values(), *data.get("packages.conda", {}).values()]:
+        for record in get_channel_records(base, subdir):
             builds[record["name"]] = max(builds.get(record["name"], 0), int(record.get("build_number", 0)))
-    return builds if read else None
+    return builds or None
 
 
 def released_build_number(distro: str, builds: dict[str, int] | None = None) -> int | None:
@@ -358,11 +347,12 @@ def rosdistro_syncs() -> list[dict]:
 
 
 def _newer(a: str, b: str) -> bool:
-    from packaging.version import InvalidVersion, Version
+    from rattler import Version
+    from rattler.exceptions import InvalidVersionError
 
     try:
         return Version(a) > Version(b)
-    except InvalidVersion:
+    except InvalidVersionError:
         return False
 
 

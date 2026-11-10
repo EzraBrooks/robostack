@@ -21,6 +21,7 @@ its newest build on the distribution's channel, every variant of it (e.g. each P
 from __future__ import annotations
 
 import argparse
+import asyncio
 import json
 import os
 import re
@@ -30,8 +31,11 @@ import subprocess
 import sys
 import tempfile
 import time
-import urllib.request
 from pathlib import Path
+
+import rattler
+from rattler.package_streaming import download_to_path
+from vinca.utils import get_channel_records
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import robostack as rs
@@ -41,9 +45,6 @@ REPORT_MARKER = "<!-- robostack-package-tests -->"
 REPORT_TITLE = "Package tests"
 # the issues of before, one per distribution: closed in favour of the one issue
 OLD_TITLE = re.compile(r"^\S+: package tests$")
-# packages.prefix.dev (where repo.prefix.dev redirects) answers Python-urllib's default
-# User-Agent with 403 Forbidden
-USER_AGENT = "robostack-package-tests"
 MAX_ISSUE_BODY = 60000  # GitHub's limit is 65536 characters
 LOG_TAIL = 60  # lines of a failed test's output kept in the results
 # a package's tests that run longer are stopped and reported as failed: a test that hangs
@@ -65,44 +66,21 @@ def tested_packages(distro: str) -> list[str]:
     return sorted(names)
 
 
-def request(url: str) -> urllib.request.Request:
-    return urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-
-
 def download(url: str, path: Path) -> None:
-    with urllib.request.urlopen(request(url), timeout=600) as response, path.open("wb") as fh:
-        shutil.copyfileobj(response, fh)
+    asyncio.run(download_to_path(rattler.Client(), url, path))
 
 
 def free_space(path: str) -> str:
     return f"{shutil.disk_usage(path).free / 2**30:.1f} GiB free"
 
 
-def fetch_json(url: str, attempts: int = 3) -> dict:
-    for attempt in range(1, attempts + 1):
-        try:
-            with urllib.request.urlopen(request(url), timeout=120) as response:
-                return json.load(response)
-        except urllib.error.HTTPError as error:
-            if error.code == 404:
-                return {}
-            if attempt == attempts:
-                raise
-        except OSError:
-            if attempt == attempts:
-                raise
-        time.sleep(10 * attempt)
-    return {}
-
-
-def newest_builds(repodata: dict, names: list[str]) -> list[dict]:
+def newest_builds(channel_records: list[dict], names: list[str]) -> list[dict]:
     """For each name, every variant of its newest build: the records with the version
     and build number of the newest upload (one per build string, e.g. per Python)."""
     records: dict[str, list[dict]] = {}
-    for section in ("packages", "packages.conda"):
-        for filename, record in (repodata.get(section) or {}).items():
-            if record.get("name") in names:
-                records.setdefault(record["name"], []).append({**record, "fn": filename})
+    for record in channel_records:
+        if record.get("name") in names:
+            records.setdefault(record["name"], []).append(record)
     selected = []
     for name in sorted(records):
         newest = max(records[name], key=lambda r: (r.get("build_number", 0), r.get("timestamp", 0)))
@@ -123,10 +101,9 @@ def select(distro: str, platform: str) -> list[dict]:
     base = rs.repodata_url(distro)
     selected = []
     for subdir in (platform, "noarch"):
-        repodata = fetch_json(f"{base}/{subdir}/repodata.json")
-        for record in newest_builds(repodata, names):
+        for record in newest_builds(get_channel_records(base, subdir), names):
             selected.append({"name": record["name"], "version": record["version"], "build": record["build"],
-                             "subdir": subdir, "url": f"{base}/{subdir}/{record['fn']}"})
+                             "subdir": subdir, "url": record["url"]})
     return selected
 
 
@@ -196,7 +173,7 @@ def run(distro: str, platform: str, results: Path, only: list[str] | None = None
                     print(log, "\n❌ failed, trying again", flush=True)
                     ok, log, count = test_package(distro, package_file)
                     flaky = ok
-            except OSError as error:
+            except (OSError, RuntimeError) as error:  # rattler's download errors are RuntimeErrors
                 ok, log, count, flaky = False, f"download failed: {error}", 0, False
             finally:
                 package_file.unlink(missing_ok=True)

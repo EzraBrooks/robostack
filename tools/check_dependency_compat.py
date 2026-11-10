@@ -47,6 +47,8 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 import ruamel.yaml
+from rattler import Version, VersionSpec
+from rattler.exceptions import InvalidVersionError, InvalidVersionSpecError
 
 ROS_PREFIXES = ("ros-", "ros2-")
 DEFAULT_CHANNELS = ["https://repo.prefix.dev/conda-forge"]
@@ -659,7 +661,7 @@ def report_conflicts(
         if any(len(spec.split()) > 1 for _, spec in specs):
             print("   note: the spec is version-restricted (dummy package in pkg_additional_info.yaml?);"
                   " a newer conda-forge version may already be built against the pinned libraries.")
-        glibc_needs = sorted({m.group(1) for m in _GLIBC_NEED_RE.finditer(block)}, key=version_tuple)
+        glibc_needs = sorted({m.group(1) for m in _GLIBC_NEED_RE.finditer(block)}, key=Version)
         if (glibc_needs and host_names is not None and normalized(culprit) not in host_names
                 and args.platform.startswith("linux")
                 and solver.solve(f"glibc-{culprit}", pins, specs, glibc=glibc_needs[-1])[0]):
@@ -793,74 +795,31 @@ def report_migrations(
 
 
 # ----------------------------------------------------------------------- stale
-_VERSION_PART_RE = re.compile(r"^(\d+)(.*)$")
-
-
-def version_tuple(version: str) -> tuple[int, ...]:
-    parts: list[int] = []
-    for part in version.strip().split("."):
-        match = _VERSION_PART_RE.match(part)
-        if not match:
-            break
-        parts.append(int(match.group(1)))
-        if match.group(2):  # pre-release suffix such as '0a0': stop here
-            break
-    return tuple(parts)
-
-
-def _pad(t: tuple[int, ...], n: int) -> tuple[int, ...]:
-    return t + (0,) * (n - len(t))
-
-
-def _cmp(a: tuple[int, ...], b: tuple[int, ...]) -> int:
-    n = max(len(a), len(b))
-    a, b = _pad(a, n), _pad(b, n)
-    return (a > b) - (a < b)
-
-
-def pin_range(pin_version: str) -> tuple[tuple[int, ...], tuple[int, ...], bool]:
-    """Return (lowest, upper_exclusive, exact) for a pin such as '1.90', '7.35.1.*' or '11.*'."""
-    text = pin_version.strip()
-    exact = not text.endswith(".*") and "*" not in text
-    prefix = version_tuple(text.rstrip("*").rstrip("."))
-    if not prefix:
-        return (0,), (10**9,), False
-    upper = prefix[:-1] + (prefix[-1] + 1,)
-    return prefix, upper, exact
+_SPEC_VERSION_RE = re.compile(r"\d[0-9A-Za-z_.+!]*")
 
 
 def constraint_compatible(constraint: str, pin_version: str) -> bool:
-    """Whether some version can satisfy both the dependency constraint and the pin."""
-    low, upper_excl, _ = pin_range(pin_version)
-    constraint = constraint.strip()
-    if constraint in ("", "*"):
+    """Whether some version can satisfy both the dependency constraint and the pin
+    ('1.90', '1.90.*': every version starting with 1.90)."""
+    pin = pin_version.strip().rstrip("*").rstrip(".")
+    if not pin[:1].isdigit():
         return True
-    if "|" in constraint:
-        return any(constraint_compatible(part, pin_version) for part in constraint.split("|"))
-    for clause in [c.strip() for c in constraint.split(",") if c.strip()]:
-        if clause.startswith(">="):
-            if _cmp(upper_excl, version_tuple(clause[2:])) <= 0:
-                return False
-        elif clause.startswith(">"):
-            if _cmp(upper_excl, version_tuple(clause[1:])) <= 0:
-                return False
-        elif clause.startswith("<="):
-            if _cmp(low, version_tuple(clause[2:])) > 0:
-                return False
-        elif clause.startswith("<"):
-            if _cmp(low, version_tuple(clause[1:])) >= 0:
-                return False
-        elif clause.startswith("!="):
+    try:
+        spec = VersionSpec(constraint.strip() or "*")
+        pinned = VersionSpec(f"{pin}.*")
+    except InvalidVersionSpecError:
+        return True
+    # rattler can't intersect specs; if the two overlap, the lowest version they share
+    # is the pin's, a bound of the constraint, or (for a > bound) just above one
+    bounds = [v.rstrip(".") for v in _SPEC_VERSION_RE.findall(constraint)]
+    for candidate in [pin, *bounds, *(f"{v}.1" for v in bounds)]:
+        try:
+            version = Version(candidate)
+        except InvalidVersionError:
             continue
-        else:
-            other = clause[2:] if clause.startswith("==") else clause
-            other_low, other_upper, _ = pin_range(other)
-            n = max(len(low), len(other_low))
-            a, b = _pad(low, n), _pad(other_low, n)
-            k = min(len(low), len(other_low))
-            if a[:k] != b[:k]:
-                return False
-    return True
+        if spec.matches(version) and pinned.matches(version):
+            return True
+    return False
 
 
 _CBC_KEY_RE = re.compile(r"^([A-Za-z0-9_.-]+):\s*(?:#\s*\[(.+?)\])?\s*$")
@@ -937,21 +896,21 @@ def variant_pins(variant_config: Path, platform: str) -> dict[str, str]:
 
 
 def load_repodata(source: str, platform: str) -> tuple[dict[str, Any], bool]:
+    """The records of a channel URL, a platform directory of a local channel
+    (output/<platform>) or either's repodata.json, by file name."""
+    from vinca.utils import get_channel_records
+
     remote = "://" in source
     if remote:
-        url = source.rstrip("/")
-        if not url.endswith("repodata.json"):
-            url = f"{url}/{platform}/repodata.json"
-        with _urlopen(url, timeout=300) as response:
-            data = json.load(response)
+        channel = source.rstrip("/")
+        if channel.endswith("/repodata.json"):
+            channel, platform = channel.removesuffix("/repodata.json").rsplit("/", 1)
     else:
         path = Path(source)
-        if path.is_dir():
-            path = path / "repodata.json"
-        data = json.loads(path.read_text(encoding="utf-8"))
-    packages = dict(data.get("packages", {}))
-    packages.update(data.get("packages.conda", {}))
-    return packages, remote
+        if path.name == "repodata.json":
+            path = path.parent
+        channel, platform = str(path.parent), path.name
+    return {record["fn"]: record for record in get_channel_records(channel, platform)}, remote
 
 
 def ros_name_map(vinca_conf: dict[str, Any]) -> dict[str, str]:

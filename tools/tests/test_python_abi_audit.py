@@ -22,9 +22,9 @@ def test_recipes_needing_python_reads_host(tmp_path):
 
 
 def test_newest_builds_takes_the_highest_build_number():
-    def rec(name, number, timestamp=0):
-        return {"name": name, "build_number": number, "timestamp": timestamp}
+    def rec(fn, name, number, timestamp=0):
+        return {"fn": fn, "name": name, "build_number": number, "timestamp": timestamp}
 
-    repodata = {"packages.conda": {"a-1-h_30.conda": rec("ros2-a", 30), "a-1-h_29.conda": rec("ros2-a", 29, 9),
-                                   "a-1-g_30.conda": rec("ros2-a", 30, 5), "x.conda": rec("ros-lyrical-a", 31)}}
-    assert audit.newest_builds(repodata) == {"ros2-a": "a-1-g_30.conda"}
+    records = [rec("a-1-h_30.conda", "ros2-a", 30), rec("a-1-h_29.conda", "ros2-a", 29, 9),
+               rec("a-1-g_30.conda", "ros2-a", 30, 5), rec("x.conda", "ros-lyrical-a", 31)]
+    assert {name: r["fn"] for name, r in audit.newest_builds(records).items()} == {"ros2-a": "a-1-g_30.conda"}

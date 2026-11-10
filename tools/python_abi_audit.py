@@ -27,102 +27,50 @@ packages that were built with python in host (their content is complete).
 from __future__ import annotations
 
 import argparse
-import io
+import asyncio
 import json
 import re
 import sys
-import tarfile
-import urllib.request
-import zipfile
-from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+import rattler
 import yaml
-import zstandard
+from rattler.package_streaming import PackageArchive
+from vinca.utils import get_channel_records
 
-UA = {"User-Agent": "robostack-python-audit"}
 SITE_PACKAGES = re.compile(r"(^|/)(lib/python[0-9.]*/site-packages|Lib/site-packages)/")
 EXTENSION = re.compile(r"\.cpython-[^/]*\.(so|dylib)$|\.pyd$")
+CONCURRENCY = 16
 
 
-class RangeReader(io.RawIOBase):
-    """A remote file read with HTTP range requests (zipfile only needs the end and
-    the info-*.tar.zst member of a .conda)."""
-
-    def __init__(self, url: str):
-        with urllib.request.urlopen(urllib.request.Request(url, headers={**UA, "Range": "bytes=0-0"}),
-                                    timeout=120) as r:
-            self.url = r.url
-            content_range = r.headers.get("Content-Range")
-            if r.status != 206 or not content_range:
-                raise OSError(f"{url}: no range support")
-            self.size = int(content_range.split("/")[1])
-        self.pos = 0
-
-    def readable(self) -> bool:
-        return True
-
-    def seekable(self) -> bool:
-        return True
-
-    def tell(self) -> int:
-        return self.pos
-
-    def seek(self, offset: int, whence: int = 0) -> int:
-        self.pos = {0: offset, 1: self.pos + offset, 2: self.size + offset}[whence]
-        return self.pos
-
-    def readinto(self, b) -> int:
-        n = min(len(b), self.size - self.pos)
-        if n <= 0:
-            return 0
-        headers = {**UA, "Range": f"bytes={self.pos}-{self.pos + n - 1}"}
-        with urllib.request.urlopen(urllib.request.Request(self.url, headers=headers), timeout=300) as r:
-            data = r.read()
-        b[: len(data)] = data
-        self.pos += len(data)
-        return len(data)
-
-
-def open_conda(url: str, whole: bool) -> zipfile.ZipFile:
-    if not whole:
-        try:
-            return zipfile.ZipFile(io.BufferedReader(RangeReader(url), buffer_size=1 << 16))
-        except OSError:
-            pass
-    with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=600) as r:
-        return zipfile.ZipFile(io.BytesIO(r.read()))
-
-
-def members(z: zipfile.ZipFile, prefix: str):
-    name = next(n for n in z.namelist() if n.startswith(prefix))
-    stream = zstandard.ZstdDecompressor().stream_reader(z.open(name))
-    with tarfile.open(fileobj=stream, mode="r|") as tar:
-        for member in tar:
-            if member.isfile():
-                yield member, tar.extractfile(member)
-
-
-def inspect(url: str, elf: bool) -> dict:
-    """Classify by info/paths.json; with *elf*, a package without Python files is
-    downloaded whole and its ELF files are searched for libpython (embedding)."""
+async def inspect(client: rattler.Client, url: str, elf: bool) -> dict:
+    """Classify by info/paths.json (read with range requests); with *elf*, the ELF
+    files of a package without Python files are searched for libpython (embedding)."""
     for attempt in range(3):
         try:
-            z = open_conda(url, whole=False)
-            paths = []
-            for member, f in members(z, "info-"):
-                if member.name == "info/paths.json":
-                    paths = [p["_path"] for p in json.load(f)["paths"]]
-                    break
+            archive = await PackageArchive.from_url(client, url)
+            paths = [entry.relative_path.as_posix() for entry in (await archive.paths_json()).paths]
             result = classify(paths, [])
             if elf and result["content"] == "none":
-                linked = [member.name for member, f in members(open_conda(url, whole=True), "pkg-")
-                          if (data := f.read())[:4] == b"\x7fELF" and b"libpython3." in data]
+                linked = [entry.name async for entry in archive.stream("pkg")
+                          if entry.is_file and (data := await entry.read())[:4] == b"\x7fELF"
+                          and b"libpython3." in data]
                 result = classify(paths, linked)
             return result
         except Exception as err:  # noqa: BLE001 - network or archive trouble: retried, then reported
             error = err
     return {"content": "error", "error": str(error)}
+
+
+async def inspect_all(published: dict[str, dict], elf: bool) -> dict[str, dict]:
+    client = rattler.Client()
+    limit = asyncio.Semaphore(CONCURRENCY)
+
+    async def one(name: str, record: dict) -> tuple[str, dict]:
+        async with limit:
+            return name, {"file": record["fn"], **await inspect(client, record["url"], elf)}
+
+    return dict(await asyncio.gather(*(one(name, record) for name, record in published.items())))
 
 
 def classify(paths: list[str], linked: list[str]) -> dict:
@@ -153,14 +101,13 @@ def recipes_needing_python(recipes: Path) -> dict[str, bool]:
     return result
 
 
-def newest_builds(repodata: dict) -> dict[str, str]:
-    records = {**repodata.get("packages", {}), **repodata.get("packages.conda", {})}
+def newest_builds(records: list[dict]) -> dict[str, dict]:
     newest: dict[str, tuple] = {}
-    for fn, rec in records.items():
+    for rec in records:
         key = (rec["build_number"], rec.get("timestamp", 0))
-        if rec["name"].startswith("ros2-") and key > newest.get(rec["name"], ((-1, 0), ""))[0]:
-            newest[rec["name"]] = (key, fn)
-    return {name: fn for name, (_, fn) in newest.items()}
+        if rec["name"].startswith("ros2-") and key > newest.get(rec["name"], ((-1, 0), None))[0]:
+            newest[rec["name"]] = (key, rec)
+    return {name: rec for name, (_, rec) in newest.items()}
 
 
 def main() -> int:
@@ -177,17 +124,8 @@ def main() -> int:
     if not needs:
         print(f"No ros2-* recipes in {args.recipes}: run generate-recipes first", file=sys.stderr)
         return 1
-    with urllib.request.urlopen(urllib.request.Request(f"{args.channel}/{args.platform}/repodata.json", headers=UA),
-                                timeout=300) as r:
-        published = newest_builds(json.load(r))
-
-    names = [n for n in needs if n in published]
-    def work(name: str) -> tuple[str, dict]:
-        url = f"{args.channel}/{args.platform}/{published[name]}"
-        return name, {"file": published[name], **inspect(url, elf=args.elf)}
-
-    with ThreadPoolExecutor(16) as pool:
-        results = dict(pool.map(work, names))
+    published = newest_builds(get_channel_records(args.channel, args.platform))
+    results = asyncio.run(inspect_all({n: published[n] for n in needs if n in published}, args.elf))
 
     misses = sorted(n for n, r in results.items() if not needs[n] and r["content"] in ("native", "pure"))
     unneeded = sorted(n for n, r in results.items() if needs[n] and r["content"] == "none")

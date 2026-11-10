@@ -30,62 +30,48 @@ entries are read with pyelftools.
 from __future__ import annotations
 
 import argparse
-import io
+import asyncio
 import re
 import json
 import os
 import shutil
 import subprocess
 import sys
-import tarfile
 import tempfile
-import urllib.error
-import urllib.request
-import zipfile
 from pathlib import Path
 
-import zstandard
+import rattler
+from rattler.exceptions import FetchRepoDataError
+from rattler.package_streaming import download_and_extract, download_to_path, extract
 
 # abidiff exit status bits (libabigail's abidiff_status)
 ABI_ERROR = 1
 ABI_USAGE_ERROR = 2
 ABI_CHANGE = 4
 ABI_INCOMPATIBLE_CHANGE = 8
-
-
-def _open(url: str):
-    return urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "robostack-abi-check"}), timeout=300)
-
-
-def extract_conda(path: Path, dest: Path) -> None:
-    """Unpack a .conda (zip with zstd-compressed tarballs) or .tar.bz2 package."""
-    dest.mkdir(parents=True, exist_ok=True)
-    if path.suffix == ".conda":
-        with zipfile.ZipFile(path) as z:
-            for name in z.namelist():
-                if name.startswith("pkg-") and name.endswith(".tar.zst"):
-                    data = zstandard.ZstdDecompressor().stream_reader(io.BytesIO(z.read(name)))
-                    with tarfile.open(fileobj=data, mode="r|") as tar:
-                        tar.extractall(dest, filter="data")
-    else:
-        with tarfile.open(path, "r:bz2") as tar:
-            tar.extractall(dest, filter="data")
+REPODATA_CACHE = Path(tempfile.gettempdir()) / "robostack-abi-check-repodata"
 
 
 def read_index(path: Path) -> dict:
-    """info/index.json of a package."""
-    if path.suffix == ".conda":
-        with zipfile.ZipFile(path) as z:
-            name = next(n for n in z.namelist() if n.startswith("info-") and n.endswith(".tar.zst"))
-            data = zstandard.ZstdDecompressor().stream_reader(io.BytesIO(z.read(name)))
-            with tarfile.open(fileobj=data, mode="r|") as tar:
-                for member in tar:
-                    if member.name == "info/index.json":
-                        return json.load(tar.extractfile(member))
-    else:
-        with tarfile.open(path, "r:bz2") as tar:
-            return json.load(tar.extractfile("info/index.json"))
-    raise ValueError(f"{path} has no info/index.json")
+    """The repodata record of a package file (its info/index.json)."""
+    return json.loads(asyncio.run(rattler.RepoDataRecord.from_package_archive(path)).to_json())
+
+
+def channel_records(channel: str, platform: str) -> list[dict]:
+    """The repodata records of the channel for the platform (none when it has no
+    packages for it). The abi-check task runs without vinca, so not vinca's
+    get_channel_records."""
+    try:
+        [repodata] = asyncio.run(rattler.fetch_repo_data(
+            channels=[rattler.Channel(channel)], platforms=[rattler.Subdir(platform)],
+            cache_path=REPODATA_CACHE, callback=None,
+        ))
+    except FetchRepoDataError as error:
+        # network failures raise the same type
+        if not str(error).startswith("repodata not found"):
+            raise
+        return []
+    return [json.loads(record.to_json()) for record in repodata.load_all_records()]
 
 
 def libraries(prefix: Path) -> dict[str, Path]:
@@ -125,8 +111,8 @@ def classify(rc: int, report: str) -> str:
 def compare(old_pkg: Path, new_pkg: Path, work: Path) -> dict:
     a, b = work / "old", work / "new"
     shutil.rmtree(work, ignore_errors=True)
-    extract_conda(old_pkg, a)
-    extract_conda(new_pkg, b)
+    extract(old_pkg, a)
+    extract(new_pkg, b)
     old_libs, new_libs = libraries(a), libraries(b)
     result = {"libraries": {}, "removed_libraries": sorted(set(old_libs) - set(new_libs)),
               "headers": header_changes(a, b)}
@@ -225,10 +211,6 @@ def short_name(name: str, distro: str) -> str | None:
     return None
 
 
-def _version_key(v: str):
-    return [int(p) if p.isdigit() else 0 for p in v.replace("-", ".").split(".")]
-
-
 def _belongs_to(rec: dict, distro: str) -> bool:
     """A record of this distribution: ros-<distro>-* names, or ros2-* builds pinned to
     its mutex (a channel such as the test channel can hold several distributions)."""
@@ -243,15 +225,7 @@ def released(channels: str | list[str], platform: str, distro: str) -> dict[str,
     packages are left out."""
     by_name: dict[str, dict[str, dict]] = {}
     for channel in [channels] if isinstance(channels, str) else channels:
-        try:
-            with _open(f"{channel.rstrip('/')}/{platform}/repodata.json") as r:
-                data = json.load(r)
-        except urllib.error.HTTPError as error:
-            if error.code == 404:  # no packages for this platform there
-                continue
-            raise
-        records = list(data.get("packages", {}).items()) + list(data.get("packages.conda", {}).items())
-        for filename, rec in records:
+        for rec in channel_records(channel, platform):
             short = short_name(rec["name"], distro)
             if short is None or _is_compatibility_package(rec) or not _belongs_to(rec, distro):
                 continue
@@ -260,12 +234,12 @@ def released(channels: str | list[str], platform: str, distro: str) -> dict[str,
             if current is None or (rec.get("build_number", 0), rec.get("timestamp", 0)) > (
                 current.get("build_number", 0), current.get("timestamp", 0)
             ):
-                versions[rec["version"]] = {"file": filename, "channel": channel, **rec}
+                versions[rec["version"]] = {**rec, "file": rec["fn"], "channel": channel}
     return by_name
 
 
 def newest(versions: dict[str, dict]) -> dict:
-    return versions[max(versions, key=_version_key)]
+    return versions[max(versions, key=rattler.Version)]
 
 
 def latest_pairs(channel: str, platform: str, count: int, distro: str) -> list[tuple[str, dict, dict]]:
@@ -275,7 +249,7 @@ def latest_pairs(channel: str, platform: str, count: int, distro: str) -> list[t
     for short, versions in sorted(released(channel, platform, distro).items()):
         if len(versions) < 2:
             continue
-        ordered = sorted(versions, key=_version_key)
+        ordered = sorted(versions, key=rattler.Version)
         pairs.append((short, versions[ordered[-2]], versions[ordered[-1]]))
     # most recently uploaded new versions first
     pairs.sort(key=lambda p: p[2].get("timestamp", 0), reverse=True)
@@ -343,11 +317,10 @@ def channel_for(distro: str) -> list[str]:
     return extra + [rs.repodata_url(distro)]
 
 
-def download(channel: str, platform: str, filename: str, dest: Path) -> Path:
-    target = dest / filename
+def download(rec: dict, dest: Path) -> Path:
+    target = dest / rec["file"]
     if not target.exists():
-        with _open(f"{channel.rstrip('/')}/{platform}/{filename}") as r, open(target, "wb") as f:
-            shutil.copyfileobj(r, f)
+        asyncio.run(download_to_path(rattler.Client(), rec["url"], target))
     return target
 
 
@@ -355,19 +328,16 @@ def download(channel: str, platform: str, filename: str, dest: Path) -> Path:
 MAX_DEPENDENTS_TO_INSPECT = 40
 
 
-def linking_dependents(channel, platform, by_name, candidates, sonames, downloads: Path, tmp: Path) -> dict:
+def linking_dependents(by_name, candidates, sonames, tmp: Path) -> dict:
     """Which of the dependents link to one of the SONAMEs (and so need a rebuild);
     metapackages, Python packages and configurations don't."""
     if len(candidates) > MAX_DEPENDENTS_TO_INSPECT:
         return {"rebuild": candidates, "checked": False}
     rebuild = []
     for name in candidates:
-        rec = newest(by_name[name])
-        pkg = download(rec["channel"], platform, rec["file"], downloads)
         target = tmp / "dependent"
         shutil.rmtree(target, ignore_errors=True)
-        extract_conda(pkg, target)
-        pkg.unlink(missing_ok=True)
+        asyncio.run(download_and_extract(rattler.Client(), newest(by_name[name])["url"], target))
         if needed(target) & set(sonames):
             rebuild.append(name)
     return {"rebuild": rebuild, "checked": True, "candidates": len(candidates)}
@@ -407,14 +377,14 @@ def check_pr_builds(pr_dir: Path, channel: str, platform: str, distro: str, tmp:
         if old["file"] == pkg.name:
             continue
         print(f"{short}: {old['version']} (build {old.get('build_number', 0)}) -> {index['version']} (PR)", flush=True)
-        old_pkg = download(old["channel"], platform, old["file"], downloads)
+        old_pkg = download(old, downloads)
         res = compare(old_pkg, pkg, tmp / "work")
         old_pkg.unlink(missing_ok=True)
         res.update(old=f"{old['version']} (build {old.get('build_number', 0)})", new=index["version"],
                    pins=pin_changes(old, index, distro))
         if res["broken_sonames"]:
             res["dependents"] = linking_dependents(
-                channel, platform, by_name, dependents(by_name, short, distro), res["broken_sonames"], downloads, tmp
+                by_name, dependents(by_name, short, distro), res["broken_sonames"], tmp
             )
         results[short] = res
         print(f"  -> {res['verdict']}", flush=True)
@@ -566,8 +536,8 @@ def main() -> int:
             downloads.mkdir()
             for name, old, new in latest_pairs(channel, args.platform, args.latest_pairs, args.distro):
                 print(f"{name}: {old['version']} -> {new['version']}", flush=True)
-                old_pkg = download(old["channel"], args.platform, old["file"], downloads)
-                new_pkg = download(new["channel"], args.platform, new["file"], downloads)
+                old_pkg = download(old, downloads)
+                new_pkg = download(new, downloads)
                 res = compare(old_pkg, new_pkg, tmp / "work")
                 res.update(old=old["version"], new=new["version"])
                 results[name] = res

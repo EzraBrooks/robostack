@@ -21,6 +21,7 @@ rattler-build = ">=0.80.0,<0.81"
 cmake = "<4.0"
 setuptools = "<82.0"
 rattler-index = ">=0.27.16"
+py-rattler = ">=0.28.1,<0.29"
 pyyaml = "*"
 # Some git repos need git-lfs, see https://github.com/RoboStack/ros-jazzy/issues/118
 git-lfs = "*"
@@ -36,7 +37,7 @@ git = "*"
 
 [pypi-dependencies]
 # One vinca for all distributions.
-vinca = { git = "https://github.com/RoboStack/vinca.git", rev = "74d1e856d5b00c0cb5ee0c1be41dac4afcae7bf5" }
+vinca = { git = "https://github.com/RoboStack/vinca.git", rev = "6022f01558a4f954bffb01d4c9d8e66af733a9a3" }
 # For local development, temporarily use (and regenerate pixi.lock):
 # vinca = { path = "../vinca", editable = true }
 
@@ -44,5 +45,5 @@ vinca = { git = "https://github.com/RoboStack/vinca.git", rev = "74d1e856d5b00c0
 rs = { cmd = "python tools/robostack.py", description = "Run a task for one distribution: `pixi run rs <distro> <task>` (generate-recipes, build, build-one, check-patches, check-deps, create-snapshot, render-pinning, sort, ...)." }
 sort = { cmd = "sh -lc 'vinca-sort-vinca-lists $@ shared/vinca.yaml && vinca-sort-yaml-keys $@ shared/robostack.yaml shared/pkg_additional_info.yaml shared/patch/dependencies.yaml && for d in distros/*/; do (cd $d && vinca-sort-vinca-lists $@ vinca.yaml && vinca-sort-yaml-keys $@ pkg_additional_info.yaml rosdistro_additional_recipes.yaml $(ls patch/dependencies.yaml 2>/dev/null)) || exit 1; done' --", description = "Sort the YAML files of all distributions (`--check` to only check)." }
 test = { cmd = "python -m pytest tools/tests", description = "Unit tests of the repository tooling (tools/tests)." }
-abi-check = { cmd = "pixi exec -s python=3.14 -s zstandard -s pyyaml -s pyelftools python tools/abi_check.py", description = "Compare the ABI of package builds with libabigail (Linux only): `pixi run abi-check --distro jazzy --latest-pairs 30`, `--old a.conda --new b.conda`, or `--pr-builds <dir>` (a pull request's builds against the released ones)." }
+abi-check = { cmd = "pixi exec -s python=3.14 -s py-rattler -s pyyaml -s pyelftools python tools/abi_check.py", description = "Compare the ABI of package builds with libabigail (Linux only): `pixi run abi-check --distro jazzy --latest-pairs 30`, `--old a.conda --new b.conda`, or `--pr-builds <dir>` (a pull request's builds against the released ones)." }
 render-pinning = { cmd = "sh -lc 'for d in distros/*/; do python tools/robostack.py $(basename $d) render-pinning || exit 1; done'", description = "Regenerate every distribution's conda_build_config.yaml from shared/pinning and its distro.yaml." }
