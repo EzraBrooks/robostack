@@ -28,6 +28,7 @@ import shutil
 import subprocess
 import sys
 import time
+from collections.abc import Callable
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -429,22 +430,31 @@ def upload(distro: str, files: list[str], cwd: Path) -> int:
         print(f"no ANACONDA_API_TOKEN (repository secret {anaconda_token_secret(distro)}): not uploading to "
               f"anaconda.org/{channel}", file=sys.stderr)
         return 1
-    missing = [f for f in files if not on_anaconda(channel, Path(cwd, f))]
-    if missing:
-        rc |= retry(["rattler-build", "upload", "anaconda", "-o", channel, "--api-key", token, *missing], cwd,
-                    "anaconda.org")
-    return rc
+
+    def anaconda_upload() -> list[str] | None:
+        # asked again before every attempt: an upload that timed out may still have
+        # arrived, and uploading it again fails with "already exists"
+        missing = [f for f in files if not on_anaconda(channel, Path(cwd, f))]
+        return ["rattler-build", "upload", "anaconda", "-o", channel, "--api-key", token, *missing] if missing else None
+
+    return rc | retry(anaconda_upload, cwd, "anaconda.org")
 
 
 UPLOAD_ATTEMPTS = 5
 UPLOAD_WAIT = 30  # doubled on each retry: 30 s, 1, 2, 4 minutes (anaconda.org's 503s can last minutes)
 
 
-def retry(cmd: list[str], cwd: Path, what: str) -> int:
+def retry(cmd: list[str] | Callable[[], list[str] | None], cwd: Path, what: str) -> int:
+    """Runs an upload, retrying when it fails. `cmd` may be a function that returns the
+    command for what is still to upload, or None when nothing is."""
     # the channels (and Sigstore, for attestations) fail now and then; uploads are
     # idempotent, so retry
+    rc = 0
     for attempt in range(1, UPLOAD_ATTEMPTS + 1):
-        rc = run(cmd, cwd)
+        command = cmd() if callable(cmd) else cmd
+        if command is None:
+            return 0
+        rc = run(command, cwd)
         if rc == 0 or attempt == UPLOAD_ATTEMPTS:
             return rc
         wait = UPLOAD_WAIT * 2 ** (attempt - 1)

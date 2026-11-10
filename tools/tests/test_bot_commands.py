@@ -320,6 +320,26 @@ def test_uploads_retry_five_times_waiting_longer(monkeypatch):
     assert waits == [30, 60, 120, 240]
 
 
+def test_anaconda_retry_skips_an_upload_that_arrived_despite_failing(monkeypatch):
+    # the first upload times out (HTTP 524) although anaconda.org stored the file:
+    # the retry must not upload it again ("already exists") but find nothing left
+    calls, uploaded = [], set()
+
+    def run(cmd, cwd):
+        calls.append(cmd)
+        uploaded.update(f for f in cmd if f.endswith(".conda"))
+        return 1
+
+    monkeypatch.setattr(rs, "run", run)
+    monkeypatch.setattr(rs, "on_anaconda", lambda channel, path: str(path.relative_to(rs.ROOT)) in uploaded)
+    monkeypatch.setattr(rs, "upload_hosts", lambda distro: ["anaconda"])
+    monkeypatch.setattr(rs.time, "sleep", lambda seconds: None)
+    monkeypatch.setenv("ANACONDA_API_TOKEN", "test")
+    monkeypatch.delenv("ROBOSTACK_UPLOAD_CHANNEL", raising=False)
+    assert rs.upload("lyrical", ["osx-64/ros2-a-1.0.0-h_30.conda"], rs.ROOT) == 0
+    assert len(calls) == 1
+
+
 def test_update_pixi_parsing():
     assert jobs("@robostack-bot update-pixi") == [{"command": "update-pixi", "distro": "", "args": "", "preview": False}]
     assert maintenance.parse_command("@robostack-bot update-pixi", "NONE") == []
