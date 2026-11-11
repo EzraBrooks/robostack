@@ -8,6 +8,11 @@ behaviortree_cpp:
 camera_calibration:
   # Depends on opencv with gui support, see https://github.com/ros-perception/image_pipeline/blob/746268fcfd21b389bc39ae60bb6345a53c838558/camera_calibration/src/camera_calibration/camera_calibrator.py#L286
   add_run: ["libopencv * *qt6*"]
+cuda_buffer:
+  # FindCUDAToolkit needs nvcc; CUDA::cuda_driver links against the driver stub.
+  add_host: ["cuda-driver-dev", "cuda-nvcc"]
+cuda_buffer_backend:
+  add_host: ["cuda-driver-dev", "cuda-nvcc"]
 dolly_ignition:
   add_host: ["${{ 'libgl-devel' if linux }}", "${{ 'libopengl-devel' if linux }}"]
 fmilibrary_vendor:

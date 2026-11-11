@@ -748,6 +748,11 @@ nlohmann-json-dev:
   robostack: [nlohmann_json]
 nlopt:
   robostack: [nlopt]
+nvidia-cuda:
+  robostack:
+    linux: [cuda-cudart-dev, "cuda-nvcc-dev_${{ target_platform }}"]
+    osx: []
+    win64: []
 ocl-icd-opencl-dev:
   robostack: [ocl-icd]
 opengl:

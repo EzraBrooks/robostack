@@ -110,6 +110,7 @@ packages_select_by_deps:
   - color_util
   - control_msgs
   - control_toolbox
+  - cuda_buffer_backend_msgs
   - data_tamer_cpp
   - demo_nodes_cpp
   - demo_nodes_py
@@ -403,6 +404,8 @@ packages_select_by_deps:
       - camera_ros # Depends on libcamera, only available on linux
       - can_dbc_parser
       - canopen # Linux only: lely-core supports Linux and Windows but not macOS (clashes with the macOS SDK), and the drivers need SocketCAN (Linux-only); requested in https://github.com/RoboStack/ros-jazzy/pull/167
+      - cuda_buffer # CUDA toolkit and POSIX IPC APIs (including librt)
+      - cuda_buffer_backend
       - easynav
       - easynav_bonxai_maps_manager
       - easynav_common
