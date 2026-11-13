@@ -204,11 +204,14 @@ def blocked(job: dict, status: dict[str, str]) -> dict[str, str]:
     return out
 
 
-def outcomes(recipes: list[str], held: dict[str, str], log: str | None) -> dict[str, str]:
+def outcomes(job: dict, held: dict[str, str], log: str | None) -> dict[str, str]:
     """How each recipe of the job went: blocked (held back), else from the last attempt in
     rattler-build's log (rs build-ci with --continue-on-failure=skip-dependents): failed
     (its build or test), skipped (it needs one that failed in this job), or success. When
-    rattler-build itself failed (or there's no log), every recipe that isn't blocked failed."""
+    rattler-build itself failed (or there's no log), every recipe that isn't blocked failed.
+    rattler-build skips only the outputs that need a failed one to build, so one that only
+    runs with it (e.g. ros-<distro>-<name>, of ros2-<name>) counts as skipped here."""
+    recipes = job["recipes"].split()
     attempt = re.split(r"^\+ rattler-build ", log, flags=re.M)[-1] if log else ""
     aborted = not attempt or re.search(r"^rattler-build exited with ", attempt, re.M)
     name = lambda identifier: identifier.rsplit("-", 2)[0]  # noqa: E731 (name-version-build)
@@ -224,6 +227,13 @@ def outcomes(recipes: list[str], held: dict[str, str], log: str | None) -> dict[
             out[r] = "skipped"
         else:
             out[r] = "success"
+    changed = True
+    while changed:
+        changed = False
+        for r in recipes:
+            if out[r] == "success" and any(out.get(q, "success") != "success" for q in job["requires"].get(r, [])):
+                out[r] = "skipped"
+                changed = True
     return out
 
 
@@ -345,7 +355,7 @@ def main() -> int:
 
     held = json.loads(held_file.read_text()) if held_file.is_file() else {}
     log = args.log.read_text(encoding="utf-8", errors="replace") if args.log.is_file() else None
-    result = outcomes(job["recipes"].split(), held, log)
+    result = outcomes(job, held, log)
     (args.out / "status").mkdir(parents=True, exist_ok=True)
     (args.out / "status" / f"{args.job}.json").write_text(json.dumps(result, indent=1) + "\n")
     ok = all(s == "success" for s in result.values())

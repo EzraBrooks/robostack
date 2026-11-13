@@ -109,19 +109,21 @@ Network error; retrying in 60 s (retry 1 of 4)
 
 
 def test_each_recipe_s_outcome_from_the_last_attempt():
-    recipes = ["ros2-a", "ros2-mola", "ros-lyrical-mola", "ros2-t", "ros2-held"]
+    job = {"recipes": "ros2-a ros2-mola ros-lyrical-mola ros2-t ros-lyrical-t ros2-held", "requires": {"ros-lyrical-t": ["ros2-t"]}}
 
-    assert sb.outcomes(recipes, {"ros2-held": "ros2-x"}, LOG) == {
+    # ros-lyrical-t only runs with ros2-t: rattler-build built it
+    assert sb.outcomes(job, {"ros2-held": "ros2-x"}, LOG) == {
         "ros2-a": "success", "ros2-mola": "failed", "ros-lyrical-mola": "skipped", "ros2-t": "failed",
-        "ros2-held": "blocked",
+        "ros-lyrical-t": "skipped", "ros2-held": "blocked",
     }
 
 
 def test_every_recipe_failed_when_rattler_build_itself_did():
     log = "+ rattler-build build\n10:00:00 [ros2-a] Archive written to 'x'\nrattler-build exited with 1\n"
+    job = {"recipes": "ros2-a ros2-b", "requires": {}}
 
-    assert sb.outcomes(["ros2-a", "ros2-b"], {}, log) == {"ros2-a": "failed", "ros2-b": "failed"}
-    assert sb.outcomes(["ros2-a", "ros2-b"], {"ros2-b": "ros2-x"}, None) == {"ros2-a": "failed", "ros2-b": "blocked"}
+    assert sb.outcomes(job, {}, log) == {"ros2-a": "failed", "ros2-b": "failed"}
+    assert sb.outcomes(job, {"ros2-b": "ros2-x"}, None) == {"ros2-a": "failed", "ros2-b": "blocked"}
 
 
 def test_unpack_merges_the_artifacts(tmp_path):
