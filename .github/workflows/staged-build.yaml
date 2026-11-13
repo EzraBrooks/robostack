@@ -1399,11 +1399,18 @@ jobs:
           cache-write: false  # saved from main only (pixi-cache.yaml)
       - uses: actions/download-artifact@v7
         with:
-          pattern: pkgs-${{ matrix.distro }}-${{ matrix.platform }}-*
-          merge-multiple: true
-          path: ${{ env.CACHE_DIR }}
+          name: schedule
+      - name: The stage jobs' artifacts
+        run: pixi run python tools/staged_build.py artifacts --schedule schedule.json --distro "$DISTRO" --platform "$PLATFORM"
+      # by name: download-artifact's pattern only sees the run's first 1,000 artifacts
+      - name: Download the stage jobs' packages
+        uses: actions/github-script@v8
+        with:
+          script: |
+            await require('./tools/download_artifacts.cjs')({ names: process.env.ARTIFACTS.split(' '), dir: 'artifacts', core })
       - name: See the packages
         run: |
+          pixi run python tools/staged_build.py unpack --zips artifacts --into "$CACHE_DIR"
           rm -rf "$CACHE_DIR/status"
           shopt -s nullglob
           packages=("$CACHE_DIR"/*/*.conda)

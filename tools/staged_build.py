@@ -3,6 +3,10 @@
     python tools/staged_build.py plan --distro <d> --platform <p> --os <runner> --cache-dir <dir> --out <file>
     python tools/staged_build.py schedule --out <file> <plan file>...
     python tools/staged_build.py job --schedule <file> --distro <d> --platform <p> --job <id>
+    python tools/staged_build.py artifacts --schedule <file> --distro <d> --platform <p>
+    python tools/staged_build.py unpack --zips <dir> --into <dir>
+    python tools/staged_build.py ready --schedule <file> --distro <d> --platform <p> --job <id> --channel <dir>
+    python tools/staged_build.py status --schedule <file> --distro <d> --platform <p> --job <id> --log <file> --out <dir>
     python tools/staged_build.py workflow [--check]
 
 .github/workflows/staged-build.yaml builds the given distributions and platforms in
@@ -18,11 +22,16 @@ stage_<k-1>.
   matrix limit) and writes the schedule every stage job reads its recipes from.
 - `job` is a stage job's recipes and the artifacts it needs: the packages of the jobs
   that build its requirements (vinca's `needs`, and theirs), and the restored cache.
+  tools/download_artifacts.cjs downloads them by name (`artifacts` lists a distribution
+  and platform's for collecting them), `unpack` merges them into one directory.
+- `ready` leaves out the job's recipes that need a recipe that wasn't built (vinca's
+  `requires`, in this job or the ones it needs), `status` records how each recipe went.
 - `workflow` writes staged-build.yaml (`rs check` checks that it is up to date).
 
-Packages pass between jobs as artifacts, pkgs-<distro>-<platform>-<job>, each with a
-status/<job> file (success or failure): a job whose requirements failed fails too, but
-the other distributions and platforms go on.
+Packages pass between jobs as artifacts, pkgs-<distro>-<platform>-<job>, each with
+status/<job> (success, or failure when any of its recipes wasn't built) and
+status/<job>.json ({recipe: success, failed, skipped or blocked}): a recipe that failed
+holds back only the recipes that need it, and the other distributions and platforms go on.
 """
 
 from __future__ import annotations
@@ -30,8 +39,10 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shutil
 import sys
+import zipfile
 from collections import Counter
 from pathlib import Path
 
@@ -70,6 +81,7 @@ def fold(stages: list[list[dict]], slots: int = SLOTS) -> list[list[dict]]:
         "name": f"{len(rest)} jobs of stages {slots - 1}+",
         "recipes": " ".join(job["recipes"] for job in rest),
         "needs": sorted({n for job in rest for n in job["needs"]} - ids),
+        "requires": {r: deps for job in rest for r, deps in job.get("requires", {}).items()},
     }
     return [*stages[:slots - 1], [tail]]
 
@@ -108,6 +120,7 @@ def merge_smallest(stages: list[list[dict]], k: int) -> None:
     a["recipes"] = f"{a['recipes']} {b['recipes']}"
     a["name"] = f"{a['name']} {b['name']}"
     a["needs"] = sorted(set(a["needs"]) | set(b["needs"]))
+    a["requires"] = {**a.get("requires", {}), **b.get("requires", {})}
     stages[k].remove(b)
     for stage in stages[k + 1:]:
         for job in stage:
@@ -117,8 +130,8 @@ def merge_smallest(stages: list[list[dict]], k: int) -> None:
 
 def schedule(plans: list[dict], slots: int = SLOTS, max_matrix: int = MAX_MATRIX) -> tuple[list[list[dict]], dict]:
     """The slots' matrix entries, and each distribution and platform's jobs by id
-    ({"<distro>/<platform>": {id: {"recipes", "needs"}}}). A slot with more than
-    max_matrix jobs has the smallest jobs of its largest plans merged."""
+    ({"<distro>/<platform>": {id: {"recipes", "needs", "requires"}}}). A slot with more
+    than max_matrix jobs has the smallest jobs of its largest plans merged."""
     entries = []
     for k in range(slots):
         while sum(len(p["stages"][k]) for p in plans if k < len(p["stages"])) > max_matrix:
@@ -131,7 +144,8 @@ def schedule(plans: list[dict], slots: int = SLOTS, max_matrix: int = MAX_MATRIX
         ])
     while entries and not entries[-1]:
         entries.pop()
-    jobs = {f"{p['distro']}/{p['platform']}": {job["id"]: {"recipes": job["recipes"], "needs": job["needs"]}
+    jobs = {f"{p['distro']}/{p['platform']}": {job["id"]: {"recipes": job["recipes"], "needs": job["needs"],
+                                                           "requires": job.get("requires", {})}
                                                 for stage in p["stages"] for job in stage}
             for p in plans}
     return entries, jobs
@@ -152,10 +166,65 @@ def job_needs(jobs: dict[str, dict], job: str) -> list[str]:
     return sorted(seen)
 
 
-def pattern(distro: str, platform: str, jobs: list[str]) -> str:
-    """download-artifact's pattern (minimatch) for these jobs' artifacts."""
-    names = ["cache", *jobs]
-    return artifact(distro, platform, names[0] if len(names) == 1 else "{" + ",".join(names) + "}")
+def unpack(zips: Path, into: Path) -> None:
+    """Extract the downloaded artifacts (tools/download_artifacts.cjs) into one directory."""
+    into.mkdir(parents=True, exist_ok=True)
+    for z in sorted(zips.glob("*.zip")):
+        with zipfile.ZipFile(z) as f:
+            f.extractall(into)
+        z.unlink()
+
+
+def needed_status(jobs: dict[str, dict], needed: list[str], channel: Path) -> dict[str, str]:
+    """How each recipe of the needed jobs went, from their status/<job>.json; a job
+    without one (its artifact missing: it didn't get to the end) built none."""
+    status = {}
+    for j in needed:
+        f = channel / "status" / f"{j}.json"
+        recipes = json.loads(f.read_text()) if f.is_file() else {}
+        for r in jobs[j]["recipes"].split():
+            status[r] = recipes.get(r, "not built")
+    return status
+
+
+def blocked(job: dict, status: dict[str, str]) -> dict[str, str]:
+    """The job's recipes that can't be built, each with the requirement it lacks: one
+    that the needed jobs didn't build, or one of the job's own recipes held back."""
+    out: dict[str, str] = {}
+    changed = True
+    while changed:
+        changed = False
+        for r in job["recipes"].split():
+            if r in out:
+                continue
+            lacking = [q for q in job["requires"].get(r, []) if q in out or status.get(q, "success") != "success"]
+            if lacking:
+                out[r] = lacking[0]
+                changed = True
+    return out
+
+
+def outcomes(recipes: list[str], held: dict[str, str], log: str | None) -> dict[str, str]:
+    """How each recipe of the job went: blocked (held back), else from the last attempt in
+    rattler-build's log (rs build-ci with --continue-on-failure=skip-dependents): failed
+    (its build or test), skipped (it needs one that failed in this job), or success. When
+    rattler-build itself failed (or there's no log), every recipe that isn't blocked failed."""
+    attempt = re.split(r"^\+ rattler-build ", log, flags=re.M)[-1] if log else ""
+    aborted = not attempt or re.search(r"^rattler-build exited with ", attempt, re.M)
+    name = lambda identifier: identifier.rsplit("-", 2)[0]  # noqa: E731 (name-version-build)
+    failed = {name(i) for i in re.findall(r"(?:Build|Test) failed for (\S+): ", attempt)}
+    skipped = {name(i) for i in re.findall(r"Skipping (\S+) because its dependency \S+ failed to build", attempt)}
+    out = {}
+    for r in recipes:
+        if r in held:
+            out[r] = "blocked"
+        elif r in failed or aborted:
+            out[r] = "failed"
+        elif r in skipped:
+            out[r] = "skipped"
+        else:
+            out[r] = "success"
+    return out
 
 
 def workflow() -> str:
@@ -189,11 +258,22 @@ def main() -> int:
     s = sub.add_parser("schedule", help="the plans in the stage slots, as GitHub outputs")
     s.add_argument("--out", required=True, type=Path)
     s.add_argument("plans", nargs="*", type=Path)
-    j = sub.add_parser("job", help="a stage job's RECIPES, NEEDED and NEEDS_PATTERN, as GitHub environment")
-    j.add_argument("--schedule", required=True, type=Path)
-    j.add_argument("--distro", required=True)
-    j.add_argument("--platform", required=True)
-    j.add_argument("--job", required=True)
+    j = sub.add_parser("job", help="a stage job's RECIPES, NEEDED and NEEDED_ARTIFACTS, as GitHub environment")
+    a = sub.add_parser("artifacts", help="a distribution and platform's artifacts, ARTIFACTS, as GitHub environment")
+    r = sub.add_parser("ready", help="the job's RECIPES whose requirements were built, as GitHub environment")
+    t = sub.add_parser("status", help="how each of the job's recipes went, status/<job>.json in --out")
+    for p in (j, a, r, t):
+        p.add_argument("--schedule", required=True, type=Path)
+        p.add_argument("--distro", required=True)
+        p.add_argument("--platform", required=True)
+    for p in (j, r, t):
+        p.add_argument("--job", required=True)
+    r.add_argument("--channel", required=True, type=Path, help="the needed jobs' artifacts, unpacked")
+    t.add_argument("--log", required=True, type=Path, help="the build's output (rs build-ci)")
+    t.add_argument("--out", required=True, type=Path, help="the job's artifact")
+    u = sub.add_parser("unpack", help="extract downloaded artifacts into one directory")
+    u.add_argument("--zips", required=True, type=Path)
+    u.add_argument("--into", required=True, type=Path)
     w = sub.add_parser("workflow", help=f"write {WORKFLOW.relative_to(rs.ROOT)}")
     w.add_argument("--check", action="store_true", help="only check that it is up to date")
     args = parser.parse_args()
@@ -231,13 +311,56 @@ def main() -> int:
         print(f"{sum(map(len, entries))} jobs in {len(entries)} stages: " + ", ".join(str(len(e)) for e in entries))
         return 0
 
+    if args.command == "unpack":
+        unpack(args.zips, args.into)
+        return 0
+
     jobs = json.loads(args.schedule.read_text())[f"{args.distro}/{args.platform}"]
+    if args.command == "artifacts":
+        names = [artifact(args.distro, args.platform, j) for j in ["cache", *jobs]]
+        write_lines("GITHUB_ENV", [f"ARTIFACTS={' '.join(names)}"])
+        print(f"{len(names)} artifacts")
+        return 0
+
+    job = jobs[args.job]
     needed = job_needs(jobs, args.job)
-    lines = [f"RECIPES={jobs[args.job]['recipes']}", f"NEEDED={' '.join(needed)}",
-             f"NEEDS_PATTERN={pattern(args.distro, args.platform, needed)}"]
-    write_lines("GITHUB_ENV", lines)
-    print("\n".join(lines))
-    return 0
+    held_file = Path(f"blocked-{args.job}.json")
+    if args.command == "job":
+        lines = [f"RECIPES={job['recipes']}", f"NEEDED={' '.join(needed)}",
+                 "NEEDED_ARTIFACTS=" + " ".join(artifact(args.distro, args.platform, j) for j in ["cache", *needed])]
+        write_lines("GITHUB_ENV", lines)
+        print("\n".join(lines))
+        return 0
+
+    if args.command == "ready":
+        status = needed_status(jobs, needed, args.channel)
+        held = blocked(job, status)
+        held_file.write_text(json.dumps(held) + "\n")
+        for r, q in held.items():
+            print(f"{r}: not built, as it needs {q} ({status.get(q, 'held back in this job')})")
+        ready = [r for r in job["recipes"].split() if r not in held]
+        write_lines("GITHUB_ENV", [f"RECIPES={' '.join(ready)}"])
+        print(f"{len(ready)} of {len(job['recipes'].split())} recipes to build: {' '.join(ready)}")
+        return 0
+
+    held = json.loads(held_file.read_text()) if held_file.is_file() else {}
+    log = args.log.read_text(encoding="utf-8", errors="replace") if args.log.is_file() else None
+    result = outcomes(job["recipes"].split(), held, log)
+    (args.out / "status").mkdir(parents=True, exist_ok=True)
+    (args.out / "status" / f"{args.job}.json").write_text(json.dumps(result, indent=1) + "\n")
+    ok = all(s == "success" for s in result.values())
+    (args.out / "status" / args.job).write_text(("success" if ok else "failure") + "\n")
+    lines = [f"| {r} | {s}{f' (needs {held[r]})' if r in held else ''} |" for r, s in result.items() if s != "success"]
+    for line in lines:
+        print(line.strip("| ").replace(" | ", ": "))
+    if lines:
+        write_lines("GITHUB_STEP_SUMMARY", ["| recipe | not built |", "|---|---|", *lines, ""])
+    # the packages of the recipes that built, to upload (releases)
+    built = {r for r, s in result.items() if s == "success"}
+    Path("uploads.txt").write_text("".join(f"{p.as_posix()}\n" for p in sorted(args.out.glob("*/*.conda"))
+                                           if p.name.rsplit("-", 2)[0] in built))
+    print(f"{len(built)} of {len(result)} recipes built")
+    return 0 if ok else 1
 
 
 SETUP = """\
@@ -435,11 +558,18 @@ COLLECT = """\
 """ + SETUP + """\
       - uses: actions/download-artifact@v7
         with:
-          pattern: pkgs-${{ matrix.distro }}-${{ matrix.platform }}-*
-          merge-multiple: true
-          path: ${{ env.CACHE_DIR }}
+          name: schedule
+      - name: The stage jobs' artifacts
+        run: pixi run python tools/staged_build.py artifacts --schedule schedule.json --distro "$DISTRO" --platform "$PLATFORM"
+      # by name: download-artifact's pattern only sees the run's first 1,000 artifacts
+      - name: Download the stage jobs' packages
+        uses: actions/github-script@v8
+        with:
+          script: |
+            await require('./tools/download_artifacts.cjs')({ names: process.env.ARTIFACTS.split(' '), dir: 'artifacts', core })
       - name: See the packages
         run: |
+          pixi run python tools/staged_build.py unpack --zips artifacts --into "$CACHE_DIR"
           rm -rf "$CACHE_DIR/status"
           shopt -s nullglob
           packages=("$CACHE_DIR"/*/*.conda)

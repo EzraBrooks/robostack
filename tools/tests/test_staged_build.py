@@ -1,5 +1,7 @@
 """tools/staged_build.py: the staged build's plans, schedule and stage slots."""
 
+import sys
+
 import yaml
 
 import robostack as rs
@@ -53,16 +55,19 @@ def test_schedule_shares_the_slots_between_distributions_and_platforms():
          ("lyrical", "win-64", "stage_0_job_1")],
         [("jazzy", "linux-64", "stage_1_job_0")],
     ]
-    assert jobs["lyrical/win-64"]["stage_0_job_1"] == {"recipes": "ros2-c", "needs": []}
+    assert jobs["lyrical/win-64"]["stage_0_job_1"] == {"recipes": "ros2-c", "needs": [], "requires": {}}
 
 
 def test_schedule_merges_jobs_past_the_matrix_limit():
     stages = [[job("a", "ros2-a"), job("b", "ros2-b ros2-bb"), job("c", "ros2-c")], [job("d", "ros2-d", ["c"])]]
+    stages[0][2]["requires"] = {"ros2-c": []}
+    stages[1][0]["requires"] = {"ros2-d": ["ros2-c"]}
 
     entries, jobs = sb.schedule([plan("jazzy", "linux-64", stages)], max_matrix=2)
 
     assert [e["job"] for e in entries[0]] == ["a", "b"]
     assert jobs["jazzy/linux-64"]["a"]["recipes"] == "ros2-a ros2-c"
+    assert jobs["jazzy/linux-64"]["a"]["requires"] == {"ros2-c": []}
     assert jobs["jazzy/linux-64"]["d"]["needs"] == ["a"]
 
 
@@ -70,8 +75,80 @@ def test_a_job_needs_its_requirements_jobs_and_theirs():
     jobs = {"a": {"needs": []}, "b": {"needs": ["a"]}, "c": {"needs": []}, "d": {"needs": ["b"]}}
 
     assert sb.job_needs(jobs, "d") == ["a", "b"]
-    assert sb.pattern("jazzy", "linux-64", ["a", "b"]) == "pkgs-jazzy-linux-64-{cache,a,b}"
-    assert sb.pattern("jazzy", "linux-64", []) == "pkgs-jazzy-linux-64-cache"
+
+
+def test_a_failed_recipe_blocks_only_the_recipes_that_need_it(tmp_path):
+    jobs = {
+        "s0": {"recipes": "ros2-zstd ros2-mola", "needs": [], "requires": {}},
+        "s1": {"recipes": "ros2-a ros2-b ros2-c ros2-d", "needs": ["s0"],
+               "requires": {"ros2-a": ["ros2-zstd"], "ros2-b": ["ros2-mola"], "ros2-c": ["ros2-b"], "ros2-d": ["ros2-x"]}},
+        "s2": {"recipes": "ros2-x", "needs": [], "requires": {}},
+    }
+    (tmp_path / "status").mkdir()
+    (tmp_path / "status" / "s0.json").write_text('{"ros2-zstd": "success", "ros2-mola": "failed"}')
+
+    # s2's artifact is missing: it didn't finish
+    status = sb.needed_status(jobs, ["s0", "s2"], tmp_path)
+
+    assert status == {"ros2-zstd": "success", "ros2-mola": "failed", "ros2-x": "not built"}
+    # ros2-c needs ros2-b, held back in the same job
+    assert sb.blocked(jobs["s1"], status) == {"ros2-b": "ros2-mola", "ros2-c": "ros2-b", "ros2-d": "ros2-x"}
+
+
+LOG = """\
++ rattler-build build --recipe ./recipes/ros2-a  (in distros/lyrical/work)
+10:00:00 [ros2-a] Build failed for ros2-a-1.0.0-np2py312h0_31: network
+rattler-build exited with 1
+Network error; retrying in 60 s (retry 1 of 4)
++ rattler-build build --recipe ./recipes/ros2-a  (in distros/lyrical/work)
+10:01:00 [ros2-a] Archive written to 'output/linux-64/ros2-a-1.0.0-np2py312h0_31.conda'
+10:02:00 [ros2-mola] Build failed for ros2-mola-3.3.0-np2py312hdd89193_31: Script failed to execute
+10:02:00 [-] Skipping ros-lyrical-mola-3.3.0-h9490d1a_31 because its dependency ros2-mola failed to build
+10:03:00 [ros2-t] Test failed for ros2-t-1.0.0-h0_31: import failed
+"""
+
+
+def test_each_recipe_s_outcome_from_the_last_attempt():
+    recipes = ["ros2-a", "ros2-mola", "ros-lyrical-mola", "ros2-t", "ros2-held"]
+
+    assert sb.outcomes(recipes, {"ros2-held": "ros2-x"}, LOG) == {
+        "ros2-a": "success", "ros2-mola": "failed", "ros-lyrical-mola": "skipped", "ros2-t": "failed",
+        "ros2-held": "blocked",
+    }
+
+
+def test_every_recipe_failed_when_rattler_build_itself_did():
+    log = "+ rattler-build build\n10:00:00 [ros2-a] Archive written to 'x'\nrattler-build exited with 1\n"
+
+    assert sb.outcomes(["ros2-a", "ros2-b"], {}, log) == {"ros2-a": "failed", "ros2-b": "failed"}
+    assert sb.outcomes(["ros2-a", "ros2-b"], {"ros2-b": "ros2-x"}, None) == {"ros2-a": "failed", "ros2-b": "blocked"}
+
+
+def test_unpack_merges_the_artifacts(tmp_path):
+    import zipfile
+
+    zips = tmp_path / "zips"
+    zips.mkdir()
+    for name, files in {"pkgs-a": ["linux-64/ros2-a-1-0.conda", "status/a"], "pkgs-b": ["noarch/ros2-b-1-0.conda", "status/b"]}.items():
+        with zipfile.ZipFile(zips / f"{name}.zip", "w") as z:
+            for f in files:
+                z.writestr(f, "x")
+
+    sb.unpack(zips, tmp_path / "channel")
+
+    assert sorted(p.relative_to(tmp_path / "channel").as_posix() for p in (tmp_path / "channel").rglob("*") if p.is_file()) == [
+        "linux-64/ros2-a-1-0.conda", "noarch/ros2-b-1-0.conda", "status/a", "status/b"]
+    assert not list(zips.iterdir())
+
+
+def test_a_build_that_failed_under_continue_on_failure_fails(monkeypatch, tmp_path, capsys):
+    script = "import sys; print('{\"fields\": {\"message\": \"Build failed for ros2-a-1-0: x\"}}')"
+    monkeypatch.setattr(rs, "ROOT", tmp_path)
+
+    assert rs.run_build([sys.executable, "-c", script], tmp_path) == 1
+    assert rs.run_build([sys.executable, "-c", "print('ok')"], tmp_path) == 0
+    assert rs.run_build([sys.executable, "-c", "raise SystemExit(3)"], tmp_path) == 3
+    assert "exited with 3" in capsys.readouterr().err
 
 
 def test_every_slot_runs_after_the_one_before():

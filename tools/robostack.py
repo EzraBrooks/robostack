@@ -112,6 +112,8 @@ NETWORK_MESSAGES = (b"Git fetch failed", b"Failed to connect to github.com", b"e
                     b"HTTP status client error (409 Conflict)", b"HTTP status server error")
 NETWORK_RETRIES = 4
 NETWORK_WAIT = 60  # doubled on each retry: 1, 2, 4, 8 minutes
+# with --continue-on-failure, rattler-build exits with 0 after a failed build or test
+FAILED_MESSAGES = (b"Build failed for ", b"Test failed for ")
 
 
 # a build job's recipes side by side, with a shared jobserver keeping them at the runner's
@@ -181,11 +183,12 @@ def run_build(cmd: list[str], cwd: Path, show=None) -> int:
     channel's index to catch up with the previous stage's uploads (at most
     INDEX_LAG_RETRIES times), or when the runner's network failed (at most
     NETWORK_RETRIES times, waiting longer each time). show(line) prints a line instead of
-    writing it as is."""
+    writing it as is. A build or test that failed under --continue-on-failure fails it
+    too; a non-zero exit code of the command itself is printed ("<command> exited with N")."""
     index_retries = network_retries = 0
     while True:
         print("+", " ".join(cmd), f"  (in {cwd.relative_to(ROOT)})", flush=True)
-        missing = network = False
+        missing = network = failed = False
         with subprocess.Popen(cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as proc:
             for line in proc.stdout:
                 if show:
@@ -195,7 +198,11 @@ def run_build(cmd: list[str], cwd: Path, show=None) -> int:
                     sys.stdout.buffer.flush()
                 missing = missing or any(m in line.lower() for m in INDEX_LAG_MESSAGES)
                 network = network or any(m in line for m in NETWORK_MESSAGES)
-        if proc.returncode == 0:
+                failed = failed or any(m in line for m in FAILED_MESSAGES)
+        if proc.returncode:
+            print(f"{Path(cmd[0]).name} exited with {proc.returncode}", file=sys.stderr, flush=True)
+        returncode = proc.returncode or int(failed)
+        if returncode == 0:
             return 0
         if network and network_retries < NETWORK_RETRIES:
             wait = NETWORK_WAIT * 2 ** network_retries
@@ -209,7 +216,7 @@ def run_build(cmd: list[str], cwd: Path, show=None) -> int:
                   f"(retry {index_retries} of {INDEX_LAG_RETRIES})", file=sys.stderr, flush=True)
             time.sleep(INDEX_LAG_WAIT)
         else:
-            return proc.returncode
+            return returncode
 
 
 # --------------------------------------------------------------------------- #

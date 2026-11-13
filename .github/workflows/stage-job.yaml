@@ -1,7 +1,8 @@
 # One build job of a staged build (staged-build.yaml, tools/staged_build.py): builds its
-# recipes with the packages of the jobs it needs (and the restored cache) as a local
-# channel, and passes what it built on as an artifact, pkgs-<distro>-<platform>-<job>,
-# with status/<job>; releases also upload it to the distribution's channels.
+# recipes whose requirements were built, with the packages of the jobs it needs (and the
+# restored cache) as a local channel, and passes what it built on as an artifact,
+# pkgs-<distro>-<platform>-<job>, with status/<job> and status/<job>.json (each recipe's);
+# releases also upload what built to the distribution's channels.
 name: Stage job
 
 on:
@@ -45,27 +46,28 @@ jobs:
     runs-on: ${{ inputs.os }}
     timeout-minutes: 350
     steps:
+    - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
+
     # Re-running failed jobs re-runs every later stage too: the jobs that succeeded
     # before keep their packages.
-    - uses: actions/download-artifact@v7
+    - name: Download this job's packages of an earlier attempt
+      uses: actions/github-script@v8
       with:
-        pattern: ${{ env.ARTIFACT }}
-        merge-multiple: true
-        path: earlier
+        script: |
+          await require('./tools/download_artifacts.cjs')({ names: [process.env.ARTIFACT], dir: 'earlier', core })
     - name: Built in an earlier attempt?
       id: earlier
       shell: bash
       run: |
-        if [ "$(cat "earlier/status/$JOB" 2>/dev/null)" == success ]; then
+        # (python3 on Windows can be the Microsoft Store's placeholder)
+        status=$("$(command -v python || command -v python3)" -c 'import sys, zipfile; print(zipfile.ZipFile(sys.argv[1]).read(sys.argv[2]).decode().strip())' \
+          "earlier/$ARTIFACT.zip" "status/$JOB" 2>/dev/null || true)
+        if [ "$status" == success ]; then
           echo "Built in an earlier attempt of this run"
           echo "built=true" >> "$GITHUB_OUTPUT"
         fi
-
-    # (clears the directory, earlier/ included: it isn't a repository yet)
-    - uses: actions/checkout@v6
-      if: steps.earlier.outputs.built != 'true'
-      with:
-        persist-credentials: false
 
     # git auto-maintenance can leave a lock file in the git clones pixi caches
     # (e.g. vinca's), which breaks every later run restoring that cache
@@ -131,25 +133,20 @@ jobs:
       if: steps.earlier.outputs.built != 'true'
       shell: bash -l {0}
       run: pixi run rs "$DISTRO" prepare && tar -xf recipes.tar -C "distros/$DISTRO/work"
-    # the packages of the jobs this one needs, and the restored cache
-    - uses: actions/download-artifact@v7
+    # by name: download-artifact's pattern only sees the run's first 1,000 artifacts
+    - name: Download the packages of the jobs this one needs, and the restored cache
       if: steps.earlier.outputs.built != 'true'
+      uses: actions/github-script@v8
       with:
-        pattern: ${{ env.NEEDS_PATTERN }}
-        merge-multiple: true
-        path: pr-channel
-    - name: Check and index the packages of the jobs this one needs
+        script: |
+          await require('./tools/download_artifacts.cjs')({ names: process.env.NEEDED_ARTIFACTS.split(' '), dir: 'needed', core })
+    # the recipes that need one that wasn't built are left out (and recorded as blocked)
+    - name: The recipes whose requirements were built
       if: steps.earlier.outputs.built != 'true'
       shell: bash -l {0}
       run: |
-        failed=()
-        for job in $NEEDED; do
-          [ "$(cat "pr-channel/status/$job" 2>/dev/null)" == success ] || failed+=("$job")
-        done
-        if (( ${#failed[@]} )); then
-          echo "::error::Not built, which this job needs: ${failed[*]} (see their jobs)"
-          exit 1
-        fi
+        pixi run python tools/staged_build.py unpack --zips needed --into pr-channel
+        pixi run python tools/staged_build.py ready --schedule schedule.json --distro "$DISTRO" --platform "$PLATFORM" --job "$JOB" --channel pr-channel
         rm -rf pr-channel/status
         mkdir -p "pr-channel/$PLATFORM" pr-channel/noarch
         shopt -s nullglob
@@ -159,7 +156,7 @@ jobs:
 
     - name: Build recipes
       id: build-recipes
-      if: steps.earlier.outputs.built != 'true'
+      if: steps.earlier.outputs.built != 'true' && env.RECIPES != ''
       shell: bash -l {0}
       run: |
         set +e
@@ -167,8 +164,9 @@ jobs:
         for recipe in $RECIPES; do args+=(--recipe "./recipes/$recipe"); done
         # shorter work dirs for MAX_PATH on Windows
         [ "$PLATFORM" == "win-64" ] && args+=(--no-build-id)
-        # the cache's packages are in pr-channel; build-ci builds independent recipes side by side
-        pixi run rs "$DISTRO" build-ci "${args[@]}" --skip-existing=all 2>&1 | tee rattler-build.log
+        # the cache's packages are in pr-channel; build-ci builds independent recipes side by
+        # side, and after a failed one goes on with those that don't need it
+        pixi run rs "$DISTRO" build-ci "${args[@]}" --skip-existing=all --continue-on-failure=skip-dependents 2>&1 | tee rattler-build.log
         exit "${PIPESTATUS[0]}"
 
     - name: Summarize build result
@@ -179,12 +177,10 @@ jobs:
           --platform "$DISTRO $PLATFORM" --outcome "${{ steps.build-recipes.outcome }}" >> "$GITHUB_STEP_SUMMARY"
 
     # also after a failure: what was built goes into the pull request's cache, and the
-    # status tells the later jobs
+    # status tells the later jobs which recipes they can build
     - name: Collect the packages
       if: ${{ (success() || failure()) && steps.earlier.outputs.built != 'true' }}
       shell: bash -l {0}
-      env:
-        OUTCOME: ${{ steps.build-recipes.outcome }}
       run: |
         shopt -s nullglob
         mkdir -p pkgs/status
@@ -192,8 +188,9 @@ jobs:
           files=("$OUTPUT_DIR/$subdir"/*.conda)
           if (( ${#files[@]} )); then mkdir -p "pkgs/$subdir" && cp "${files[@]}" "pkgs/$subdir/"; fi
         done
-        echo "$OUTCOME" > "pkgs/status/$JOB"
         (cd pkgs && printf '%s\n' ./*/*.conda)
+        pixi run python tools/staged_build.py status --schedule schedule.json --distro "$DISTRO" --platform "$PLATFORM" --job "$JOB" \
+          --log rattler-build.log --out pkgs
     - name: Upload the packages
       if: ${{ (success() || failure()) && steps.earlier.outputs.built != 'true' }}
       uses: actions/upload-artifact@v6
@@ -204,22 +201,25 @@ jobs:
         overwrite: true  # re-runs of a failed job
         retention-days: 3
 
+    # The packages of the recipes that built (uploads.txt, from the status step).
     # prefix.dev: trusted publishing (the caller grants id-token: write); anaconda.org:
     # the distribution's token. Both skip packages that are already there.
     - name: Upload to the distribution's channels
-      if: ${{ inputs.upload && steps.build-recipes.outcome == 'success' }}
+      if: ${{ inputs.upload && (success() || failure()) && steps.build-recipes.outcome != 'skipped' }}
       shell: bash -l {0}
       env:
         ANACONDA_API_TOKEN: ${{ secrets[inputs.token_secret] }}
       run: |
-        shopt -s nullglob
-        for package in pkgs/*/*.conda; do
+        [ -f uploads.txt ] || { echo "No status of the recipes: nothing to upload"; exit 1; }
+        while read -r package; do
           # the upload task runs in distros/<distro>/work
           pixi run rs "$DISTRO" upload "../../../$package"
-        done
+        done < uploads.txt
 
+    # the job's log has it too; the artifact is for failures, keeping the run's artifacts
+    # to about one per job
     - name: Upload build log
-      if: ${{ always() && steps.build-recipes.outcome != 'skipped' }}
+      if: ${{ failure() && steps.build-recipes.outcome != 'skipped' }}
       uses: actions/upload-artifact@v6
       with:
         name: build-log-${{ inputs.distro }}-${{ inputs.platform }}-${{ inputs.job }}-${{ github.run_attempt }}
