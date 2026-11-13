@@ -122,16 +122,15 @@ jobs:
       shell: bash -l {0}
       run: pixi run python tools/staged_build.py job --schedule schedule.json --distro "$DISTRO" --platform "$PLATFORM" --job "$JOB"
 
-    - name: Prepare the work directory
-      if: steps.earlier.outputs.built != 'true'
-      shell: bash -l {0}
-      run: pixi run rs "$DISTRO" prepare
     # the plan job's recipes (generated once for all the jobs)
     - uses: actions/download-artifact@v7
       if: steps.earlier.outputs.built != 'true'
       with:
         name: recipes-${{ inputs.distro }}-${{ inputs.platform }}
-        path: distros/${{ inputs.distro }}/work/recipes
+    - name: Prepare the work directory
+      if: steps.earlier.outputs.built != 'true'
+      shell: bash -l {0}
+      run: pixi run rs "$DISTRO" prepare && tar -xf recipes.tar -C "distros/$DISTRO/work"
     # the packages of the jobs this one needs, and the restored cache
     - uses: actions/download-artifact@v7
       if: steps.earlier.outputs.built != 'true'

@@ -313,12 +313,14 @@ jobs:
             echo "Recipe generation attempt $attempt failed; retrying..." >&2
             sleep 15
           done
+      # a tarball: artifacts drop the build scripts' executable bit
+      - name: Pack the recipes
+        run: mkdir -p "distros/$DISTRO/work/recipes" && tar -cf recipes.tar -C "distros/$DISTRO/work" recipes
       - name: Upload the recipes
         uses: actions/upload-artifact@v6
         with:
           name: recipes-${{ matrix.distro }}-${{ matrix.target.platform }}
-          path: distros/${{ matrix.distro }}/work/recipes
-          if-no-files-found: ignore
+          path: recipes.tar
           overwrite: true
           retention-days: 7
       - name: Restore build cache
@@ -489,16 +491,12 @@ COLLECT = """\
           path: abi-check-${{ matrix.distro }}.md
           retention-days: 7
 
-      # the build branches' workflows, while they still build the releases; without
-      # recipes to build there is no recipes artifact, and nothing to stage
-      - name: Prepare the work directory
-        run: pixi run rs "$DISTRO" prepare
-      # a pattern, which (unlike a name) may match nothing
+      # the build branches' workflows, while they still build the releases
       - uses: actions/download-artifact@v7
         with:
-          pattern: recipes-${{ matrix.distro }}-${{ matrix.platform }}
-          merge-multiple: true
-          path: distros/${{ matrix.distro }}/work/recipes
+          name: recipes-${{ matrix.distro }}-${{ matrix.platform }}
+      - name: Prepare the work directory
+        run: pixi run rs "$DISTRO" prepare && tar -xf recipes.tar -C "distros/$DISTRO/work"
       - name: Generate the staged build workflows (catches post-merge problems)
         run: |
           if [ -z "$(ls "distros/$DISTRO/work/recipes" 2>/dev/null)" ]; then echo "Nothing to build"; exit 0; fi
