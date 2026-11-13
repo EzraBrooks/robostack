@@ -80,7 +80,7 @@ child.wait()
 @pytest.mark.parametrize("lookup_status,ids,deleted", [(0, "11\n22", "11\n22\n"),
                                                        (1, "11", ""), (0, "", "")])
 def test_cache_pruning_requires_verified_replacement(tmp_path, lookup_status, ids, deleted):
-    workflow = yaml.safe_load((ROOT / ".github/workflows/pr-stages.yaml").read_text())
+    workflow = yaml.safe_load((ROOT / ".github/workflows/staged-build.yaml").read_text())
     prune = next(s for s in workflow["jobs"]["collect"]["steps"]
                  if s.get("name") == "Drop this pull request's superseded build caches")
     pixi = tmp_path / "pixi"

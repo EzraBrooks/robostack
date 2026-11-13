@@ -1,7 +1,8 @@
-# One build job of a staged pull-request build (pr-stages.yaml): builds its recipes with
-# the packages of the earlier stages (and the restored cache) as a local channel, and
-# passes what it built on to the later stages and the cache as an artifact.
-name: PR stage job
+# One build job of a staged build (staged-build.yaml, tools/staged_build.py): builds its
+# recipes with the packages of the jobs it needs (and the restored cache) as a local
+# channel, and passes what it built on as an artifact, pkgs-<distro>-<platform>-<job>,
+# with status/<job>; releases also upload it to the distribution's channels.
+name: Stage job
 
 on:
   workflow_call:
@@ -15,12 +16,15 @@ on:
       os:
         required: true
         type: string
-      recipes:
-        description: Space-separated recipes
+      job:
+        description: The job's id in the schedule (vinca-gha's stage_<k>_job_<i>)
         required: true
         type: string
-      artifact:
-        description: Name of the artifact with the packages the job builds
+      upload:
+        required: true
+        type: boolean
+      token_secret:
+        description: The repository secret with the distribution's anaconda.org token
         required: true
         type: string
 
@@ -28,8 +32,8 @@ env:
   PYTHONIOENCODING: utf-8
   DISTRO: ${{ inputs.distro }}
   PLATFORM: ${{ inputs.platform }}
-  RECIPES: ${{ inputs.recipes }}
-  ARTIFACT: ${{ inputs.artifact }}
+  JOB: ${{ inputs.job }}
+  ARTIFACT: pkgs-${{ inputs.distro }}-${{ inputs.platform }}-${{ inputs.job }}
   ROBOSTACK_UPLOAD_CHANNEL: ${{ vars.ROBOSTACK_UPLOAD_CHANNEL }}
   # rattler_build() in tools/robostack.py adds it as a channel (relative to the repository)
   ROBOSTACK_LOCAL_CHANNEL: pr-channel
@@ -41,27 +45,48 @@ jobs:
     runs-on: ${{ inputs.os }}
     timeout-minutes: 350
     steps:
+    # Re-running failed jobs re-runs every later stage too: the jobs that succeeded
+    # before keep their packages.
+    - uses: actions/download-artifact@v7
+      with:
+        pattern: ${{ env.ARTIFACT }}
+        merge-multiple: true
+        path: earlier
+    - name: Built in an earlier attempt?
+      id: earlier
+      shell: bash
+      run: |
+        if [ "$(cat "earlier/status/$JOB" 2>/dev/null)" == success ]; then
+          echo "Built in an earlier attempt of this run"
+          echo "built=true" >> "$GITHUB_OUTPUT"
+        fi
+
+    # (clears the directory, earlier/ included: it isn't a repository yet)
     - uses: actions/checkout@v6
+      if: steps.earlier.outputs.built != 'true'
       with:
         persist-credentials: false
 
     # git auto-maintenance can leave a lock file in the git clones pixi caches
     # (e.g. vinca's), which breaks every later run restoring that cache
     - name: Disable git auto-maintenance
+      if: steps.earlier.outputs.built != 'true'
+      shell: bash
       run: git config --global maintenance.auto false && git config --global gc.auto 0 && git config --global core.longpaths true
     # pixi's package cache on D:, with the builds' (see the Windows step below)
     - name: "pixi's cache on D:"
-      if: runner.os == 'Windows'
+      if: steps.earlier.outputs.built != 'true' && runner.os == 'Windows'
       shell: pwsh
       run: '"PIXI_CACHE_DIR=D:\pixi-cache" | Out-File -FilePath $env:GITHUB_ENV -Append'
     - uses: prefix-dev/setup-pixi@v0.11.0
+      if: steps.earlier.outputs.built != 'true'
       with:
         locked: true  # the lock file must match pixi.toml
         pixi-version: v0.81.0
         cache-write: false  # saved from main only (pixi-cache.yaml)
 
     - name: Windows workarounds (short build path, long paths, PATH and SDK clean-up)
-      if: runner.os == 'Windows'
+      if: steps.earlier.outputs.built != 'true' && runner.os == 'Windows'
       shell: pwsh
       run: |
         # Defender's real-time scan slows down installing and deleting the environments'
@@ -79,44 +104,63 @@ jobs:
     # Spotlight indexes every file the environments and builds write, using up to a
     # core or two of the runner's three or four; the runner is thrown away after the job
     - name: Turn off Spotlight
-      if: runner.os == 'macOS'
+      if: steps.earlier.outputs.built != 'true' && runner.os == 'macOS'
       run: sudo mdutil -a -i off || true
 
     - name: Clean up PATH
-      if: runner.os == 'Windows'
+      if: steps.earlier.outputs.built != 'true' && runner.os == 'Windows'
       uses: egor-tensin/cleanup-path@v5
       with:
         dirs: 'C:\Program Files\Git\usr\bin;C:\Program Files\Git\bin;C:\Program Files\Git\cmd;C:\Program Files\Git\mingw64\bin'
 
-    - name: Disable git auto-maintenance in source caches
+    - uses: actions/download-artifact@v7
+      if: steps.earlier.outputs.built != 'true'
+      with:
+        name: schedule
+    - name: The job's recipes and requirements
+      if: steps.earlier.outputs.built != 'true'
       shell: bash -l {0}
-      run: git config --global maintenance.auto false
+      run: pixi run python tools/staged_build.py job --schedule schedule.json --distro "$DISTRO" --platform "$PLATFORM" --job "$JOB"
 
     - name: Prepare the work directory
+      if: steps.earlier.outputs.built != 'true'
       shell: bash -l {0}
       run: pixi run rs "$DISTRO" prepare
     # the plan job's recipes (generated once for all the jobs)
     - uses: actions/download-artifact@v7
+      if: steps.earlier.outputs.built != 'true'
       with:
         name: recipes-${{ inputs.distro }}-${{ inputs.platform }}
         path: distros/${{ inputs.distro }}/work/recipes
-    # everything the earlier stages built, and the restored cache
+    # the packages of the jobs this one needs, and the restored cache
     - uses: actions/download-artifact@v7
+      if: steps.earlier.outputs.built != 'true'
       with:
-        pattern: pkgs-${{ inputs.distro }}-${{ inputs.platform }}-*
+        pattern: ${{ env.NEEDS_PATTERN }}
         merge-multiple: true
         path: pr-channel
-    - name: Index the earlier stages' packages
+    - name: Check and index the packages of the jobs this one needs
+      if: steps.earlier.outputs.built != 'true'
       shell: bash -l {0}
       run: |
+        failed=()
+        for job in $NEEDED; do
+          [ "$(cat "pr-channel/status/$job" 2>/dev/null)" == success ] || failed+=("$job")
+        done
+        if (( ${#failed[@]} )); then
+          echo "::error::Not built, which this job needs: ${failed[*]} (see their jobs)"
+          exit 1
+        fi
+        rm -rf pr-channel/status
         mkdir -p "pr-channel/$PLATFORM" pr-channel/noarch
         shopt -s nullglob
         packages=(pr-channel/*/*.conda)
-        echo "${#packages[@]} packages from the earlier stages and the cache"
+        echo "${#packages[@]} packages from the jobs this one needs and the cache"
         pixi run rattler-index fs pr-channel --force
 
     - name: Build recipes
       id: build-recipes
+      if: steps.earlier.outputs.built != 'true'
       shell: bash -l {0}
       run: |
         set +e
@@ -129,41 +173,57 @@ jobs:
         exit "${PIPESTATUS[0]}"
 
     - name: Summarize build result
-      if: always()
+      if: ${{ always() && steps.build-recipes.outcome != 'skipped' }}
       shell: bash -l {0}
       run: |
         pixi run python tools/summarize_rattler_build.py --log rattler-build.log \
           --platform "$DISTRO $PLATFORM" --outcome "${{ steps.build-recipes.outcome }}" >> "$GITHUB_STEP_SUMMARY"
 
-    # also after a failure: what was built goes into the cache
+    # also after a failure: what was built goes into the pull request's cache, and the
+    # status tells the later jobs
     - name: Collect the packages
-      if: ${{ success() || failure() }}
+      if: ${{ (success() || failure()) && steps.earlier.outputs.built != 'true' }}
       shell: bash -l {0}
+      env:
+        OUTCOME: ${{ steps.build-recipes.outcome }}
       run: |
         shopt -s nullglob
-        mkdir -p pkgs
+        mkdir -p pkgs/status
         for subdir in "$PLATFORM" noarch; do
           files=("$OUTPUT_DIR/$subdir"/*.conda)
           if (( ${#files[@]} )); then mkdir -p "pkgs/$subdir" && cp "${files[@]}" "pkgs/$subdir/"; fi
         done
-        # keeps the <subdir>/ directories in the artifact (it starts at the files' common directory)
-        (cd pkgs && printf '%s\n' ./*/*.conda) > "pkgs/manifest-$ARTIFACT.txt"
-        cat "pkgs/manifest-$ARTIFACT.txt"
+        echo "$OUTCOME" > "pkgs/status/$JOB"
+        (cd pkgs && printf '%s\n' ./*/*.conda)
     - name: Upload the packages
-      if: ${{ success() || failure() }}
+      if: ${{ (success() || failure()) && steps.earlier.outputs.built != 'true' }}
       uses: actions/upload-artifact@v6
       with:
-        name: ${{ inputs.artifact }}
+        name: ${{ env.ARTIFACT }}
         path: pkgs
         compression-level: 0  # .conda files are compressed
         overwrite: true  # re-runs of a failed job
         retention-days: 3
 
+    # prefix.dev: trusted publishing (the caller grants id-token: write); anaconda.org:
+    # the distribution's token. Both skip packages that are already there.
+    - name: Upload to the distribution's channels
+      if: ${{ inputs.upload && steps.build-recipes.outcome == 'success' }}
+      shell: bash -l {0}
+      env:
+        ANACONDA_API_TOKEN: ${{ secrets[inputs.token_secret] }}
+      run: |
+        shopt -s nullglob
+        for package in pkgs/*/*.conda; do
+          # the upload task runs in distros/<distro>/work
+          pixi run rs "$DISTRO" upload "../../../$package"
+        done
+
     - name: Upload build log
-      if: always()
+      if: ${{ always() && steps.build-recipes.outcome != 'skipped' }}
       uses: actions/upload-artifact@v6
       with:
-        name: build-log-${{ inputs.artifact }}-${{ github.run_attempt }}
+        name: build-log-${{ inputs.distro }}-${{ inputs.platform }}-${{ inputs.job }}-${{ github.run_attempt }}
         path: rattler-build.log
         if-no-files-found: warn
         retention-days: 7

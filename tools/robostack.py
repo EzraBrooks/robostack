@@ -386,7 +386,7 @@ def rattler_build(distro: str, args: list[str], skip_existing: bool = True) -> l
     # With uploads redirected (e.g. to a test channel), later stages of the staged
     # build need the packages earlier stages uploaded there, and reruns skip them.
     extra = upload_channel_url()
-    # the staged pull-request build's packages of earlier stages (tools/pr_stages.py)
+    # a staged build job's packages of the jobs it needs (tools/staged_build.py)
     local = os.environ.get("ROBOSTACK_LOCAL_CHANNEL", "").strip()
     cmd = ["rattler-build", "build", "-m", "./conda_build_config.yaml",
            *(["-c", (ROOT / local).resolve().as_uri()] if local else []),

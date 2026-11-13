@@ -1403,10 +1403,10 @@ def check() -> Result:
         text = wf.read_text()
         if "\non:" not in "\n" + text or "\ntrue:" in "\n" + text:
             problems.append(f"{wf.name}: no top-level `on:` trigger")
-    import pr_stages
+    import staged_build
 
-    if not pr_stages.WORKFLOW.is_file() or pr_stages.WORKFLOW.read_text() != pr_stages.workflow():
-        problems.append(f"{pr_stages.WORKFLOW.relative_to(rs.ROOT)} is out of date (python tools/pr_stages.py workflow)")
+    if not staged_build.WORKFLOW.is_file() or staged_build.WORKFLOW.read_text() != staged_build.workflow():
+        problems.append(f"{staged_build.WORKFLOW.relative_to(rs.ROOT)} is out of date (python tools/staged_build.py workflow)")
     sort = subprocess.run(["pixi", "run", "sort", "--check"], cwd=rs.ROOT, capture_output=True, text=True)
     if sort.returncode:
         problems.append("YAML files are not sorted (pixi run sort):\n" + tail(sort.stdout + sort.stderr, 10))

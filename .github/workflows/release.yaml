@@ -1,0 +1,65 @@
+# Release builds in vinca-gha's stages (staged-build.yaml), uploading to each
+# distribution's channel (or the repository variable ROBOSTACK_UPLOAD_CHANNEL): the
+# packages missing there are built and uploaded. Started by hand while the build
+# branches (main.yaml) still build the releases.
+#
+# prefix.dev uploads use trusted publishing: the channels' Repository Access must allow
+# .github/workflows/stage-job.yaml (called from this workflow).
+name: Release build
+
+on:
+  workflow_dispatch:
+    inputs:
+      distros:
+        description: Space-separated distributions (default all)
+        required: false
+      platforms:
+        description: Space-separated platforms, or linux / osx / win (default all)
+        required: false
+
+concurrency:
+  group: release-build
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      distros: ${{ steps.plan.outputs.distros }}
+      targets: ${{ steps.plan.outputs.targets }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Disable git auto-maintenance
+        run: git config --global maintenance.auto false && git config --global gc.auto 0
+      - uses: prefix-dev/setup-pixi@v0.11.0
+        with:
+          locked: true  # the lock file must match pixi.toml
+          pixi-version: v0.81.0
+          cache-write: false  # saved from main only (pixi-cache.yaml)
+      - id: plan
+        env:
+          DISTROS: ${{ inputs.distros }}
+          PLATFORMS: ${{ inputs.platforms }}
+        run: |
+          # the same selection as a pull request's build:<distro> / build:<platform> labels
+          labels=$(pixi run python -c 'import json,os; print(json.dumps([f"build:{n}" for n in (os.environ["DISTROS"] + " " + os.environ["PLATFORMS"]).split()]))')
+          echo "distros=$(pixi run python tools/robostack.py changed-distros --base HEAD --all --labels "$labels")" | tee -a "$GITHUB_OUTPUT"
+          echo "targets=$(pixi run python tools/robostack.py build-targets --labels "$labels")" | tee -a "$GITHUB_OUTPUT"
+
+  build:
+    needs: plan
+    if: needs.plan.outputs.distros != '[]'
+    permissions:
+      contents: read
+      id-token: write  # prefix.dev trusted publishing
+    uses: ./.github/workflows/staged-build.yaml
+    secrets: inherit  # ANACONDA_API_TOKEN_<DISTRO>
+    with:
+      distros: ${{ needs.plan.outputs.distros }}
+      targets: ${{ needs.plan.outputs.targets }}
+      upload: true
