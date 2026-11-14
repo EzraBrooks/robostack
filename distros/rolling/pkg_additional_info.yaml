@@ -73,12 +73,80 @@ zenoh_cpp_vendor:
   additional_cmake_args: "-DAMENT_VENDOR_POLICY=NEVER_VENDOR_IGNORE_SATISFIED_CHECK -DUSE_SYSTEM_ZENOH=ON"
 aruco_ros:  # its recipe test stops the node for sure (package tests hung on macOS)
   build_number: 33
+desktop_full:
+  build_number: 35
+easynav_playground_kobuki:
+  build_number: 35
+easynav_playground_kobuki_worlds:
+  build_number: 35
+easynav_playground_omni:
+  build_number: 35
+easynav_playground_omni_worlds:
+  build_number: 35
+easynav_playground_summit:
+  build_number: 35
+easynav_playground_summit_worlds:
+  build_number: 35
+easynav_playground_tiago:
+  build_number: 35
+easynav_playground_tiago_worlds:
+  build_number: 35
 fuse_viz:
   build_number: 33
+gz_gui_vendor:
+  build_number: 35
+gz_ogre_next_vendor:
+  build_number: 35
+gz_rendering_vendor:
+  build_number: 35
+gz_ros2_control:
+  build_number: 35
+gz_ros2_control_demos:
+  build_number: 35
+gz_sensors_vendor:
+  build_number: 35
+gz_sim_vendor:
+  build_number: 35
+kinova_gen3_6dof_robotiq_2f_85_moveit_config:
+  build_number: 35
+kinova_gen3_7dof_robotiq_2f_85_moveit_config:
+  build_number: 35
+kinova_gen3_lite_moveit_config:
+  build_number: 35
+kortex_bringup:
+  build_number: 35
+kortex_description:
+  build_number: 35
+mola:
+  build_number: 35
+mola_metric_maps:
+  build_number: 35
+mola_relocalization:
+  build_number: 35
+mola_viz:
+  build_number: 35
 moveit_ros_visualization:
   build_number: 33
 moveit_task_constructor_visualization:
   build_number: 33
+mp2p_icp:
+  build_number: 35
+mp2p_icp_viz:
+  build_number: 35
+mrpt_gui:
+  build_number: 35
+nav2_minimal_tb3_sim:
+  build_number: 35
+nav2_minimal_tb4_sim:
+  build_number: 35
+onnxruntime_vendor:
+  build_number: 35
+ros_gz:
+  build_number: 35
+ros_gz_sim:
+  build_number: 35
+ros_gz_sim_demos:
+  build_number: 35
 rviz_2d_overlay_plugins:
   build_number: 33
 rviz_common:
@@ -94,3 +162,11 @@ rviz_rendering:
   build_number: 33
 rviz_satellite:
   build_number: 33
+simulation:
+  build_number: 35
+turtlebot3_gazebo:
+  build_number: 35
+turtlebot3_simulations:
+  build_number: 35
+ur_simulation_gz:
+  build_number: 35

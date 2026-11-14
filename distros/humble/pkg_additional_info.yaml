@@ -111,6 +111,44 @@ ament_cmake_gtest:  # uses conda-forge's gtest instead of gtest_vendor's sources
   build_number: 23
 aruco_ros:  # its recipe test stops the node for sure (package tests hung on macOS)
   build_number: 23
+franka_bringup:
+  build_number: 24
+franka_example_controllers:
+  build_number: 24
+franka_fr3_moveit_config:
+  build_number: 24
+franka_gazebo_bringup:
+  build_number: 24
+franka_gripper:
+  build_number: 24
+franka_hardware:
+  build_number: 24
+franka_ign_ros2_control:
+  build_number: 24
+franka_robot_state_broadcaster:
+  build_number: 24
+franka_ros2:
+  build_number: 24
+franka_semantic_components:
+  build_number: 24
+libfranka:
+  build_number: 24
+mola:
+  build_number: 24
+mola_metric_maps:
+  build_number: 24
+mola_relocalization:
+  build_number: 24
+mola_viz:
+  build_number: 24
+mp2p_icp:
+  build_number: 24
+mp2p_icp_viz:
+  build_number: 24
+mrpt_gui:
+  build_number: 24
+onnxruntime_vendor:
+  build_number: 24
 rtabmap_slam:  # its recipe test stops the node for sure (package tests hung on macOS)
   build_number: 23
 spatio_temporal_voxel_layer:

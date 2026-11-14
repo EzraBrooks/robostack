@@ -4,15 +4,13 @@
 # distribution that sets conda_forge_pinning_version / conda_forge_migrations in its
 # distro.yaml uses those instead; all distributions are on this one (#54).
 # Updated by `robostack-bot update-conda-forge-pinning`.
-conda_forge_pinning_version: 2026.10.09.13.11.31
+conda_forge_pinning_version: 2026.11.14.05.11.29
 migrations:
   - elfutils0196
-  - giflib6
   - go_macos
   - gsl28
   - gstreamer128
   - hdf52
   - libboost190
   - libhwloc2150
-  - proj99
   - urdfdom6

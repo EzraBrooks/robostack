@@ -135,20 +135,126 @@ ament_cmake_gtest:  # uses conda-forge's gtest instead of gtest_vendor's sources
   build_number: 28
 aruco_ros:  # its recipe test stops the node for sure (package tests hung on macOS)
   build_number: 28
+desktop_full:
+  build_number: 30
+easynav_playground_kobuki:
+  build_number: 30
+easynav_playground_kobuki_worlds:
+  build_number: 30
+easynav_playground_omni:
+  build_number: 30
+easynav_playground_omni_worlds:
+  build_number: 30
+easynav_playground_summit:
+  build_number: 30
+easynav_playground_summit_worlds:
+  build_number: 30
+easynav_playground_tiago:
+  build_number: 30
+easynav_playground_tiago_worlds:
+  build_number: 30
 fuse_viz:
   build_number: 28
 grid_map_rviz_plugin:
   build_number: 28
+gz_gui_vendor:
+  build_number: 30
 gz_ogre_next_vendor:
-  build_number: 28
+  build_number: 30
+gz_rendering_vendor:
+  build_number: 30
+gz_ros2_control:
+  build_number: 30
+gz_ros2_control_demos:
+  build_number: 30
+gz_sensors_vendor:
+  build_number: 30
+gz_sim_vendor:
+  build_number: 30
+iiwa14_moveit_config:
+  build_number: 30
+iiwa7_moveit_config:
+  build_number: 30
+irobot_create_gz_bringup:
+  build_number: 30
+irobot_create_gz_plugins:
+  build_number: 30
+irobot_create_gz_sim:
+  build_number: 30
+kinova_gen3_6dof_robotiq_2f_85_moveit_config:
+  build_number: 30
+kinova_gen3_7dof_robotiq_2f_85_moveit_config:
+  build_number: 30
+kinova_gen3_lite_moveit_config:
+  build_number: 30
+kortex_bringup:
+  build_number: 30
+kortex_description:
+  build_number: 30
+lbr_bringup:
+  build_number: 30
+lbr_demos_advanced_cpp:
+  build_number: 30
+lbr_demos_advanced_py:
+  build_number: 30
+lbr_demos_cpp:
+  build_number: 30
+lbr_demos_py:
+  build_number: 30
+lbr_description:
+  build_number: 30
+lbr_fri_ros2:
+  build_number: 30
+lbr_fri_ros2_stack:
+  build_number: 30
+lbr_ros2_control:
+  build_number: 30
+med14_moveit_config:
+  build_number: 30
+med7_moveit_config:
+  build_number: 30
+mola:
+  build_number: 30
+mola_metric_maps:
+  build_number: 30
+mola_relocalization:
+  build_number: 30
+mola_viz:
+  build_number: 30
+moveit2_tutorials:
+  build_number: 30
 moveit_ros_visualization:
   build_number: 28
 moveit_task_constructor_visualization:
   build_number: 28
+mp2p_icp:
+  build_number: 30
+mp2p_icp_viz:
+  build_number: 30
+mrpt_gui:
+  build_number: 30
+nav2_bringup:
+  build_number: 30
+nav2_minimal_tb3_sim:
+  build_number: 30
+nav2_minimal_tb4_sim:
+  build_number: 30
 nav2_rviz_plugins:
   build_number: 28
 octomap_rviz_plugins:
   build_number: 28
+onnxruntime_vendor:
+  build_number: 30
+ros_gz:
+  build_number: 30
+ros_gz_sim:
+  build_number: 30
+ros_gz_sim_demos:
+  build_number: 30
+rtabmap_demos:
+  build_number: 30
+rtabmap_ros:
+  build_number: 30
 rtabmap_slam:  # its recipe test stops the node for sure (package tests hung on macOS)
   build_number: 28
 rviz_2d_overlay_plugins:
@@ -166,8 +272,28 @@ rviz_rendering:
   build_number: 28
 rviz_satellite:
   build_number: 28
+simulation:
+  build_number: 30
 spatio_temporal_voxel_layer:
   build_number: 28
+turtlebot3:
+  build_number: 30
+turtlebot3_gazebo:
+  build_number: 30
+turtlebot3_navigation2:
+  build_number: 30
+turtlebot3_simulations:
+  build_number: 30
+turtlebot4_gz_bringup:
+  build_number: 30
+turtlebot4_gz_gui_plugins:
+  build_number: 30
+turtlebot4_navigation:
+  build_number: 30
+turtlebot4_simulator:
+  build_number: 30
+ur_simulation_gz:
+  build_number: 30
 urdf:  # drop deprecated urdf_world/types.h include (ros2/urdf#54) for headers 3.x
   build_number: 28
 urdf_parser_plugin:  # use urdf_model/types.h (ros2/urdf#54) for headers 3.x
