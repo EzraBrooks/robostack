@@ -111,6 +111,8 @@ ament_cmake_gtest:  # uses conda-forge's gtest instead of gtest_vendor's sources
   build_number: 23
 aruco_ros:  # its recipe test stops the node for sure (package tests hung on macOS)
   build_number: 23
+mrpt_gui:
+  build_number: 24
 rtabmap_slam:  # its recipe test stops the node for sure (package tests hung on macOS)
   build_number: 23
 spatio_temporal_voxel_layer:

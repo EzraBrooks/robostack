@@ -1311,11 +1311,11 @@ virtualenv:
 wget:
   robostack: [wget]
 wx-common:
-  robostack: [wxpython]
+  robostack: [wxwidgets]
 wxpython:
   robostack: [wxpython]
 wxwidgets:
-  robostack: [wxpython]
+  robostack: [wxwidgets]
 x11-dev:
   robostack:
     linux: [xorg-libx11, libopengl-devel, libgl-devel]
