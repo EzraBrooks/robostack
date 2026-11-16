@@ -74,6 +74,10 @@ should edit a shared file at a time.
   `build:humble`), then push or re-run the build (adding a label doesn't start one).
   `build:linux` / `build:osx` / `build:win` (or `build:<platform>`) limit the platforms;
   remove them for one full build before merging.
+- The build workflows `.github/workflows/build-<distro>-<platform>.yaml` are rendered
+  from every recipe (`pixi run rs rerender [<distro>...]`, tools/rerender.py); never edit
+  them by hand. A change to the packages or their dependencies needs a re-render: CI
+  commits it to pull requests from this repository, others run it themselves.
 - After a merge, `main.yaml` regenerates the staged build branches
   `buildbranch_<distro>_<platform>`; uploads go to the channel in `distro.yaml`, or to
   the repository variable `ROBOSTACK_UPLOAD_CHANNEL`.

@@ -61,7 +61,7 @@ tools/maintenance.py       checks and robostack-bot commands
 tools/import_distro.py     (re)import a distribution from its own repository
 tools/*.py                 check_patches_clean_apply, check_dependency_compat, build_gap_report, ...
 .scripts/                  staged build scripts (build_unix.sh, build_win.bat)
-.github/workflows/         testpr.yaml, main.yaml (staged build branches), bot.yaml
+.github/workflows/         testpr.yaml, build-<distro>-<platform>.yaml (rendered: pixi run rs rerender), main.yaml (staged build branches), bot.yaml
 .claude/skills/             procedures for agents (debug a build, patches, versions/rebuilds, package selection)
 pixi.toml                  one environment for all distributions (one vinca, one rattler-build)
 ```
