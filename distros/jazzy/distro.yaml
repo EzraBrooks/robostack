@@ -11,4 +11,4 @@ pinning_overrides:
   # xtensor_simd.hpp doesn't build with it. 0.25 brings a matching xsimd. (lyrical and
   # rolling's nav2_mppi_controller use Eigen instead.)
   xtensor: [0.25.0]
-rosdistro_sync: jazzy/2026-10-05
+rosdistro_sync: jazzy/2026-11-16

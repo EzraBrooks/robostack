@@ -8,10 +8,10 @@ conda_index: [robostack.yaml]
 
 
 # mapping for package keys
-build_number: 27
+build_number: 31
 
 mutex_package:
-  version: "0.20.0"
+  version: "0.21.0"
 
 packages_exclude:
   - rtabmap_rviz_plugins  # links PCL, whose VTK is Qt 6 on conda-forge, into a Qt 5 RViz plugin (jazzy's RViz is Qt 5); rtabmap_viz is fine, it uses only rtabmap's Qt 6
