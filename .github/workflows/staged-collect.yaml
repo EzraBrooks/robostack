@@ -1,0 +1,118 @@
+# Pull requests, after a rendered build workflow's stage jobs (build-<distro>-<platform>.yaml):
+# the packages of every stage job as the pull request's build cache (a new push builds
+# only what changed), then the ABI check of what the pull request built.
+name: Staged build collect
+
+on:
+  workflow_call:
+    inputs:
+      distro:
+        required: true
+        type: string
+      platform:
+        required: true
+        type: string
+
+env:
+  PYTHONIOENCODING: utf-8
+  CACHE_DIR: pr-cache
+  DISTRO: ${{ inputs.distro }}
+  PLATFORM: ${{ inputs.platform }}
+
+jobs:
+  collect:
+    name: collect
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      # git auto-maintenance can leave a lock file in the git clones pixi caches
+      # (e.g. vinca's), which breaks every later run restoring that cache
+      - name: Disable git auto-maintenance
+        run: git config --global maintenance.auto false && git config --global gc.auto 0
+      - uses: prefix-dev/setup-pixi@v0.11.0
+        with:
+          locked: true  # the lock file must match pixi.toml
+          pixi-version: v0.81.0
+          cache-write: false  # saved from main only (pixi-cache.yaml)
+      - uses: actions/download-artifact@v7
+        with:
+          name: schedule-${{ inputs.distro }}-${{ inputs.platform }}
+      - name: The stage jobs' artifacts
+        run: pixi run python tools/staged_build.py artifacts --schedule schedule.json --distro "$DISTRO" --platform "$PLATFORM"
+      # by name: download-artifact's pattern only sees the run's first 1,000 artifacts
+      - name: Download the stage jobs' packages
+        uses: actions/github-script@v8
+        with:
+          script: |
+            await require('./tools/download_artifacts.cjs')({ names: process.env.ARTIFACTS.split(' '), dir: 'artifacts', core })
+      - name: See the packages
+        run: |
+          pixi run python tools/staged_build.py unpack --zips artifacts --into "$CACHE_DIR"
+          rm -rf "$CACHE_DIR/status"
+          shopt -s nullglob
+          packages=("$CACHE_DIR"/*/*.conda)
+          echo "${#packages[@]} packages"
+          for package in "${packages[@]}"; do basename "$package"; done
+      - name: Save build cache
+        id: save-cache
+        uses: actions/cache/save@v5
+        with:
+          path: ${{ env.CACHE_DIR }}
+          key: staged-${{ inputs.distro }}-${{ inputs.platform }}-pr-${{ github.event.pull_request.number }}-${{ github.run_id }}-${{ github.run_attempt }}
+
+      # Only the newest cache of a pull request/distribution/platform is restored; the ones
+      # of earlier runs and attempts only push others out of the repository's 10 GB, so
+      # full rebuilds lost their progress. Forks have a read-only token, so skip deletion.
+      - name: Drop this pull request's superseded build caches
+        if: ${{ steps.save-cache.outcome == 'success' && github.event.pull_request.number && github.event.pull_request.head.repo.full_name == github.repository }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PREFIX: staged-${{ inputs.distro }}-${{ inputs.platform }}-pr-${{ github.event.pull_request.number }}-
+          KEEP: staged-${{ inputs.distro }}-${{ inputs.platform }}-pr-${{ github.event.pull_request.number }}-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          # cache/save reports success even on upload failure: verify the replacement exists.
+          if ! ids=$(pixi run gh cache list --repo "$GITHUB_REPOSITORY" --ref "$GITHUB_REF" --key "$PREFIX" --limit 100 --json id,key \
+            --jq "if any(.[]; .key == \"$KEEP\") then .[] | select(.key != \"$KEEP\") | .id else error(\"New cache not found\") end"); then
+            echo "::warning::Could not verify the new build cache; keeping all previous caches."
+            exit 0
+          fi
+          while read -r id; do
+            [ -n "$id" ] || continue
+            pixi run gh cache delete "$id" --repo "$GITHUB_REPOSITORY" && echo "deleted cache $id"
+          done <<< "$ids"
+
+      # Compare what the pull request built with the released builds, so single packages
+      # can be bumped without a full rebuild; it reports and never fails the build.
+      - name: ABI check against the released builds
+        id: abi-check
+        if: inputs.platform == 'linux-64'
+        continue-on-error: true
+        run: |
+          pixi run abi-check --distro "$DISTRO" --platform "$PLATFORM" --pr-builds "$CACHE_DIR/$PLATFORM" --summary "abi-check-$DISTRO.md"
+          cat "abi-check-$DISTRO.md" >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload the ABI check
+        if: ${{ steps.abi-check.outcome == 'success' }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: abi-check-${{ inputs.distro }}
+          path: abi-check-${{ inputs.distro }}.md
+          retention-days: 7
+
+      # the build branches' workflows, while they still build the releases
+      - uses: actions/download-artifact@v7
+        with:
+          name: recipes-${{ inputs.distro }}-${{ inputs.platform }}
+      - name: Prepare the work directory
+        run: pixi run rs "$DISTRO" prepare && tar -xf recipes.tar -C "distros/$DISTRO/work"
+      - name: Generate the staged build workflows (catches post-merge problems)
+        run: |
+          if [ -z "$(ls "distros/$DISTRO/work/recipes" 2>/dev/null)" ]; then echo "Nothing to build"; exit 0; fi
+          for attempt in 1 2 3; do
+            if pixi run rs "$DISTRO" gha --platform "$PLATFORM" --batch-size 25; then break; fi
+            if [[ "$attempt" == 3 ]]; then echo "Workflow generation failed after 3 attempts" >&2; exit 1; fi
+            echo "Workflow generation attempt $attempt failed; retrying..." >&2
+            sleep 15
+          done

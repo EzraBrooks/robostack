@@ -1,0 +1,113 @@
+# The plan of a rendered build workflow (build-<distro>-<platform>.yaml, tools/rerender.py):
+# the recipes missing on the channel, less those in the pull request's cache, and the
+# jobs that build them (todo); the other jobs are skipped. Also passes the recipes and
+# the restored cache on to the stage jobs (stage-job.yaml) as artifacts.
+name: Staged build plan
+
+on:
+  workflow_call:
+    inputs:
+      distro:
+        required: true
+        type: string
+      platform:
+        required: true
+        type: string
+      upload:
+        description: A release build (no pull-request cache)
+        required: true
+        type: boolean
+    outputs:
+      todo:
+        description: JSON list of the jobs with recipes to build
+        value: ${{ jobs.plan.outputs.todo }}
+
+env:
+  PYTHONIOENCODING: utf-8
+  # while uploads go to a test channel, packages already there aren't built again
+  ROBOSTACK_UPLOAD_CHANNEL: ${{ vars.ROBOSTACK_UPLOAD_CHANNEL }}
+  # the pull request's packages, <subdir>/*.conda; restored and saved on Linux for every platform
+  CACHE_DIR: pr-cache
+  DISTRO: ${{ inputs.distro }}
+  PLATFORM: ${{ inputs.platform }}
+
+jobs:
+  plan:
+    name: plan
+    runs-on: ubuntu-latest
+    outputs:
+      todo: ${{ steps.schedule.outputs.todo }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      # git auto-maintenance can leave a lock file in the git clones pixi caches
+      # (e.g. vinca's), which breaks every later run restoring that cache
+      - name: Disable git auto-maintenance
+        run: git config --global maintenance.auto false && git config --global gc.auto 0
+      - uses: prefix-dev/setup-pixi@v0.11.0
+        with:
+          locked: true  # the lock file must match pixi.toml
+          pixi-version: v0.81.0
+          cache-write: false  # saved from main only (pixi-cache.yaml)
+      - name: Generate recipes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          for attempt in 1 2 3; do
+            if pixi run rs "$DISTRO" generate-recipes --platform "$PLATFORM" -n; then break; fi
+            if [[ "$attempt" == 3 ]]; then echo "Recipe generation failed after 3 attempts" >&2; exit 1; fi
+            echo "Recipe generation attempt $attempt failed; retrying..." >&2
+            sleep 15
+          done
+      # a tarball: artifacts drop the build scripts' executable bit
+      - name: Pack the recipes
+        run: mkdir -p "distros/$DISTRO/work/recipes" && tar -cf recipes.tar -C "distros/$DISTRO/work" recipes
+      - name: Upload the recipes
+        uses: actions/upload-artifact@v6
+        with:
+          name: recipes-${{ inputs.distro }}-${{ inputs.platform }}
+          path: recipes.tar
+          overwrite: true
+          retention-days: 7
+      - name: Restore build cache
+        if: ${{ !inputs.upload }}
+        uses: actions/cache/restore@v5
+        with:
+          path: ${{ env.CACHE_DIR }}
+          key: staged-${{ inputs.distro }}-${{ inputs.platform }}-pr-${{ github.event.pull_request.number }}
+          restore-keys: |
+            staged-${{ inputs.distro }}-${{ inputs.platform }}-pr-${{ github.event.pull_request.number }}-
+      # Temporary rebuild controls live in distros/<distro>/ci.yaml.
+      - name: Apply ci.yaml cache controls
+        run: |
+          for subdir in "$PLATFORM" noarch; do
+            mkdir -p "$CACHE_DIR/$subdir"
+            pixi run python tools/ci_config.py --cache-dir "$CACHE_DIR/$subdir" --config "distros/$DISTRO/ci.yaml" --vinca "distros/$DISTRO/vinca.yaml"
+          done
+          shopt -s nullglob
+          packages=("$CACHE_DIR"/*/*.conda)
+          echo "${#packages[@]} packages restored from the cache"
+          for package in "${packages[@]}"; do basename "$package"; done
+          mkdir -p "$CACHE_DIR/status" && echo success > "$CACHE_DIR/status/cache"
+      - name: Upload the cached packages
+        uses: actions/upload-artifact@v6
+        with:
+          name: pkgs-${{ inputs.distro }}-${{ inputs.platform }}-cache
+          path: ${{ env.CACHE_DIR }}
+          compression-level: 0  # .conda files are compressed
+          overwrite: true
+          retention-days: 3
+      - name: Estimate the build time
+        run: pixi run python tools/ci_estimate.py --recipes "distros/$DISTRO/work/recipes" --cache-dir "$CACHE_DIR/$PLATFORM" --platform "$PLATFORM"
+      # fails when a recipe to build is in no job: the workflow needs a re-render
+      - name: Schedule the jobs
+        id: schedule
+        run: pixi run python tools/staged_build.py schedule --distro "$DISTRO" --platform "$PLATFORM" --cache-dir "$CACHE_DIR" --out schedule.json
+      - uses: actions/upload-artifact@v6
+        with:
+          name: schedule-${{ inputs.distro }}-${{ inputs.platform }}
+          path: schedule.json
+          overwrite: true
+          retention-days: 7

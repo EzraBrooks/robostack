@@ -1,4 +1,4 @@
-# Release builds in vinca-gha's stages (staged-build.yaml), uploading to each
+# Release builds with the rendered build workflows (build-distros.yaml), uploading to each
 # distribution's channel (or the repository variable ROBOSTACK_UPLOAD_CHANNEL): the
 # packages missing there are built and uploaded. Started by hand while the build
 # branches (main.yaml) still build the releases.
@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       distros: ${{ steps.plan.outputs.distros }}
-      targets: ${{ steps.plan.outputs.targets }}
+      platforms: ${{ steps.plan.outputs.platforms }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -49,7 +49,7 @@ jobs:
           # the same selection as a pull request's build:<distro> / build:<platform> labels
           labels=$(pixi run python -c 'import json,os; print(json.dumps([f"build:{n}" for n in (os.environ["DISTROS"] + " " + os.environ["PLATFORMS"]).split()]))')
           echo "distros=$(pixi run python tools/robostack.py changed-distros --base HEAD --all --labels "$labels")" | tee -a "$GITHUB_OUTPUT"
-          echo "targets=$(pixi run python tools/robostack.py build-targets --labels "$labels")" | tee -a "$GITHUB_OUTPUT"
+          echo "platforms=$(pixi run python tools/robostack.py build-targets --labels "$labels" | jq -c '[.[].platform]')" | tee -a "$GITHUB_OUTPUT"
 
   build:
     needs: plan
@@ -57,9 +57,9 @@ jobs:
     permissions:
       contents: read
       id-token: write  # prefix.dev trusted publishing
-    uses: ./.github/workflows/staged-build.yaml
+    uses: ./.github/workflows/build-distros.yaml
     secrets: inherit  # ANACONDA_API_TOKEN_<DISTRO>
     with:
       distros: ${{ needs.plan.outputs.distros }}
-      targets: ${{ needs.plan.outputs.targets }}
+      platforms: ${{ needs.plan.outputs.platforms }}
       upload: true

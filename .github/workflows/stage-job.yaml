@@ -1,5 +1,6 @@
-# One build job of a staged build (staged-build.yaml, tools/staged_build.py): builds its
-# recipes whose requirements were built, with the packages of the jobs it needs (and the
+# One build job of a rendered build workflow (build-<distro>-<platform>.yaml,
+# tools/rerender.py and tools/staged_build.py): builds its recipes to build (the
+# schedule's) whose requirements were built, with the packages of the jobs it needs (and the
 # restored cache) as a local channel, and passes what it built on as an artifact,
 # pkgs-<distro>-<platform>-<job>, with status/<job> and status/<job>.json (each recipe's);
 # releases also upload what built to the distribution's channels.
@@ -18,7 +19,11 @@ on:
         required: true
         type: string
       job:
-        description: The job's id in the schedule (vinca-gha's stage_<k>_job_<i>)
+        description: The job's id in the schedule (its first recipe)
+        required: true
+        type: string
+      recipes:
+        description: Every recipe of the job, one per line (for reading the workflow; the schedule has the ones to build)
         required: true
         type: string
       upload:
@@ -118,7 +123,7 @@ jobs:
     - uses: actions/download-artifact@v7
       if: steps.earlier.outputs.built != 'true'
       with:
-        name: schedule
+        name: schedule-${{ inputs.distro }}-${{ inputs.platform }}
     - name: The job's recipes and requirements
       if: steps.earlier.outputs.built != 'true'
       shell: bash -l {0}
