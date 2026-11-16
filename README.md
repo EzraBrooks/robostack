@@ -118,9 +118,12 @@ waiting for the macOS runners; remove them for a full build before merging.
 
 ### CI
 
-- **Pull requests** (`testpr.yaml`):
+- **Pull requests**:
   - A PR that only touches `distros/<distro>/` builds that distribution. Changes anywhere else (except documentation) build every distribution.
-  - Each selected distribution is built on all five platforms, with its own build cache. The `check` job runs `pixi run rs check`.
+  - Each distribution and platform has its own build workflow, `build-<distro>-<platform>.yaml`, rendered from every recipe by `pixi run rs rerender` (`tools/rerender.py`; never edit them by hand): one job per batch of recipes, each after the jobs that build its requirements. Its plan job checks whether the PR builds that distribution and platform, and only the jobs with a recipe missing from the channel and the PR's build cache run.
+  - `testpr.yaml` runs the checks (`pixi run rs check`, patches) and re-renders the changed distributions; for a PR from this repository it commits the re-render as robostack-bot, a PR from a fork has to commit `pixi run rs rerender <distro>` itself.
+  - The "All builds" commit status (`build-status.yaml`, `tools/build_status.py`) is green when every build workflow and `testpr.yaml` of the commit succeeded; branch protection requires it.
+  - `release.yaml` starts the selected build workflows with upload, which build and upload what's missing on the channels.
 - **After a merge** (`main.yaml`): for every changed distribution and platform, the job regenerates the recipes and the staged build workflow, and pushes them to `buildbranch_<distro>_<platform>`.
   - Each build branch carries its workflow as `.github/workflows/build.yaml`, which runs `.scripts/build_*.sh` in `distros/<distro>/work`.
   - The workflow builds in stages (by dependency depth), each stage in parallel jobs. Each job records how long its recipes took to build and keeps that as an artifact; `robostack-bot update-build-timings` merges them weekly into `shared/build_timings/<platform>.json` (each recipe's time per distribution). With those times, each stage's recipes are packed into jobs by time (vinca-gha `--timings`, each recipe's average over the distributions), so that no single job holds up its stage; until a platform has times, its jobs are cut by count as before.
@@ -129,7 +132,7 @@ waiting for the macOS runners; remove them for a full build before merging.
 - **Repository variables:**
   - `ROBOSTACK_UPLOAD_CHANNEL`: upload only to this prefix.dev channel instead (for example a test channel), or `none` to build without uploading. Use the canonical reference: `<namespace>/<channel>` for a channel that isn't the namespace's primary one (e.g. `tobias-fischer/robostack-distro-test`).
   - Upload credentials:
-    - prefix.dev: Repository Access (OIDC, no stored key). In each channel's *Settings > Repository Access*, authorize GitHub, this repository, workflow filename `build.yaml`, mode *Read/write*.
+    - prefix.dev: Repository Access (OIDC, no stored key). In each channel's *Settings > Repository Access*, authorize GitHub, this repository, workflow filename `build.yaml` (and, for `release.yaml`'s builds, each `build-<distro>-<platform>.yaml` of that distribution), mode *Read/write*.
     - anaconda.org: one repository secret per distribution, `ANACONDA_API_TOKEN_<DISTRO>` (e.g. `ANACONDA_API_TOKEN_HUMBLE`): an API token of its `robostack-<distro>` organization with scope *Allow write access to the API site* (`api:write`). The generated build workflow passes it to the upload as `ANACONDA_API_TOKEN`.
   - `ROBOSTACK_BOT_CLIENT_ID` (the App's Client ID, `Iv23…`) with the secret `ROBOSTACK_BOT_PRIVATE_KEY`: the robostack-bot GitHub App. It pushes the build branches (which contain workflow files) and opens bot PRs so that CI runs on them. `GHA_PAT` works as a fallback.
 

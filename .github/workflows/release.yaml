@@ -1,10 +1,11 @@
-# Release builds with the rendered build workflows (build-distros.yaml), uploading to each
-# distribution's channel (or the repository variable ROBOSTACK_UPLOAD_CHANNEL): the
-# packages missing there are built and uploaded. Started by hand while the build
-# branches (main.yaml) still build the releases.
+# Release builds: starts the rendered build workflows (build-<distro>-<platform>.yaml,
+# tools/rerender.py) of the selected distributions and platforms with upload, which build
+# the packages missing on each distribution's channel (or the repository variable
+# ROBOSTACK_UPLOAD_CHANNEL) and upload them. Started by hand while the build branches
+# (main.yaml) still build the releases; each build workflow can be started on its own too.
 #
 # prefix.dev uploads use trusted publishing: the channels' Repository Access must allow
-# .github/workflows/stage-job.yaml (called from this workflow).
+# the build workflows.
 name: Release build
 
 on:
@@ -17,49 +18,29 @@ on:
         description: Space-separated platforms, or linux / osx / win (default all)
         required: false
 
-concurrency:
-  group: release-build
-  cancel-in-progress: false
-
 permissions:
+  actions: write  # start the build workflows
   contents: read
 
 jobs:
-  plan:
+  start:
     runs-on: ubuntu-latest
-    outputs:
-      distros: ${{ steps.plan.outputs.distros }}
-      platforms: ${{ steps.plan.outputs.platforms }}
     steps:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
-      - name: Disable git auto-maintenance
-        run: git config --global maintenance.auto false && git config --global gc.auto 0
-      - uses: prefix-dev/setup-pixi@v0.11.0
-        with:
-          locked: true  # the lock file must match pixi.toml
-          pixi-version: v0.81.0
-          cache-write: false  # saved from main only (pixi-cache.yaml)
-      - id: plan
-        env:
+      - env:
           DISTROS: ${{ inputs.distros }}
           PLATFORMS: ${{ inputs.platforms }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           # the same selection as a pull request's build:<distro> / build:<platform> labels
-          labels=$(pixi run python -c 'import json,os; print(json.dumps([f"build:{n}" for n in (os.environ["DISTROS"] + " " + os.environ["PLATFORMS"]).split()]))')
-          echo "distros=$(pixi run python tools/robostack.py changed-distros --base HEAD --all --labels "$labels")" | tee -a "$GITHUB_OUTPUT"
-          echo "platforms=$(pixi run python tools/robostack.py build-targets --labels "$labels" | jq -c '[.[].platform]')" | tee -a "$GITHUB_OUTPUT"
-
-  build:
-    needs: plan
-    if: needs.plan.outputs.distros != '[]'
-    permissions:
-      contents: read
-      id-token: write  # prefix.dev trusted publishing
-    uses: ./.github/workflows/build-distros.yaml
-    secrets: inherit  # ANACONDA_API_TOKEN_<DISTRO>
-    with:
-      distros: ${{ needs.plan.outputs.distros }}
-      platforms: ${{ needs.plan.outputs.platforms }}
-      upload: true
+          labels=$(python3 -c 'import json,os; print(json.dumps([f"build:{n}" for n in (os.environ["DISTROS"] + " " + os.environ["PLATFORMS"]).split()]))')
+          distros=$(python3 tools/robostack.py changed-distros --base HEAD --all --labels "$labels" | jq -r '.[]')
+          platforms=$(python3 tools/robostack.py build-targets --labels "$labels" | jq -r '.[].platform')
+          for distro in $distros; do
+            for platform in $platforms; do
+              gh workflow run "build-$distro-$platform.yaml" --repo "$GITHUB_REPOSITORY" --ref "$GITHUB_REF_NAME" -f upload=true
+              echo "started build $distro $platform"
+            done
+          done

@@ -46,6 +46,17 @@ def test_a_new_recipe_changes_only_its_own_job():
     assert len(changed) <= 2  # its job, or that one split at it
 
 
+def test_a_re_render_changes_only_its_distribution(monkeypatch):
+    import subprocess
+
+    import robostack as rs
+
+    files = ".github/workflows/build-lyrical-win-64.yaml\ndistros/jazzy/vinca.yaml\n"
+    monkeypatch.setattr(rs.subprocess, "run", lambda cmd, **kw: subprocess.CompletedProcess(cmd, 0, files, ""))
+
+    assert rs.changed_distros("base") == ["jazzy", "lyrical"]
+
+
 def test_the_rendered_workflow_reads_back():
     jobs = rerender.batch(REQUIRES, "lyrical")
 

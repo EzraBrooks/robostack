@@ -19,8 +19,8 @@ on:
         type: boolean
     outputs:
       todo:
-        description: JSON list of the jobs with recipes to build
-        value: ${{ jobs.plan.outputs.todo }}
+        description: JSON list of the jobs with recipes to build (none when the build isn't selected)
+        value: ${{ jobs.plan.outputs.todo || '[]' }}
 
 env:
   PYTHONIOENCODING: utf-8
@@ -32,8 +32,39 @@ env:
   PLATFORM: ${{ inputs.platform }}
 
 jobs:
+  # A pull request builds the distributions it changes (or those of its build:<distro>
+  # labels) on the platforms of its build:<platform> labels (all without); a release
+  # (workflow_dispatch) builds. Without pixi: this runs for every distribution and platform.
+  select:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read  # the labels
+    outputs:
+      selected: ${{ steps.select.outputs.selected }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - id: select
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          PR: ${{ github.event.pull_request.number }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -z "$PR" ]; then echo "selected=true" | tee -a "$GITHUB_OUTPUT"; exit 0; fi
+          # read now (not from the event): a re-run sees labels added after the push
+          labels=$(gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json labels -q '[.labels[].name]')
+          selected=$(python3 tools/robostack.py selected --distro "$DISTRO" --platform "$PLATFORM" --base "$BASE" --labels "$labels")
+          # DO NOT MERGE: only lyrical on linux-64 and win-64, to try the staged build
+          [[ "$DISTRO" == lyrical && "$PLATFORM" =~ ^(linux-64|win-64)$ ]] && selected=true || selected=false
+          echo "selected=$selected" | tee -a "$GITHUB_OUTPUT"
+
   plan:
     name: plan
+    needs: select
+    if: needs.select.outputs.selected == 'true'
     runs-on: ubuntu-latest
     outputs:
       todo: ${{ steps.schedule.outputs.todo }}

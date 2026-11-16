@@ -1,14 +1,10 @@
-# Pull-request build: only the distributions a PR touches are built
-# (a change outside distros/ affects all of them), on all five platforms.
+# Pull-request checks, and the re-render of the build workflows. The builds themselves are
+# build-<distro>-<platform>.yaml (tools/rerender.py), each a workflow of its own:
+# build-status.yaml sums them up in the "All builds" commit status.
 name: Build
 
 on:
   pull_request:
-  workflow_dispatch:
-    inputs:
-      distros:
-        description: Space-separated distributions to build (default all)
-        required: false
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -27,54 +23,24 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: read  # the build:<distro> and build:<platform> labels
     outputs:
       distros: ${{ steps.plan.outputs.distros }}
-      platforms: ${{ steps.plan.outputs.platforms }}
-      rerender: ${{ steps.plan.outputs.rerender }}
     steps:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
           fetch-depth: 0
-      - name: Disable git auto-maintenance
-        run: git config --global maintenance.auto false && git config --global gc.auto 0
-      - uses: prefix-dev/setup-pixi@v0.11.0
-        with:
-          locked: true  # the lock file must match pixi.toml
-          pixi-version: v0.81.0
-          cache-write: false  # saved from main only (pixi-cache.yaml)
       - name: Which distributions changed
         id: plan
         env:
           BASE: ${{ github.event.pull_request.base.sha }}
-          PR: ${{ github.event.pull_request.number }}
-          SELECTED: ${{ inputs.distros }}
-          GH_TOKEN: ${{ github.token }}
         run: |
-          labels="[]"
           # the build workflows of every changed distribution are re-rendered (whatever the labels)
           if [ -n "$BASE" ]; then
-            echo "rerender=$(pixi run python tools/robostack.py changed-distros --base "$BASE")" | tee -a "$GITHUB_OUTPUT"
+            echo "distros=$(python3 tools/robostack.py changed-distros --base "$BASE")" | tee -a "$GITHUB_OUTPUT"
           else
-            echo "rerender=[]" | tee -a "$GITHUB_OUTPUT"
+            echo "distros=[]" | tee -a "$GITHUB_OUTPUT"
           fi
-          if [ -n "$SELECTED" ]; then
-            distros=$(pixi run python -c 'import json,os; print(json.dumps(os.environ["SELECTED"].split()))')
-          elif [ -n "$BASE" ]; then
-            # build:<distro> labels limit the build to those distributions; read now (not
-            # from the event) so that a re-run sees labels added after the push
-            labels=$(pixi run gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json labels -q '[.labels[].name]')
-            distros=$(pixi run python tools/robostack.py changed-distros --base "$BASE" --labels "$labels")
-          else
-            distros=$(pixi run python tools/robostack.py changed-distros --base HEAD --all)
-          fi
-          echo "distros=$distros" | tee -a "$GITHUB_OUTPUT"
-          # build:linux / build:osx / build:win labels limit the platforms (all without)
-          echo "platforms=$(pixi run python tools/robostack.py build-targets --labels "$labels" | jq -c '[.[].platform]')" | tee -a "$GITHUB_OUTPUT"
-          # DO NOT MERGE: only lyrical on linux-64 and win-64, to try the staged build
-          echo 'distros=["lyrical"]' | tee -a "$GITHUB_OUTPUT"
-          echo 'platforms=["linux-64", "win-64"]' | tee -a "$GITHUB_OUTPUT"
 
   check:
     runs-on: ubuntu-latest
@@ -146,29 +112,15 @@ jobs:
           pixi run rs "$DISTRO" check-orphaned-patches
           pixi run rs "$DISTRO" check-patches
 
-  # The changed distributions on every platform, each with its rendered build workflow
-  # (build-<distro>-<platform>.yaml, tools/rerender.py): one job per batch of recipes.
-  build:
-    permissions:
-      actions: write  # drop this pull request's superseded build caches
-      contents: read
-    needs: plan
-    if: needs.plan.outputs.distros != '[]'
-    uses: ./.github/workflows/build-distros.yaml
-    with:
-      distros: ${{ needs.plan.outputs.distros }}
-      platforms: ${{ needs.plan.outputs.platforms }}  # tools/robostack.py BUILD_TARGETS
-      upload: false
-
   # Re-render, as conda-forge's rerender: the changed distributions' build workflows from
   # their recipes (every recipe, not only the missing ones, so that uploads don't change it).
   render:
     needs: plan
-    if: needs.plan.outputs.rerender != '[]'
+    if: needs.plan.outputs.distros != '[]'
     strategy:
       fail-fast: false
       matrix:
-        distro: ${{ fromJSON(needs.plan.outputs.rerender) }}
+        distro: ${{ fromJSON(needs.plan.outputs.distros) }}
         platform: [linux-64, linux-aarch64, osx-64, osx-arm64, win-64]
     name: render ${{ matrix.distro }} ${{ matrix.platform }}
     runs-on: ubuntu-latest
@@ -254,71 +206,11 @@ jobs:
           git push "https://x-access-token:${PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:refs/heads/$HEAD_REF"
           echo "Pushed the re-render; its run builds it"
 
-  # The ABI checks of all distributions as one pull-request comment, updated on every
-  # push. Pull requests from forks get a read-only token, so the job is skipped for them:
-  # they only have the job summaries.
-  abi-comment:
-    name: ABI check comment
-    needs: build
-    if: ${{ always() && github.event_name == 'pull_request' && needs.build.result != 'skipped' && github.event.pull_request.head.repo.full_name == github.repository }}
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    permissions:
-      actions: read
-      pull-requests: write
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          persist-credentials: false
-      - name: Disable git auto-maintenance
-        run: git config --global maintenance.auto false && git config --global gc.auto 0
-      - uses: prefix-dev/setup-pixi@v0.11.0
-        with:
-          locked: true  # the lock file must match pixi.toml
-          pixi-version: v0.81.0
-          cache-write: false  # saved from main only (pixi-cache.yaml)
-      - uses: actions/download-artifact@v7
-        with:
-          pattern: abi-check-*
-          merge-multiple: true
-      - name: Post or update the comment
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPO: ${{ github.repository }}
-          PR: ${{ github.event.pull_request.number }}
-        run: |
-          shopt -s nullglob
-          files=(abi-check-*.md)
-          marker='<!-- robostack-abi-check -->'
-          existing=$(pixi run gh api "repos/$REPO/issues/$PR/comments" --paginate -q ".[] | select(.body | startswith(\"$marker\")) | .id" | head -1)
-          # no comment for pull requests that build nothing released before
-          if ! grep -q '^| package |' "${files[@]}" /dev/null && [ -z "$existing" ]; then exit 0; fi
-          {
-            echo "$marker"
-            echo "### ABI check (linux-64)"
-            echo
-            cat "${files[@]}"
-            echo "<details><summary>About this check</summary>"
-            echo
-            echo "Each package this pull request built, compared with its newest released build (\`tools/abi_check.py\`, libabigail):"
-            echo "- **compatible** / **additions**: the package can be bumped on its own;"
-            echo "- **soname** / **incompatible**: the packages that depend on it need a rebuild (build number bump) in the same pull request."
-            echo
-            echo "Exported symbols are compared (the released packages are stripped, so struct layouts aren't); unchanged installed headers rule out layout and inline changes, changed ones are listed for review. Dependents to rebuild are the released ones linking to a changed library. A changed pin is part of the comparison."
-            echo
-            echo "</details>"
-          } > body.md
-          if [ -n "$existing" ]; then
-            pixi run gh api -X PATCH "repos/$REPO/issues/comments/$existing" -F body=@body.md > /dev/null
-          else
-            pixi run gh api "repos/$REPO/issues/$PR/comments" -F body=@body.md > /dev/null
-          fi
-
-  # One stable check for branch protection / auto-merge: the build matrix differs
-  # from PR to PR, so require this job instead of the individual builds.
+  # This workflow's jobs; the builds' are summed up in the "All builds" status
+  # (build-status.yaml), which branch protection requires too.
   all-green:
     name: All green
-    needs: [plan, check, patches, build, rerender]
+    needs: [plan, check, patches, rerender]
     if: always()
     runs-on: ubuntu-latest
     steps:

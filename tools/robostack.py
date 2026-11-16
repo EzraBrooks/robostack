@@ -753,6 +753,18 @@ def main() -> int:
         changed = distros() if ns.all else changed_distros(ns.base)
         print(json.dumps(build_distros(changed, json.loads(ns.labels))))
         return 0
+    if len(sys.argv) >= 2 and sys.argv[1] == "selected":
+        parser = argparse.ArgumentParser(prog="rs selected", description="whether a pull request builds a "
+                                         "distribution on a platform (each build-<distro>-<platform>.yaml asks)")
+        parser.add_argument("--distro", required=True)
+        parser.add_argument("--platform", required=True)
+        parser.add_argument("--base", required=True)
+        parser.add_argument("--labels", default="[]", help="JSON list of the pull request's labels")
+        ns = parser.parse_args(sys.argv[2:])
+        labels = json.loads(ns.labels)
+        built = ns.distro in build_distros(changed_distros(ns.base), labels)
+        print(str(built and ns.platform in [t["platform"] for t in build_targets(labels)]).lower())
+        return 0
     if len(sys.argv) >= 2 and sys.argv[1] == "build-targets":
         parser = argparse.ArgumentParser(prog="rs build-targets")
         parser.add_argument("--labels", default="[]", help="JSON list of the pull request's labels")

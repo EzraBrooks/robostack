@@ -100,6 +100,40 @@ jobs:
           name: abi-check-${{ inputs.distro }}
           path: abi-check-${{ inputs.distro }}.md
           retention-days: 7
+      # one pull-request comment per distribution, updated on every push; pull requests from
+      # forks get a read-only token: they only have the job summary
+      - name: Post or update the ABI check comment
+        if: ${{ steps.abi-check.outcome == 'success' && github.event.pull_request.head.repo.full_name == github.repository }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          marker="<!-- robostack-abi-check-$DISTRO -->"
+          existing=$(pixi run gh api "repos/$REPO/issues/$PR/comments" --paginate -q ".[] | select(.body | startswith(\"$marker\")) | .id" | head -1)
+          # no comment for pull requests that build nothing released before
+          if ! grep -q '^| package |' "abi-check-$DISTRO.md" && [ -z "$existing" ]; then exit 0; fi
+          {
+            echo "$marker"
+            echo "### ABI check, $DISTRO (linux-64)"
+            echo
+            cat "abi-check-$DISTRO.md"
+            echo "<details><summary>About this check</summary>"
+            echo
+            echo "Each package this pull request built, compared with its newest released build (\`tools/abi_check.py\`, libabigail):"
+            echo "- **compatible** / **additions**: the package can be bumped on its own;"
+            echo "- **soname** / **incompatible**: the packages that depend on it need a rebuild (build number bump) in the same pull request."
+            echo
+            echo "Exported symbols are compared (the released packages are stripped, so struct layouts aren't); unchanged installed headers rule out layout and inline changes, changed ones are listed for review. Dependents to rebuild are the released ones linking to a changed library. A changed pin is part of the comparison."
+            echo
+            echo "</details>"
+          } > body.md
+          if [ -n "$existing" ]; then
+            pixi run gh api -X PATCH "repos/$REPO/issues/comments/$existing" -F body=@body.md > /dev/null
+          else
+            pixi run gh api "repos/$REPO/issues/$PR/comments" -F body=@body.md > /dev/null
+          fi
 
       # the build branches' workflows, while they still build the releases
       - uses: actions/download-artifact@v7

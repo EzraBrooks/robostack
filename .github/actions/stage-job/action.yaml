@@ -1,59 +1,39 @@
 # One build job of a rendered build workflow (build-<distro>-<platform>.yaml,
-# tools/rerender.py and tools/staged_build.py): builds its recipes to build (the
-# schedule's) whose requirements were built, with the packages of the jobs it needs (and the
-# restored cache) as a local channel, and passes what it built on as an artifact,
-# pkgs-<distro>-<platform>-<job>, with status/<job> and status/<job>.json (each recipe's);
-# releases also upload what built to the distribution's channels.
+# tools/rerender.py and tools/staged_build.py), after actions/checkout: builds the job's
+# recipes to build (the schedule's) whose requirements were built, with the packages of
+# the jobs it needs (and the restored cache) as a local channel, and passes what it built
+# on as an artifact, pkgs-<distro>-<platform>-<job>, with status/<job> and
+# status/<job>.json (each recipe's); releases also upload what built to the
+# distribution's channels. The workflow's env has DISTRO, PLATFORM, OUTPUT_DIR and
+# ROBOSTACK_LOCAL_CHANNEL.
 name: Stage job
+description: Build one job's recipes of a staged build
 
-on:
-  workflow_call:
-    inputs:
-      distro:
-        required: true
-        type: string
-      platform:
-        required: true
-        type: string
-      os:
-        required: true
-        type: string
-      job:
-        description: The job's id in the schedule (its first recipe)
-        required: true
-        type: string
-      recipes:
-        description: Every recipe of the job, one per line (for reading the workflow; the schedule has the ones to build)
-        required: true
-        type: string
-      upload:
-        required: true
-        type: boolean
-      token_secret:
-        description: The repository secret with the distribution's anaconda.org token
-        required: true
-        type: string
+inputs:
+  job:
+    description: The job's id in the schedule (its first recipe)
+    required: true
+  recipes:
+    description: Every recipe of the job, one per line (for reading the workflow; the schedule has the ones to build)
+    required: true
+  upload:
+    description: Upload what built to the distribution's channels (true or false)
+    required: true
+  anaconda_token:
+    description: The distribution's anaconda.org token (releases)
+    required: false
+    default: ''
 
-env:
-  PYTHONIOENCODING: utf-8
-  DISTRO: ${{ inputs.distro }}
-  PLATFORM: ${{ inputs.platform }}
-  JOB: ${{ inputs.job }}
-  ARTIFACT: pkgs-${{ inputs.distro }}-${{ inputs.platform }}-${{ inputs.job }}
-  ROBOSTACK_UPLOAD_CHANNEL: ${{ vars.ROBOSTACK_UPLOAD_CHANNEL }}
-  # rattler_build() in tools/robostack.py adds it as a channel (relative to the repository)
-  ROBOSTACK_LOCAL_CHANNEL: pr-channel
-  # rattler-build writes to distros/<d>/work/output, or to CONDA_BLD_PATH (win-64)
-  OUTPUT_DIR: ${{ inputs.platform == 'win-64' && 'D:/bld' || format('distros/{0}/work/output', inputs.distro) }}
-
-jobs:
-  build:
-    runs-on: ${{ inputs.os }}
-    timeout-minutes: 350
-    steps:
-    - uses: actions/checkout@v6
-      with:
-        persist-credentials: false
+runs:
+  using: composite
+  steps:
+    - name: The job
+      shell: bash
+      env:
+        JOB: ${{ inputs.job }}
+      run: |
+        echo "JOB=$JOB" >> "$GITHUB_ENV"
+        echo "ARTIFACT=pkgs-$DISTRO-$PLATFORM-$JOB" >> "$GITHUB_ENV"
 
     # Re-running failed jobs re-runs every later stage too: the jobs that succeeded
     # before keep their packages.
@@ -112,6 +92,7 @@ jobs:
     # core or two of the runner's three or four; the runner is thrown away after the job
     - name: Turn off Spotlight
       if: steps.earlier.outputs.built != 'true' && runner.os == 'macOS'
+      shell: bash
       run: sudo mdutil -a -i off || true
 
     - name: Clean up PATH
@@ -123,7 +104,7 @@ jobs:
     - uses: actions/download-artifact@v7
       if: steps.earlier.outputs.built != 'true'
       with:
-        name: schedule-${{ inputs.distro }}-${{ inputs.platform }}
+        name: schedule-${{ env.DISTRO }}-${{ env.PLATFORM }}
     - name: The job's recipes and requirements
       if: steps.earlier.outputs.built != 'true'
       shell: bash -l {0}
@@ -133,7 +114,7 @@ jobs:
     - uses: actions/download-artifact@v7
       if: steps.earlier.outputs.built != 'true'
       with:
-        name: recipes-${{ inputs.distro }}-${{ inputs.platform }}
+        name: recipes-${{ env.DISTRO }}-${{ env.PLATFORM }}
     - name: Prepare the work directory
       if: steps.earlier.outputs.built != 'true'
       shell: bash -l {0}
@@ -210,10 +191,10 @@ jobs:
     # prefix.dev: trusted publishing (the caller grants id-token: write); anaconda.org:
     # the distribution's token. Both skip packages that are already there.
     - name: Upload to the distribution's channels
-      if: ${{ inputs.upload && (success() || failure()) && steps.build-recipes.outcome != 'skipped' }}
+      if: ${{ inputs.upload == 'true' && (success() || failure()) && steps.build-recipes.outcome != 'skipped' }}
       shell: bash -l {0}
       env:
-        ANACONDA_API_TOKEN: ${{ secrets[inputs.token_secret] }}
+        ANACONDA_API_TOKEN: ${{ inputs.anaconda_token }}
       run: |
         [ -f uploads.txt ] || { echo "No status of the recipes: nothing to upload"; exit 1; }
         while read -r package; do
@@ -227,7 +208,7 @@ jobs:
       if: ${{ failure() && steps.build-recipes.outcome != 'skipped' }}
       uses: actions/upload-artifact@v6
       with:
-        name: build-log-${{ inputs.distro }}-${{ inputs.platform }}-${{ inputs.job }}-${{ github.run_attempt }}
+        name: build-log-${{ env.DISTRO }}-${{ env.PLATFORM }}-${{ env.JOB }}-${{ github.run_attempt }}
         path: rattler-build.log
         if-no-files-found: warn
         retention-days: 7
