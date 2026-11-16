@@ -25,26 +25,9 @@ jobs:
       - plan
       - ros2-action-tutorials-py
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-ackermann-msgs') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-ackermann-msgs
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-ackermann-msgs
-        ros-lyrical-ackermann-msgs
-        ros2-actuator-msgs
-        ros-lyrical-actuator-msgs
-        ros2-apriltag-msgs
-        ros-lyrical-apriltag-msgs
-        ros2-autoware-internal-debug-msgs
-        ros-lyrical-autoware-internal-debug-msgs
-        ros2-bno055
-        ros-lyrical-bno055
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-ackermann-steering-controller:
     name: "46 ackermann-steering-controller autoware-default-adapi aut…"
@@ -53,28 +36,9 @@ jobs:
       - ros2-admittance-controller
       - ros2-rmf-visualization-rviz2-plugins
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-ackermann-steering-controller') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-ackermann-steering-controller
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-ackermann-steering-controller
-        ros-lyrical-ackermann-steering-controller
-        ros2-autoware-default-adapi
-        ros-lyrical-autoware-default-adapi
-        ros2-autoware-map-height-fitter
-        ros-lyrical-autoware-map-height-fitter
-        ros2-autoware-map-loader
-        ros-lyrical-autoware-map-loader
-        ros2-autoware-planning-factor-interface
-        ros-lyrical-autoware-planning-factor-interface
-        ros2-autoware-planning-test-manager
-        ros-lyrical-autoware-planning-test-manager
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-action-msgs:
     name: "27 action-msgs type-description-interfaces"
@@ -82,20 +46,9 @@ jobs:
       - plan
       - ros2-autoware-utils-uuid
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-action-msgs') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-action-msgs
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-action-msgs
-        ros-lyrical-action-msgs
-        ros2-type-description-interfaces
-        ros-lyrical-type-description-interfaces
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-action-tutorials-cpp:
     name: "40 action-tutorials-cpp aruco autoware-internal-planning-ms…"
@@ -110,66 +63,9 @@ jobs:
       - ros2-rsl
       - ros2-tf2-eigen-kdl
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-action-tutorials-cpp') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-action-tutorials-cpp
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-action-tutorials-cpp
-        ros-lyrical-action-tutorials-cpp
-        ros2-aruco
-        ros-lyrical-aruco
-        ros2-autoware-internal-planning-msgs
-        ros-lyrical-autoware-internal-planning-msgs
-        ros2-autoware-osqp-interface
-        ros-lyrical-autoware-osqp-interface
-        ros2-autoware-perception-objects-converter
-        ros-lyrical-autoware-perception-objects-converter
-        ros2-autoware-qp-interface
-        ros-lyrical-autoware-qp-interface
-        ros2-autoware-stop-filter
-        ros-lyrical-autoware-stop-filter
-        ros2-autoware-twist2accel
-        ros-lyrical-autoware-twist2accel
-        ros2-autoware-utils-visualization
-        ros-lyrical-autoware-utils-visualization
-        ros2-autoware-vehicle-msgs
-        ros-lyrical-autoware-vehicle-msgs
-        ros2-bondcpp
-        ros-lyrical-bondcpp
-        ros2-camera-info-manager
-        ros-lyrical-camera-info-manager
-        ros2-common-interfaces
-        ros-lyrical-common-interfaces
-        ros2-composition
-        ros-lyrical-composition
-        ros2-data-tamer-cpp
-        ros-lyrical-data-tamer-cpp
-        ros2-demo-nodes-cpp
-        ros-lyrical-demo-nodes-cpp
-        ros2-demo-nodes-cpp-native
-        ros-lyrical-demo-nodes-cpp-native
-        ros2-depthimage-to-laserscan
-        ros-lyrical-depthimage-to-laserscan
-        ros2-diagnostic-remote-logging
-        ros-lyrical-diagnostic-remote-logging
-        ros2-diagnostic-updater
-        ros-lyrical-diagnostic-updater
-        ros2-examples-rclcpp-minimal-action-client
-        ros-lyrical-examples-rclcpp-minimal-action-client
-        ros2-examples-rclcpp-minimal-action-server
-        ros-lyrical-examples-rclcpp-minimal-action-server
-        ros2-examples-rclcpp-minimal-composition
-        ros-lyrical-examples-rclcpp-minimal-composition
-        ros2-examples-rclcpp-minimal-subscriber
-        ros-lyrical-examples-rclcpp-minimal-subscriber
-        ros2-ffmpeg-encoder-decoder
-        ros-lyrical-ffmpeg-encoder-decoder
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-action-tutorials-py:
     name: "36 action-tutorials-py better-launch demo-nodes-py examples…"
@@ -177,42 +73,9 @@ jobs:
       - plan
       - ros2-rclpy
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-action-tutorials-py') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-action-tutorials-py
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-action-tutorials-py
-        ros-lyrical-action-tutorials-py
-        ros2-better-launch
-        ros-lyrical-better-launch
-        ros2-demo-nodes-py
-        ros-lyrical-demo-nodes-py
-        ros2-examples-rclpy-minimal-action-client
-        ros-lyrical-examples-rclpy-minimal-action-client
-        ros2-examples-rclpy-minimal-action-server
-        ros-lyrical-examples-rclpy-minimal-action-server
-        ros2-launch-param-builder
-        ros-lyrical-launch-param-builder
-        ros2-launch-ros
-        ros-lyrical-launch-ros
-        ros2-rclpy-cascade-lifecycle
-        ros-lyrical-rclpy-cascade-lifecycle
-        ros2-ros2cli
-        ros-lyrical-ros2cli
-        ros2-rqt-gui
-        ros-lyrical-rqt-gui
-        ros2-rqt-py-common
-        ros-lyrical-rqt-py-common
-        ros2-std-msgs
-        ros-lyrical-std-msgs
-        ros2-urdfdom-py
-        ros-lyrical-urdfdom-py
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-admittance-controller:
     name: "45 admittance-controller autoware-global-parameter-loader a…"
@@ -222,30 +85,9 @@ jobs:
       - ros2-autoware-test-utils
       - ros2-nav2-util
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-admittance-controller') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-admittance-controller
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-admittance-controller
-        ros-lyrical-admittance-controller
-        ros2-autoware-global-parameter-loader
-        ros-lyrical-autoware-global-parameter-loader
-        ros2-autoware-lanelet2-utils
-        ros-lyrical-autoware-lanelet2-utils
-        ros2-autoware-motion-utils
-        ros-lyrical-autoware-motion-utils
-        ros2-battery-state-broadcaster
-        ros-lyrical-battery-state-broadcaster
-        ros2-cartographer-ros
-        ros-lyrical-cartographer-ros
-        ros2-chained-filter-controller
-        ros-lyrical-chained-filter-controller
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-ament-black:
     name: "9 ament-black ament-clang-format ament-clang-tidy"
@@ -253,22 +95,9 @@ jobs:
       - plan
       - ros2-ament-cmake
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-ament-black') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-ament-black
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-ament-black
-        ros-lyrical-ament-black
-        ros2-ament-clang-format
-        ros-lyrical-ament-clang-format
-        ros2-ament-clang-tidy
-        ros-lyrical-ament-clang-tidy
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-ament-cmake:
     name: "8 ament-cmake ament-xmllint lanelet2-projection lanelet2-ro…"
@@ -276,28 +105,9 @@ jobs:
       - plan
       - ros2-ament-cmake-gen-version-h
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-ament-cmake') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-ament-cmake
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-ament-cmake
-        ros-lyrical-ament-cmake
-        ros2-ament-xmllint
-        ros-lyrical-ament-xmllint
-        ros2-lanelet2-projection
-        ros-lyrical-lanelet2-projection
-        ros2-lanelet2-routing
-        ros-lyrical-lanelet2-routing
-        ros2-picknik-ament-copyright
-        ros-lyrical-picknik-ament-copyright
-        ros2-rtabmap-python
-        ros-lyrical-rtabmap-python
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-ament-cmake-auto:
     name: "10 ament-cmake-auto ament-cmake-lint-cmake ament-cppcheck a…"
@@ -308,28 +118,9 @@ jobs:
       - ros2-geometry-tutorials
       - ros2-tcb-span
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-ament-cmake-auto') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-ament-cmake-auto
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-ament-cmake-auto
-        ros-lyrical-ament-cmake-auto
-        ros2-ament-cmake-lint-cmake
-        ros-lyrical-ament-cmake-lint-cmake
-        ros2-ament-cppcheck
-        ros-lyrical-ament-cppcheck
-        ros2-ament-index-python
-        ros-lyrical-ament-index-python
-        ros2-ament-uncrustify
-        ros-lyrical-ament-uncrustify
-        ros2-lanelet2-python
-        ros-lyrical-lanelet2-python
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-ament-cmake-black:
     name: "13 ament-cmake-black ament-lint-common autoware-lint-common"
@@ -338,22 +129,9 @@ jobs:
       - ros2-ament-cmake-clang-format
       - ros2-ament-cmake-xmllint
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-ament-cmake-black') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-ament-cmake-black
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-ament-cmake-black
-        ros-lyrical-ament-cmake-black
-        ros2-ament-lint-common
-        ros-lyrical-ament-lint-common
-        ros2-autoware-lint-common
-        ros-lyrical-autoware-lint-common
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-ament-cmake-catch2:
     name: "6 ament-cmake-catch2 ament-cmake-google-benchmark ament-cma…"
@@ -361,38 +139,9 @@ jobs:
       - plan
       - ros2-ament-cmake-export-dependencies
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-ament-cmake-catch2') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-ament-cmake-catch2
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-ament-cmake-catch2
-        ros-lyrical-ament-cmake-catch2
-        ros2-ament-cmake-google-benchmark
-        ros-lyrical-ament-cmake-google-benchmark
-        ros2-ament-cmake-gtest
-        ros-lyrical-ament-cmake-gtest
-        ros2-ament-cmake-pytest
-        ros-lyrical-ament-cmake-pytest
-        ros2-ament-cmake-vendor-package
-        ros-lyrical-ament-cmake-vendor-package
-        ros2-ament-lint-auto
-        ros-lyrical-ament-lint-auto
-        ros2-ament-pep257
-        ros-lyrical-ament-pep257
-        ros2-coal
-        ros-lyrical-coal
-        ros2-cyclonedds
-        ros-lyrical-cyclonedds
-        ros2-iceoryx-binding-c
-        ros-lyrical-iceoryx-binding-c
-        ros2-lanelet2-core
-        ros-lyrical-lanelet2-core
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-ament-cmake-clang-format:
     name: "12 ament-cmake-clang-format ament-cmake-clang-tidy ament-cm…"
@@ -401,34 +150,9 @@ jobs:
       - ros2-ament-black
       - ros2-ament-cmake-copyright
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-ament-cmake-clang-format') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-ament-cmake-clang-format
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-ament-cmake-clang-format
-        ros-lyrical-ament-cmake-clang-format
-        ros2-ament-cmake-clang-tidy
-        ros-lyrical-ament-cmake-clang-tidy
-        ros2-ament-cmake-cppcheck
-        ros-lyrical-ament-cmake-cppcheck
-        ros2-ament-cmake-cpplint
-        ros-lyrical-ament-cmake-cpplint
-        ros2-ament-cmake-flake8
-        ros-lyrical-ament-cmake-flake8
-        ros2-ament-cmake-mypy
-        ros-lyrical-ament-cmake-mypy
-        ros2-ament-cmake-pclint
-        ros-lyrical-ament-cmake-pclint
-        ros2-ament-cmake-pep257
-        ros-lyrical-ament-cmake-pep257
-        ros2-ament-cmake-uncrustify
-        ros-lyrical-ament-cmake-uncrustify
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-ament-cmake-copyright:
     name: "11 ament-cmake-copyright launch mrpt-containers"
@@ -438,22 +162,9 @@ jobs:
       - ros2-mrpt-core
       - ros2-mrpt-imgui-vendor
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-ament-cmake-copyright') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-ament-cmake-copyright
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-ament-cmake-copyright
-        ros-lyrical-ament-cmake-copyright
-        ros2-launch
-        ros-lyrical-launch
-        ros2-mrpt-containers
-        ros-lyrical-mrpt-containers
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-ament-cmake-core:
     name: "2 ament-cmake-core"
@@ -461,18 +172,9 @@ jobs:
       - plan
       - ros2-ament-package
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-ament-cmake-core') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-ament-cmake-core
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-ament-cmake-core
-        ros-lyrical-ament-cmake-core
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-ament-cmake-export-definitions:
     name: "4 ament-cmake-export-definitions ament-cmake-export-include…"
@@ -480,64 +182,9 @@ jobs:
       - plan
       - ros2-ros-environment
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-ament-cmake-export-definitions') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-ament-cmake-export-definitions
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-ament-cmake-export-definitions
-        ros-lyrical-ament-cmake-export-definitions
-        ros2-ament-cmake-export-include-directories
-        ros-lyrical-ament-cmake-export-include-directories
-        ros2-ament-cmake-export-libraries
-        ros-lyrical-ament-cmake-export-libraries
-        ros2-ament-cmake-export-link-flags
-        ros-lyrical-ament-cmake-export-link-flags
-        ros2-ament-cmake-include-directories
-        ros-lyrical-ament-cmake-include-directories
-        ros2-ament-cmake-libraries
-        ros-lyrical-ament-cmake-libraries
-        ros2-ament-cmake-python
-        ros-lyrical-ament-cmake-python
-        ros2-ament-cmake-version
-        ros-lyrical-ament-cmake-version
-        ros2-ament-lint
-        ros-lyrical-ament-lint
-        ros2-apriltag
-        ros-lyrical-apriltag
-        ros2-apriltag-mit
-        ros-lyrical-apriltag-mit
-        ros2-beluga
-        ros-lyrical-beluga
-        ros2-cartographer
-        ros-lyrical-cartographer
-        ros2-fastcdr
-        ros-lyrical-fastcdr
-        ros2-generate-parameter-library-py
-        ros-lyrical-generate-parameter-library-py
-        ros2-google-benchmark-vendor
-        ros-lyrical-google-benchmark-vendor
-        ros2-grid-map-cmake-helpers
-        ros-lyrical-grid-map-cmake-helpers
-        ros2-gtest-vendor
-        ros-lyrical-gtest-vendor
-        ros2-gtsam
-        ros-lyrical-gtsam
-        ros2-iceoryx-hoofs
-        ros-lyrical-iceoryx-hoofs
-        ros2-jrl-cmakemodules
-        ros-lyrical-jrl-cmakemodules
-        ros2-libnabo
-        ros-lyrical-libnabo
-        ros2-librealsense2
-        ros-lyrical-librealsense2
-        ros2-magic-enum
-        ros-lyrical-magic-enum
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-ament-cmake-export-dependencies:
     name: "5 ament-cmake-export-dependencies ament-cmake-export-target…"
@@ -546,38 +193,9 @@ jobs:
       - ros2-ament-cmake-export-definitions
       - ros2-nanoflann-vendor
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-ament-cmake-export-dependencies') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-ament-cmake-export-dependencies
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-ament-cmake-export-dependencies
-        ros-lyrical-ament-cmake-export-dependencies
-        ros2-ament-cmake-export-targets
-        ros-lyrical-ament-cmake-export-targets
-        ros2-ament-cmake-target-dependencies
-        ros-lyrical-ament-cmake-target-dependencies
-        ros2-ament-cmake-test
-        ros-lyrical-ament-cmake-test
-        ros2-ament-flake8
-        ros-lyrical-ament-flake8
-        ros2-backward-ros
-        ros-lyrical-backward-ros
-        ros2-eigenpy
-        ros-lyrical-eigenpy
-        ros2-iceoryx-posh
-        ros-lyrical-iceoryx-posh
-        ros2-libpointmatcher
-        ros-lyrical-libpointmatcher
-        ros2-mrt-cmake-modules
-        ros-lyrical-mrt-cmake-modules
-        ros2-stomp
-        ros-lyrical-stomp
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-ament-cmake-gen-version-h:
     name: "7 ament-cmake-gen-version-h ament-copyright lanelet2-io lan…"
@@ -585,28 +203,9 @@ jobs:
       - plan
       - ros2-ament-cmake-catch2
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-ament-cmake-gen-version-h') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-ament-cmake-gen-version-h
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-ament-cmake-gen-version-h
-        ros-lyrical-ament-cmake-gen-version-h
-        ros2-ament-copyright
-        ros-lyrical-ament-copyright
-        ros2-lanelet2-io
-        ros-lyrical-lanelet2-io
-        ros2-lanelet2-maps
-        ros-lyrical-lanelet2-maps
-        ros2-lanelet2-traffic-rules
-        ros-lyrical-lanelet2-traffic-rules
-        ros2-tf-transformations
-        ros-lyrical-tf-transformations
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-ament-cmake-gmock:
     name: "9 ament-cmake-gmock ament-cpplint ament-lint-cmake"
@@ -614,22 +213,9 @@ jobs:
       - plan
       - ros2-ament-cmake
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-ament-cmake-gmock') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-ament-cmake-gmock
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-ament-cmake-gmock
-        ros-lyrical-ament-cmake-gmock
-        ros2-ament-cpplint
-        ros-lyrical-ament-cpplint
-        ros2-ament-lint-cmake
-        ros-lyrical-ament-lint-cmake
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-ament-cmake-ros:
     name: "15 ament-cmake-ros autoware-adapi-specs"
@@ -637,20 +223,9 @@ jobs:
       - plan
       - ros2-ament-cmake-ros-core
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-ament-cmake-ros') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-ament-cmake-ros
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-ament-cmake-ros
-        ros-lyrical-ament-cmake-ros
-        ros2-autoware-adapi-specs
-        ros-lyrical-autoware-adapi-specs
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-ament-cmake-ros-core:
     name: "14 ament-cmake-ros-core ament-index-cpp apex-test-tools asi…"
@@ -659,36 +234,9 @@ jobs:
       - ros2-ament-cmake-black
       - ros2-foonathan-memory-vendor
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-ament-cmake-ros-core') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-ament-cmake-ros-core
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-ament-cmake-ros-core
-        ros-lyrical-ament-cmake-ros-core
-        ros2-ament-index-cpp
-        ros-lyrical-ament-index-cpp
-        ros2-apex-test-tools
-        ros-lyrical-apex-test-tools
-        ros2-asio-cmake-module
-        ros-lyrical-asio-cmake-module
-        ros2-autoware-cmake
-        ros-lyrical-autoware-cmake
-        ros2-fastdds
-        ros-lyrical-fastdds
-        ros2-grid-map-core
-        ros-lyrical-grid-map-core
-        ros2-gz-ogre-next-vendor
-        ros-lyrical-gz-ogre-next-vendor
-        ros2-gz-tools-vendor
-        ros-lyrical-gz-tools-vendor
-        ros2-keyboard-handler
-        ros-lyrical-keyboard-handler
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-ament-cmake-xmllint:
     name: "12 ament-cmake-xmllint eigen3-cmake-module launch-xml launc…"
@@ -697,34 +245,9 @@ jobs:
       - ros2-ament-cmake-copyright
       - ros2-mrpt-rtti
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-ament-cmake-xmllint') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-ament-cmake-xmllint
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-ament-cmake-xmllint
-        ros-lyrical-ament-cmake-xmllint
-        ros2-eigen3-cmake-module
-        ros-lyrical-eigen3-cmake-module
-        ros2-launch-xml
-        ros-lyrical-launch-xml
-        ros2-launch-yaml
-        ros-lyrical-launch-yaml
-        ros2-microstrain-inertial-description
-        ros-lyrical-microstrain-inertial-description
-        ros2-moveit-resources-prbt-support
-        ros-lyrical-moveit-resources-prbt-support
-        ros2-mrpt-serialization
-        ros-lyrical-mrpt-serialization
-        ros2-mrpt-system
-        ros-lyrical-mrpt-system
-        ros2-random-numbers
-        ros-lyrical-random-numbers
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-ament-mypy:
     name: "9 ament-mypy ament-pclint ament-pycodestyle angles cloudini…"
@@ -732,32 +255,9 @@ jobs:
       - plan
       - ros2-ament-cmake
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-ament-mypy') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-ament-mypy
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-ament-mypy
-        ros-lyrical-ament-mypy
-        ros2-ament-pclint
-        ros-lyrical-ament-pclint
-        ros2-ament-pycodestyle
-        ros-lyrical-ament-pycodestyle
-        ros2-angles
-        ros-lyrical-angles
-        ros2-cloudini-lib
-        ros-lyrical-cloudini-lib
-        ros2-domain-coordinator
-        ros-lyrical-domain-coordinator
-        ros2-dynamixel-sdk
-        ros-lyrical-dynamixel-sdk
-        ros2-eigen-stl-containers
-        ros-lyrical-eigen-stl-containers
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-ament-package:
     name: "1 ament-package"
@@ -765,18 +265,9 @@ jobs:
       - plan
       - ros2-distro-mutex
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-ament-package') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-ament-package
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-ament-package
-        ros-lyrical-ament-package
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-apriltag-detector:
     name: "42 apriltag-detector apriltag-draw automatika-ros-sugar aut…"
@@ -786,50 +277,9 @@ jobs:
       - ros2-fuse-graphs
       - ros2-ros2lifecycle
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-apriltag-detector') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-apriltag-detector
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-apriltag-detector
-        ros-lyrical-apriltag-detector
-        ros2-apriltag-draw
-        ros-lyrical-apriltag-draw
-        ros2-automatika-ros-sugar
-        ros-lyrical-automatika-ros-sugar
-        ros2-autoware-core-sensing
-        ros-lyrical-autoware-core-sensing
-        ros2-autoware-utils-debug
-        ros-lyrical-autoware-utils-debug
-        ros2-compressed-depth-image-transport
-        ros-lyrical-compressed-depth-image-transport
-        ros2-compressed-image-transport
-        ros-lyrical-compressed-image-transport
-        ros2-diagnostics
-        ros-lyrical-diagnostics
-        ros2-draco-point-cloud-transport
-        ros-lyrical-draco-point-cloud-transport
-        ros2-ffmpeg-image-transport
-        ros-lyrical-ffmpeg-image-transport
-        ros2-foxglove-compressed-video-transport
-        ros-lyrical-foxglove-compressed-video-transport
-        ros2-fuse-variables
-        ros-lyrical-fuse-variables
-        ros2-gscam
-        ros-lyrical-gscam
-        ros2-hardware-interface
-        ros-lyrical-hardware-interface
-        ros2-image-common
-        ros-lyrical-image-common
-        ros2-image-publisher
-        ros-lyrical-image-publisher
-        ros2-image-view
-        ros-lyrical-image-view
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-apriltag-detector-mit:
     name: "43 apriltag-detector-mit apriltag-detector-umich aruco-ros …"
@@ -839,26 +289,9 @@ jobs:
       - ros2-rmf-reservation-node
       - ros2-rosbag2-storage-mcap
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-apriltag-detector-mit') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-apriltag-detector-mit
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-apriltag-detector-mit
-        ros-lyrical-apriltag-detector-mit
-        ros2-apriltag-detector-umich
-        ros-lyrical-apriltag-detector-umich
-        ros2-aruco-ros
-        ros-lyrical-aruco-ros
-        ros2-automatika-embodied-agents
-        ros-lyrical-automatika-embodied-agents
-        ros2-autoware-core-vehicle
-        ros-lyrical-autoware-core-vehicle
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-apriltag-tools:
     name: "48 apriltag-tools autoware-behavior-velocity-planner-common…"
@@ -866,28 +299,9 @@ jobs:
       - plan
       - ros2-autoware-adapi-adaptors
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-apriltag-tools') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-apriltag-tools
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-apriltag-tools
-        ros-lyrical-apriltag-tools
-        ros2-autoware-behavior-velocity-planner-common
-        ros-lyrical-autoware-behavior-velocity-planner-common
-        ros2-autoware-core-api
-        ros-lyrical-autoware-core-api
-        ros2-autoware-core-map
-        ros-lyrical-autoware-core-map
-        ros2-chomp-motion-planner
-        ros-lyrical-chomp-motion-planner
-        ros2-dwb-core
-        ros-lyrical-dwb-core
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-aruco-msgs:
     name: "38 aruco-msgs aruco-opencv-msgs autoware-internal-localizat…"
@@ -896,66 +310,9 @@ jobs:
       - ros2-examples-rclpy-minimal-publisher
       - ros2-nmea-msgs
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-aruco-msgs') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-aruco-msgs
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-aruco-msgs
-        ros-lyrical-aruco-msgs
-        ros2-aruco-opencv-msgs
-        ros-lyrical-aruco-opencv-msgs
-        ros2-autoware-internal-localization-msgs
-        ros-lyrical-autoware-internal-localization-msgs
-        ros2-autoware-localization-msgs
-        ros-lyrical-autoware-localization-msgs
-        ros2-autoware-perception-msgs
-        ros-lyrical-autoware-perception-msgs
-        ros2-autoware-v2x-msgs
-        ros-lyrical-autoware-v2x-msgs
-        ros2-cartographer-ros-msgs
-        ros-lyrical-cartographer-ros-msgs
-        ros2-diagnostic-msgs
-        ros-lyrical-diagnostic-msgs
-        ros2-foxglove-msgs
-        ros-lyrical-foxglove-msgs
-        ros2-fuse-msgs
-        ros-lyrical-fuse-msgs
-        ros2-geographic-msgs
-        ros-lyrical-geographic-msgs
-        ros2-graph-msgs
-        ros-lyrical-graph-msgs
-        ros2-irobot-create-msgs
-        ros-lyrical-irobot-create-msgs
-        ros2-key-teleop
-        ros-lyrical-key-teleop
-        ros2-lanelet2
-        ros-lyrical-lanelet2
-        ros2-marine-acoustic-msgs
-        ros-lyrical-marine-acoustic-msgs
-        ros2-marker-msgs
-        ros-lyrical-marker-msgs
-        ros2-microstrain-inertial-msgs
-        ros-lyrical-microstrain-inertial-msgs
-        ros2-motion-capture-tracking-interfaces
-        ros-lyrical-motion-capture-tracking-interfaces
-        ros2-mouse-teleop
-        ros-lyrical-mouse-teleop
-        ros2-moveit-configs-utils
-        ros-lyrical-moveit-configs-utils
-        ros2-nav-2d-msgs
-        ros-lyrical-nav-2d-msgs
-        ros2-nav-msgs
-        ros-lyrical-nav-msgs
-        ros2-octomap-msgs
-        ros-lyrical-octomap-msgs
-        ros2-polygon-utils
-        ros-lyrical-polygon-utils
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-async-web-server-cpp:
     name: "16 async-web-server-cpp autoware-kalman-filter autoware-pyp…"
@@ -966,42 +323,9 @@ jobs:
       - ros2-mrpt-bayes
       - ros2-rcutils
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-async-web-server-cpp') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-async-web-server-cpp
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-async-web-server-cpp
-        ros-lyrical-async-web-server-cpp
-        ros2-autoware-kalman-filter
-        ros-lyrical-autoware-kalman-filter
-        ros2-autoware-pyplot
-        ros-lyrical-autoware-pyplot
-        ros2-fuse-doc
-        ros-lyrical-fuse-doc
-        ros2-gz-math-vendor
-        ros-lyrical-gz-math-vendor
-        ros2-gz-plugin-vendor
-        ros-lyrical-gz-plugin-vendor
-        ros2-mrpt-poses
-        ros-lyrical-mrpt-poses
-        ros2-rcpputils
-        ros-lyrical-rcpputils
-        ros2-resource-retriever
-        ros-lyrical-resource-retriever
-        ros2-rmf-task
-        ros-lyrical-rmf-task
-        ros2-rosidl-generator-type-description
-        ros-lyrical-rosidl-generator-type-description
-        ros2-rosidl-pycommon
-        ros-lyrical-rosidl-pycommon
-        ros2-rosidl-runtime-c
-        ros-lyrical-rosidl-runtime-c
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-autoware-adapi-adaptors:
     name: "47 autoware-adapi-adaptors autoware-core-control autoware-l…"
@@ -1014,66 +338,9 @@ jobs:
       - ros2-nav2-costmap-2d
       - ros2-slam-toolbox
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-autoware-adapi-adaptors') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-autoware-adapi-adaptors
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-autoware-adapi-adaptors
-        ros-lyrical-autoware-adapi-adaptors
-        ros2-autoware-core-control
-        ros-lyrical-autoware-core-control
-        ros2-autoware-lanelet2-map-visualizer
-        ros-lyrical-autoware-lanelet2-map-visualizer
-        ros2-autoware-mission-planner
-        ros-lyrical-autoware-mission-planner
-        ros2-autoware-path-generator
-        ros-lyrical-autoware-path-generator
-        ros2-autoware-pose-initializer
-        ros-lyrical-autoware-pose-initializer
-        ros2-autoware-velocity-smoother
-        ros-lyrical-autoware-velocity-smoother
-        ros2-costmap-queue
-        ros-lyrical-costmap-queue
-        ros2-fuse
-        ros-lyrical-fuse
-        ros2-gz-ros2-control-demos
-        ros-lyrical-gz-ros2-control-demos
-        ros2-mola
-        ros-lyrical-mola
-        ros2-moveit-core
-        ros-lyrical-moveit-core
-        ros2-moveit-resources
-        ros-lyrical-moveit-resources
-        ros2-nav2-collision-monitor
-        ros-lyrical-nav2-collision-monitor
-        ros2-nav2-core
-        ros-lyrical-nav2-core
-        ros2-nonpersistent-voxel-layer
-        ros-lyrical-nonpersistent-voxel-layer
-        ros2-plansys2-bringup
-        ros-lyrical-plansys2-bringup
-        ros2-plansys2-bt-actions
-        ros-lyrical-plansys2-bt-actions
-        ros2-rmf-demos
-        ros-lyrical-rmf-demos
-        ros2-roboplan-ros-py
-        ros-lyrical-roboplan-ros-py
-        ros2-ros-gz
-        ros-lyrical-ros-gz
-        ros2-ros2-controllers
-        ros-lyrical-ros2-controllers
-        ros2-rosbag2-transport
-        ros-lyrical-rosbag2-transport
-        ros2-rtabmap-costmap-plugins
-        ros-lyrical-rtabmap-costmap-plugins
-        ros2-ur-robot-driver
-        ros-lyrical-ur-robot-driver
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-autoware-adapi-v1-msgs:
     name: "39 autoware-adapi-v1-msgs autoware-auto-msgs autoware-inter…"
@@ -1083,54 +350,9 @@ jobs:
       - ros2-radar-msgs
       - ros2-rqt-robot-steering
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-autoware-adapi-v1-msgs') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-autoware-adapi-v1-msgs
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-autoware-adapi-v1-msgs
-        ros-lyrical-autoware-adapi-v1-msgs
-        ros2-autoware-auto-msgs
-        ros-lyrical-autoware-auto-msgs
-        ros2-autoware-internal-perception-msgs
-        ros-lyrical-autoware-internal-perception-msgs
-        ros2-autoware-map-msgs
-        ros-lyrical-autoware-map-msgs
-        ros2-autoware-node
-        ros-lyrical-autoware-node
-        ros2-autoware-planning-msgs
-        ros-lyrical-autoware-planning-msgs
-        ros2-autoware-qos-utils
-        ros-lyrical-autoware-qos-utils
-        ros2-autoware-sensing-msgs
-        ros-lyrical-autoware-sensing-msgs
-        ros2-autoware-signal-processing
-        ros-lyrical-autoware-signal-processing
-        ros2-autoware-system-msgs
-        ros-lyrical-autoware-system-msgs
-        ros2-autoware-utils-diagnostics
-        ros-lyrical-autoware-utils-diagnostics
-        ros2-autoware-utils-rclcpp
-        ros-lyrical-autoware-utils-rclcpp
-        ros2-autoware-utils-system
-        ros-lyrical-autoware-utils-system
-        ros2-behaviortree-cpp
-        ros-lyrical-behaviortree-cpp
-        ros2-camera-calibration-parsers
-        ros-lyrical-camera-calibration-parsers
-        ros2-cm-executors
-        ros-lyrical-cm-executors
-        ros2-control-msgs
-        ros-lyrical-control-msgs
-        ros2-cv-bridge
-        ros-lyrical-cv-bridge
-        ros2-diagnostic-aggregator
-        ros-lyrical-diagnostic-aggregator
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-autoware-adapi-version-msgs:
     name: "29 autoware-adapi-version-msgs autoware-common-msgs autowar…"
@@ -1138,38 +360,9 @@ jobs:
       - plan
       - ros2-rosidl-default-generators
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-autoware-adapi-version-msgs') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-autoware-adapi-version-msgs
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-autoware-adapi-version-msgs
-        ros-lyrical-autoware-adapi-version-msgs
-        ros2-autoware-common-msgs
-        ros-lyrical-autoware-common-msgs
-        ros2-autoware-control-msgs
-        ros-lyrical-autoware-control-msgs
-        ros2-autoware-internal-metric-msgs
-        ros-lyrical-autoware-internal-metric-msgs
-        ros2-cuda-buffer-backend-msgs
-        ros-lyrical-cuda-buffer-backend-msgs
-        ros2-data-tamer-msgs
-        ros-lyrical-data-tamer-msgs
-        ros2-example-interfaces
-        ros-lyrical-example-interfaces
-        ros2-lifecycle-msgs
-        ros-lyrical-lifecycle-msgs
-        ros2-pendulum-msgs
-        ros-lyrical-pendulum-msgs
-        ros2-rcl-interfaces
-        ros-lyrical-rcl-interfaces
-        ros2-rclpy-message-converter-msgs
-        ros-lyrical-rclpy-message-converter-msgs
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-autoware-behavior-velocity-planner:
     name: "50 autoware-behavior-velocity-planner autoware-crop-box-fil…"
@@ -1177,28 +370,9 @@ jobs:
       - plan
       - ros2-autoware-object-recognition-utils
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-autoware-behavior-velocity-planner') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-autoware-behavior-velocity-planner
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-autoware-behavior-velocity-planner
-        ros-lyrical-autoware-behavior-velocity-planner
-        ros2-autoware-crop-box-filter
-        ros-lyrical-autoware-crop-box-filter
-        ros2-autoware-downsample-filters
-        ros-lyrical-autoware-downsample-filters
-        ros2-autoware-ground-filter
-        ros-lyrical-autoware-ground-filter
-        ros2-autoware-motion-velocity-planner-common
-        ros-lyrical-autoware-motion-velocity-planner-common
-        ros2-autoware-ndt-scan-matcher
-        ros-lyrical-autoware-ndt-scan-matcher
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-autoware-behavior-velocity-stop-line-module:
     name: "51 autoware-behavior-velocity-stop-line-module autoware-cor…"
@@ -1208,38 +382,9 @@ jobs:
       - ros2-autoware-utils
       - ros2-nav2-rotation-shim-controller
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-autoware-behavior-velocity-stop-line-module') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-autoware-behavior-velocity-stop-line-module
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-autoware-behavior-velocity-stop-line-module
-        ros-lyrical-autoware-behavior-velocity-stop-line-module
-        ros2-autoware-core-localization
-        ros-lyrical-autoware-core-localization
-        ros2-autoware-euclidean-cluster-object-detector
-        ros-lyrical-autoware-euclidean-cluster-object-detector
-        ros2-autoware-motion-velocity-obstacle-stop-module
-        ros-lyrical-autoware-motion-velocity-obstacle-stop-module
-        ros2-autoware-motion-velocity-planner
-        ros-lyrical-autoware-motion-velocity-planner
-        ros2-moveit-ros-benchmarks
-        ros-lyrical-moveit-ros-benchmarks
-        ros2-moveit-ros-move-group
-        ros-lyrical-moveit-ros-move-group
-        ros2-opennav-following
-        ros-lyrical-opennav-following
-        ros2-rosbag2
-        ros-lyrical-rosbag2
-        ros2-rtabmap-examples
-        ros-lyrical-rtabmap-examples
-        ros2-rtabmap-launch
-        ros-lyrical-rtabmap-launch
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-autoware-component-interface-specs:
     name: "41 autoware-component-interface-specs autoware-internal-msg…"
@@ -1248,32 +393,9 @@ jobs:
       - ros2-action-tutorials-cpp
       - ros2-laser-geometry
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-autoware-component-interface-specs') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-autoware-component-interface-specs
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-autoware-component-interface-specs
-        ros-lyrical-autoware-component-interface-specs
-        ros2-autoware-internal-msgs
-        ros-lyrical-autoware-internal-msgs
-        ros2-autoware-msgs
-        ros-lyrical-autoware-msgs
-        ros2-autoware-utils-logging
-        ros-lyrical-autoware-utils-logging
-        ros2-autoware-vehicle-velocity-converter
-        ros-lyrical-autoware-vehicle-velocity-converter
-        ros2-bond-core
-        ros-lyrical-bond-core
-        ros2-camera-calibration
-        ros-lyrical-camera-calibration
-        ros2-diagnostic-common-diagnostics
-        ros-lyrical-diagnostic-common-diagnostics
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-autoware-core:
     name: "53 autoware-core moveit-hybrid-planning moveit-py moveit-re…"
@@ -1282,34 +404,9 @@ jobs:
       - ros2-apriltag-detector-mit
       - ros2-autoware-core-perception
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-autoware-core') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-autoware-core
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-autoware-core
-        ros-lyrical-autoware-core
-        ros2-moveit-hybrid-planning
-        ros-lyrical-moveit-hybrid-planning
-        ros2-moveit-py
-        ros-lyrical-moveit-py
-        ros2-moveit-resources-prbt-pg70-support
-        ros-lyrical-moveit-resources-prbt-pg70-support
-        ros2-moveit-ros-visualization
-        ros-lyrical-moveit-ros-visualization
-        ros2-nav2-bringup
-        ros-lyrical-nav2-bringup
-        ros2-perception
-        ros-lyrical-perception
-        ros2-rqt-common-plugins
-        ros-lyrical-rqt-common-plugins
-        ros2-simulation
-        ros-lyrical-simulation
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-autoware-core-perception:
     name: "52 autoware-core-perception autoware-core-planning livox-ro…"
@@ -1317,32 +414,9 @@ jobs:
       - plan
       - ros2-autoware-behavior-velocity-stop-line-module
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-autoware-core-perception') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-autoware-core-perception
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-autoware-core-perception
-        ros-lyrical-autoware-core-perception
-        ros2-autoware-core-planning
-        ros-lyrical-autoware-core-planning
-        ros2-livox-ros-driver2
-        ros-lyrical-livox-ros-driver2
-        ros2-moveit-resources-prbt-moveit-config
-        ros-lyrical-moveit-resources-prbt-moveit-config
-        ros2-moveit-ros-planning-interface
-        ros-lyrical-moveit-ros-planning-interface
-        ros2-navigation2
-        ros-lyrical-navigation2
-        ros2-ros-base
-        ros-lyrical-ros-base
-        ros2-rqt-bag-plugins
-        ros-lyrical-rqt-bag-plugins
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-autoware-ekf-localizer:
     name: "44 autoware-ekf-localizer autoware-geography-utils autoware…"
@@ -1350,28 +424,9 @@ jobs:
       - plan
       - ros2-autoware-lanelet2-extension
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-autoware-ekf-localizer') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-autoware-ekf-localizer
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-autoware-ekf-localizer
-        ros-lyrical-autoware-ekf-localizer
-        ros2-autoware-geography-utils
-        ros-lyrical-autoware-geography-utils
-        ros2-autoware-interpolation
-        ros-lyrical-autoware-interpolation
-        ros2-autoware-lanelet2-extension-python
-        ros-lyrical-autoware-lanelet2-extension-python
-        ros2-autoware-map-projection-loader
-        ros-lyrical-autoware-map-projection-loader
-        ros2-autoware-objects-of-interest-marker-interface
-        ros-lyrical-autoware-objects-of-interest-marker-interface
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-autoware-lanelet2-extension:
     name: "43 autoware-lanelet2-extension autoware-localization-util a…"
@@ -1380,44 +435,9 @@ jobs:
       - ros2-apriltag-detector
       - ros2-rosbag2-storage-mcap
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-autoware-lanelet2-extension') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-autoware-lanelet2-extension
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-autoware-lanelet2-extension
-        ros-lyrical-autoware-lanelet2-extension
-        ros2-autoware-localization-util
-        ros-lyrical-autoware-localization-util
-        ros2-autoware-utils-geometry
-        ros-lyrical-autoware-utils-geometry
-        ros2-beluga-ros
-        ros-lyrical-beluga-ros
-        ros2-control-toolbox
-        ros-lyrical-control-toolbox
-        ros2-controller-interface
-        ros-lyrical-controller-interface
-        ros2-fuse-constraints
-        ros-lyrical-fuse-constraints
-        ros2-hardware-interface-testing
-        ros-lyrical-hardware-interface-testing
-        ros2-image-proc
-        ros-lyrical-image-proc
-        ros2-image-rotate
-        ros-lyrical-image-rotate
-        ros2-image-transport-plugins
-        ros-lyrical-image-transport-plugins
-        ros2-imu-filter-madgwick
-        ros-lyrical-imu-filter-madgwick
-        ros2-interactive-markers
-        ros-lyrical-interactive-markers
-        ros2-laser-filters
-        ros-lyrical-laser-filters
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-autoware-object-recognition-utils:
     name: "49 autoware-object-recognition-utils autoware-point-types a…"
@@ -1426,56 +446,9 @@ jobs:
       - ros2-apriltag-tools
       - ros2-moveit-planners-stomp
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-autoware-object-recognition-utils') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-autoware-object-recognition-utils
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-autoware-object-recognition-utils
-        ros-lyrical-autoware-object-recognition-utils
-        ros2-autoware-point-types
-        ros-lyrical-autoware-point-types
-        ros2-autoware-utils-pcl
-        ros-lyrical-autoware-utils-pcl
-        ros2-dual-laser-merger
-        ros-lyrical-dual-laser-merger
-        ros2-dwb-critics
-        ros-lyrical-dwb-critics
-        ros2-dwb-plugins
-        ros-lyrical-dwb-plugins
-        ros2-moveit-planners-chomp
-        ros-lyrical-moveit-planners-chomp
-        ros2-moveit-plugins
-        ros-lyrical-moveit-plugins
-        ros2-moveit-ros-control-interface
-        ros-lyrical-moveit-ros-control-interface
-        ros2-moveit-ros-planning
-        ros-lyrical-moveit-ros-planning
-        ros2-nav2-graceful-controller
-        ros-lyrical-nav2-graceful-controller
-        ros2-nav2-regulated-pure-pursuit-controller
-        ros-lyrical-nav2-regulated-pure-pursuit-controller
-        ros2-nav2-rviz-plugins
-        ros-lyrical-nav2-rviz-plugins
-        ros2-octomap-server
-        ros-lyrical-octomap-server
-        ros2-perception-pcl
-        ros-lyrical-perception-pcl
-        ros2-rko-lio
-        ros-lyrical-rko-lio
-        ros2-ros2bag
-        ros-lyrical-ros2bag
-        ros2-rqt-bag
-        ros-lyrical-rqt-bag
-        ros2-rtabmap-util
-        ros-lyrical-rtabmap-util
-        ros2-trac-ik
-        ros-lyrical-trac-ik
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-autoware-planning-topic-converter:
     name: "46 autoware-planning-topic-converter autoware-route-handler…"
@@ -1483,24 +456,9 @@ jobs:
       - plan
       - ros2-admittance-controller
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-autoware-planning-topic-converter') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-autoware-planning-topic-converter
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-autoware-planning-topic-converter
-        ros-lyrical-autoware-planning-topic-converter
-        ros2-autoware-route-handler
-        ros-lyrical-autoware-route-handler
-        ros2-autoware-simple-pure-pursuit
-        ros-lyrical-autoware-simple-pure-pursuit
-        ros2-autoware-trajectory
-        ros-lyrical-autoware-trajectory
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-autoware-test-utils:
     name: "44 autoware-test-utils autoware-utils-tf autoware-vehicle-i…"
@@ -1509,26 +467,9 @@ jobs:
       - ros2-autoware-lanelet2-extension
       - ros2-rmf-reservation-node
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-autoware-test-utils') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-autoware-test-utils
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-autoware-test-utils
-        ros-lyrical-autoware-test-utils
-        ros2-autoware-utils-tf
-        ros-lyrical-autoware-utils-tf
-        ros2-autoware-vehicle-info-utils
-        ros-lyrical-autoware-vehicle-info-utils
-        ros2-beluga-amcl
-        ros-lyrical-beluga-amcl
-        ros2-controller-manager
-        ros-lyrical-controller-manager
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-autoware-utils:
     name: "50 autoware-utils moveit-kinematics moveit-planners-ompl mo…"
@@ -1537,32 +478,9 @@ jobs:
       - ros2-autoware-object-recognition-utils
       - ros2-rviz-visual-tools
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-autoware-utils') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-autoware-utils
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-autoware-utils
-        ros-lyrical-autoware-utils
-        ros2-moveit-kinematics
-        ros-lyrical-moveit-kinematics
-        ros2-moveit-planners-ompl
-        ros-lyrical-moveit-planners-ompl
-        ros2-moveit-ros-perception
-        ros-lyrical-moveit-ros-perception
-        ros2-moveit-ros-robot-interaction
-        ros-lyrical-moveit-ros-robot-interaction
-        ros2-moveit-ros-warehouse
-        ros-lyrical-moveit-ros-warehouse
-        ros2-moveit-visual-tools
-        ros-lyrical-moveit-visual-tools
-        ros2-nav2-dwb-controller
-        ros-lyrical-nav2-dwb-controller
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-autoware-utils-math:
     name: "15 autoware-utils-math console-bridge-vendor gz-utils-vendo…"
@@ -1572,28 +490,9 @@ jobs:
       - ros2-launch-pytest
       - ros2-python-cmake-module
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-autoware-utils-math') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-autoware-utils-math
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-autoware-utils-math
-        ros-lyrical-autoware-utils-math
-        ros2-console-bridge-vendor
-        ros-lyrical-console-bridge-vendor
-        ros2-gz-utils-vendor
-        ros-lyrical-gz-utils-vendor
-        ros2-libyaml-vendor
-        ros-lyrical-libyaml-vendor
-        ros2-mcap-vendor
-        ros-lyrical-mcap-vendor
-        ros2-mola-yaml
-        ros-lyrical-mola-yaml
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-autoware-utils-uuid:
     name: "26 autoware-utils-uuid service-msgs webots-ros2-importer"
@@ -1601,22 +500,9 @@ jobs:
       - plan
       - ros2-builtin-interfaces
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-autoware-utils-uuid') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-autoware-utils-uuid
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-autoware-utils-uuid
-        ros-lyrical-autoware-utils-uuid
-        ros2-service-msgs
-        ros-lyrical-service-msgs
-        ros2-webots-ros2-importer
-        ros-lyrical-webots-ros2-importer
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-bicycle-steering-controller:
     name: "46 bicycle-steering-controller dummy-robot-bringup event-ca…"
@@ -1626,32 +512,9 @@ jobs:
       - ros2-imu-sensor-broadcaster
       - ros2-rmf-visualization-rviz2-plugins
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-bicycle-steering-controller') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-bicycle-steering-controller
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-bicycle-steering-controller
-        ros-lyrical-bicycle-steering-controller
-        ros2-dummy-robot-bringup
-        ros-lyrical-dummy-robot-bringup
-        ros2-event-camera-renderer
-        ros-lyrical-event-camera-renderer
-        ros2-foxglove-bridge
-        ros-lyrical-foxglove-bridge
-        ros2-fuse-optimizers
-        ros-lyrical-fuse-optimizers
-        ros2-grid-map-rviz-plugin
-        ros-lyrical-grid-map-rviz-plugin
-        ros2-microstrain-inertial-examples
-        ros-lyrical-microstrain-inertial-examples
-        ros2-mola-bridge-ros2
-        ros-lyrical-mola-bridge-ros2
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-bond:
     name: "37 bond"
@@ -1659,18 +522,9 @@ jobs:
       - plan
       - ros2-action-tutorials-py
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-bond') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-bond
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-bond
-        ros-lyrical-bond
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-builtin-interfaces:
     name: "25 builtin-interfaces unique-identifier-msgs"
@@ -1678,20 +532,9 @@ jobs:
       - plan
       - ros2-rosidl-core-generators
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-builtin-interfaces') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-builtin-interfaces
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-builtin-interfaces
-        ros-lyrical-builtin-interfaces
-        ros2-unique-identifier-msgs
-        ros-lyrical-unique-identifier-msgs
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-can-msgs:
     name: "37 can-msgs color-util controller-manager-msgs event-camera…"
@@ -1699,28 +542,9 @@ jobs:
       - plan
       - ros2-action-tutorials-py
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-can-msgs') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-can-msgs
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-can-msgs
-        ros-lyrical-can-msgs
-        ros2-color-util
-        ros-lyrical-color-util
-        ros2-controller-manager-msgs
-        ros-lyrical-controller-manager-msgs
-        ros2-event-camera-msgs
-        ros-lyrical-event-camera-msgs
-        ros2-examples-rclpy-executors
-        ros-lyrical-examples-rclpy-executors
-        ros2-examples-rclpy-minimal-client
-        ros-lyrical-examples-rclpy-minimal-client
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-cascade-lifecycle-msgs:
     name: "30 cascade-lifecycle-msgs composition-interfaces rmf-ingest…"
@@ -1729,36 +553,9 @@ jobs:
       - ros2-autoware-adapi-version-msgs
       - ros2-resource-retriever-interfaces
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-cascade-lifecycle-msgs') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-cascade-lifecycle-msgs
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-cascade-lifecycle-msgs
-        ros-lyrical-cascade-lifecycle-msgs
-        ros2-composition-interfaces
-        ros-lyrical-composition-interfaces
-        ros2-rmf-ingestor-msgs
-        ros-lyrical-rmf-ingestor-msgs
-        ros2-rmf-task-msgs
-        ros-lyrical-rmf-task-msgs
-        ros2-rmw-connextdds-common
-        ros-lyrical-rmw-connextdds-common
-        ros2-rmw-cyclonedds-cpp
-        ros-lyrical-rmw-cyclonedds-cpp
-        ros2-rmw-fastrtps-shared-cpp
-        ros-lyrical-rmw-fastrtps-shared-cpp
-        ros2-ros2-easy-test
-        ros-lyrical-ros2-easy-test
-        ros2-rosgraph-monitor-msgs
-        ros-lyrical-rosgraph-monitor-msgs
-        ros2-rosgraph-msgs
-        ros-lyrical-rosgraph-msgs
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-class-loader:
     name: "17 class-loader gz-common-vendor gz-msgs-vendor mola-traj-t…"
@@ -1767,50 +564,9 @@ jobs:
       - ros2-async-web-server-cpp
       - ros2-urdfdom
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-class-loader') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-class-loader
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-class-loader
-        ros-lyrical-class-loader
-        ros2-gz-common-vendor
-        ros-lyrical-gz-common-vendor
-        ros2-gz-msgs-vendor
-        ros-lyrical-gz-msgs-vendor
-        ros2-mola-traj-tools
-        ros-lyrical-mola-traj-tools
-        ros2-mrpt-comms
-        ros-lyrical-mrpt-comms
-        ros2-mrpt-tfest
-        ros-lyrical-mrpt-tfest
-        ros2-mrpt-viz
-        ros-lyrical-mrpt-viz
-        ros2-pinocchio
-        ros-lyrical-pinocchio
-        ros2-rcl-logging-interface
-        ros-lyrical-rcl-logging-interface
-        ros2-rmf-task-sequence
-        ros-lyrical-rmf-task-sequence
-        ros2-rosidl-cmake
-        ros-lyrical-rosidl-cmake
-        ros2-rosidl-dynamic-typesupport
-        ros-lyrical-rosidl-dynamic-typesupport
-        ros2-rosidl-generator-dds-idl
-        ros-lyrical-rosidl-generator-dds-idl
-        ros2-rosidl-runtime-cpp
-        ros-lyrical-rosidl-runtime-cpp
-        ros2-rosidlcpp-parser
-        ros-lyrical-rosidlcpp-parser
-        ros2-rviz-rendering
-        ros-lyrical-rviz-rendering
-        ros2-sdformat-vendor
-        ros-lyrical-sdformat-vendor
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-cloudini-ros:
     name: "45 cloudini-ros"
@@ -1818,18 +574,9 @@ jobs:
       - plan
       - ros2-nav2-util
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-cloudini-ros') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-cloudini-ros
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-cloudini-ros
-        ros-lyrical-cloudini-ros
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-depth-image-proc:
     name: "44 depth-image-proc fuse-publishers fuse-viz geometry2 imu-…"
@@ -1839,32 +586,9 @@ jobs:
       - ros2-mavros
       - ros2-roboplan-ros-cpp
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-depth-image-proc') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-depth-image-proc
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-depth-image-proc
-        ros-lyrical-depth-image-proc
-        ros2-fuse-publishers
-        ros-lyrical-fuse-publishers
-        ros2-fuse-viz
-        ros-lyrical-fuse-viz
-        ros2-geometry2
-        ros-lyrical-geometry2
-        ros2-imu-tools
-        ros-lyrical-imu-tools
-        ros2-imu-transformer
-        ros-lyrical-imu-transformer
-        ros2-mavros-extras
-        ros-lyrical-mavros-extras
-        ros2-nav2-minimal-tb4-sim
-        ros-lyrical-nav2-minimal-tb4-sim
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-desktop:
     name: "54 desktop moveit-ros moveit-servo moveit-setup-framework m…"
@@ -1872,30 +596,9 @@ jobs:
       - plan
       - ros2-autoware-core
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-desktop') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-desktop
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-desktop
-        ros-lyrical-desktop
-        ros2-moveit-ros
-        ros-lyrical-moveit-ros
-        ros2-moveit-servo
-        ros-lyrical-moveit-servo
-        ros2-moveit-setup-framework
-        ros-lyrical-moveit-setup-framework
-        ros2-moveit-task-constructor-core
-        ros-lyrical-moveit-task-constructor-core
-        ros2-pilz-industrial-motion-planner
-        ros-lyrical-pilz-industrial-motion-planner
-        ros2-rtabmap-demos
-        ros-lyrical-rtabmap-demos
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-desktop-full:
     name: "55 desktop-full moveit-planners moveit-ros-trajectory-cache…"
@@ -1903,36 +606,9 @@ jobs:
       - plan
       - ros2-desktop
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-desktop-full') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-desktop-full
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-desktop-full
-        ros-lyrical-desktop-full
-        ros2-moveit-planners
-        ros-lyrical-moveit-planners
-        ros2-moveit-ros-trajectory-cache
-        ros-lyrical-moveit-ros-trajectory-cache
-        ros2-moveit-setup-app-plugins
-        ros-lyrical-moveit-setup-app-plugins
-        ros2-moveit-setup-controllers
-        ros-lyrical-moveit-setup-controllers
-        ros2-moveit-setup-core-plugins
-        ros-lyrical-moveit-setup-core-plugins
-        ros2-moveit-setup-srdf-plugins
-        ros-lyrical-moveit-setup-srdf-plugins
-        ros2-moveit-task-constructor-capabilities
-        ros-lyrical-moveit-task-constructor-capabilities
-        ros2-moveit-task-constructor-visualization
-        ros-lyrical-moveit-task-constructor-visualization
-        ros2-rtabmap-ros
-        ros-lyrical-rtabmap-ros
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-diff-drive-controller:
     name: "45 diff-drive-controller event-camera-codecs force-torque-s…"
@@ -1942,53 +618,18 @@ jobs:
       - ros2-depth-image-proc
       - ros2-nav2-util
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-diff-drive-controller') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-diff-drive-controller
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-diff-drive-controller
-        ros-lyrical-diff-drive-controller
-        ros2-event-camera-codecs
-        ros-lyrical-event-camera-codecs
-        ros2-force-torque-sensor-broadcaster
-        ros-lyrical-force-torque-sensor-broadcaster
-        ros2-forward-command-controller
-        ros-lyrical-forward-command-controller
-        ros2-fuse-models
-        ros-lyrical-fuse-models
-        ros2-gpio-controllers
-        ros-lyrical-gpio-controllers
-        ros2-gps-sensor-broadcaster
-        ros-lyrical-gps-sensor-broadcaster
-        ros2-grid-map-ros
-        ros-lyrical-grid-map-ros
-        ros2-gz-ros2-control
-        ros-lyrical-gz-ros2-control
-        ros2-image-pipeline
-        ros-lyrical-image-pipeline
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-distro-mutex:
     name: "0 distro-mutex"
     needs:
       - plan
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-distro-mutex') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-distro-mutex
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-distro-mutex
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-dummy-map-server:
     name: "39 dummy-map-server dummy-sensors dwb-msgs examples-rclcpp-…"
@@ -2000,66 +641,9 @@ jobs:
       - ros2-rqt-robot-steering
       - ros2-udp-msgs
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-dummy-map-server') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-dummy-map-server
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-dummy-map-server
-        ros-lyrical-dummy-map-server
-        ros2-dummy-sensors
-        ros-lyrical-dummy-sensors
-        ros2-dwb-msgs
-        ros-lyrical-dwb-msgs
-        ros2-examples-rclcpp-minimal-client
-        ros-lyrical-examples-rclcpp-minimal-client
-        ros2-examples-rclcpp-minimal-publisher
-        ros-lyrical-examples-rclcpp-minimal-publisher
-        ros2-examples-rclcpp-minimal-service
-        ros-lyrical-examples-rclcpp-minimal-service
-        ros2-examples-rclcpp-minimal-timer
-        ros-lyrical-examples-rclcpp-minimal-timer
-        ros2-examples-rclcpp-multithreaded-executor
-        ros-lyrical-examples-rclcpp-multithreaded-executor
-        ros2-filters
-        ros-lyrical-filters
-        ros2-geodesy
-        ros-lyrical-geodesy
-        ros2-grid-map-msgs
-        ros-lyrical-grid-map-msgs
-        ros2-image-geometry
-        ros-lyrical-image-geometry
-        ros2-intra-process-demo
-        ros-lyrical-intra-process-demo
-        ros2-io-context
-        ros-lyrical-io-context
-        ros2-joint-state-publisher
-        ros-lyrical-joint-state-publisher
-        ros2-map-msgs
-        ros-lyrical-map-msgs
-        ros2-mavros-msgs
-        ros-lyrical-mavros-msgs
-        ros2-microstrain-inertial-rqt
-        ros-lyrical-microstrain-inertial-rqt
-        ros2-mocap4r2-control-msgs
-        ros-lyrical-mocap4r2-control-msgs
-        ros2-mocap4r2-msgs
-        ros-lyrical-mocap4r2-msgs
-        ros2-mocap4r2-robot-gt-msgs
-        ros-lyrical-mocap4r2-robot-gt-msgs
-        ros2-mrpt-msgs
-        ros-lyrical-mrpt-msgs
-        ros2-mujoco-ros2-control-msgs
-        ros-lyrical-mujoco-ros2-control-msgs
-        ros2-nav2-msgs
-        ros-lyrical-nav2-msgs
-        ros2-nav2-voxel-grid
-        ros-lyrical-nav2-voxel-grid
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-examples-rclpy-minimal-publisher:
     name: "37 examples-rclpy-minimal-publisher examples-rclpy-minimal-…"
@@ -2067,38 +651,9 @@ jobs:
       - plan
       - ros2-action-tutorials-py
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-examples-rclpy-minimal-publisher') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-examples-rclpy-minimal-publisher
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-examples-rclpy-minimal-publisher
-        ros-lyrical-examples-rclpy-minimal-publisher
-        ros2-examples-rclpy-minimal-service
-        ros-lyrical-examples-rclpy-minimal-service
-        ros2-examples-rclpy-minimal-subscriber
-        ros-lyrical-examples-rclpy-minimal-subscriber
-        ros2-ffmpeg-image-transport-msgs
-        ros-lyrical-ffmpeg-image-transport-msgs
-        ros2-geometry-msgs
-        ros-lyrical-geometry-msgs
-        ros2-gps-msgs
-        ros-lyrical-gps-msgs
-        ros2-lanelet2-examples
-        ros-lyrical-lanelet2-examples
-        ros2-launch-testing-ros
-        ros-lyrical-launch-testing-ros
-        ros2-libstatistics-collector
-        ros-lyrical-libstatistics-collector
-        ros2-mocap4r2-marker-viz-srvs
-        ros-lyrical-mocap4r2-marker-viz-srvs
-        ros2-nav2-common
-        ros-lyrical-nav2-common
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-flex-sync:
     name: "40 flex-sync"
@@ -2106,18 +661,9 @@ jobs:
       - plan
       - ros2-ntrip-client
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-flex-sync') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-flex-sync
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-flex-sync
-        ros-lyrical-flex-sync
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-foonathan-memory-vendor:
     name: "13 foonathan-memory-vendor gz-cmake-vendor gz-dartsim-vendo…"
@@ -2126,26 +672,9 @@ jobs:
       - ros2-ament-cmake-clang-format
       - ros2-ament-cmake-xmllint
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-foonathan-memory-vendor') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-foonathan-memory-vendor
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-foonathan-memory-vendor
-        ros-lyrical-foonathan-memory-vendor
-        ros2-gz-cmake-vendor
-        ros-lyrical-gz-cmake-vendor
-        ros2-gz-dartsim-vendor
-        ros-lyrical-gz-dartsim-vendor
-        ros2-launch-testing
-        ros-lyrical-launch-testing
-        ros2-mola-demos
-        ros-lyrical-mola-demos
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-fuse-core:
     name: "40 fuse-core generate-parameter-library geographic-info geo…"
@@ -2158,36 +687,9 @@ jobs:
       - ros2-rsl
       - ros2-tf2-eigen-kdl
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-fuse-core') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-fuse-core
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-fuse-core
-        ros-lyrical-fuse-core
-        ros2-generate-parameter-library
-        ros-lyrical-generate-parameter-library
-        ros2-geographic-info
-        ros-lyrical-geographic-info
-        ros2-geometric-shapes
-        ros-lyrical-geometric-shapes
-        ros2-grid-map-cv
-        ros-lyrical-grid-map-cv
-        ros2-image-tools
-        ros-lyrical-image-tools
-        ros2-joint-state-publisher-gui
-        ros-lyrical-joint-state-publisher-gui
-        ros2-joy
-        ros-lyrical-joy
-        ros2-joy-teleop
-        ros-lyrical-joy-teleop
-        ros2-kinematics-interface
-        ros-lyrical-kinematics-interface
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-fuse-graphs:
     name: "41 fuse-graphs image-transport joint-limits joy-linux kinem…"
@@ -2200,46 +702,9 @@ jobs:
       - ros2-persist-parameter-server
       - ros2-rqt-robot-dashboard
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-fuse-graphs') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-fuse-graphs
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-fuse-graphs
-        ros-lyrical-fuse-graphs
-        ros2-image-transport
-        ros-lyrical-image-transport
-        ros2-joint-limits
-        ros-lyrical-joint-limits
-        ros2-joy-linux
-        ros-lyrical-joy-linux
-        ros2-kinematics-interface-kdl
-        ros-lyrical-kinematics-interface-kdl
-        ros2-mocap4r2-dummy-driver
-        ros-lyrical-mocap4r2-dummy-driver
-        ros2-moveit-task-constructor-msgs
-        ros-lyrical-moveit-task-constructor-msgs
-        ros2-pcl-conversions
-        ros-lyrical-pcl-conversions
-        ros2-plansys2-core
-        ros-lyrical-plansys2-core
-        ros2-plotjuggler
-        ros-lyrical-plotjuggler
-        ros2-point-cloud-transport
-        ros-lyrical-point-cloud-transport
-        ros2-py-trees-ros
-        ros-lyrical-py-trees-ros
-        ros2-rclc-lifecycle
-        ros-lyrical-rclc-lifecycle
-        ros2-rclc-parameter
-        ros-lyrical-rclc-parameter
-        ros2-rmf-fleet-adapter
-        ros-lyrical-rmf-fleet-adapter
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-geometry-tutorials:
     name: "9 geometry-tutorials lanelet2-matching lanelet2-validation …"
@@ -2247,56 +712,9 @@ jobs:
       - plan
       - ros2-ament-cmake
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-geometry-tutorials') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-geometry-tutorials
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-geometry-tutorials
-        ros-lyrical-geometry-tutorials
-        ros2-lanelet2-matching
-        ros-lyrical-lanelet2-matching
-        ros2-lanelet2-validation
-        ros-lyrical-lanelet2-validation
-        ros2-libg2o
-        ros-lyrical-libg2o
-        ros2-mavlink
-        ros-lyrical-mavlink
-        ros2-moveit-common
-        ros-lyrical-moveit-common
-        ros2-moveit-resources-fanuc-description
-        ros-lyrical-moveit-resources-fanuc-description
-        ros2-moveit-resources-panda-description
-        ros-lyrical-moveit-resources-panda-description
-        ros2-moveit-resources-pr2-description
-        ros-lyrical-moveit-resources-pr2-description
-        ros2-mrpt-common
-        ros-lyrical-mrpt-common
-        ros2-mujoco-vendor
-        ros-lyrical-mujoco-vendor
-        ros2-nlohmann-json-schema-validator-vendor
-        ros-lyrical-nlohmann-json-schema-validator-vendor
-        ros2-onnxruntime-vendor
-        ros-lyrical-onnxruntime-vendor
-        ros2-openvdb-vendor
-        ros-lyrical-openvdb-vendor
-        ros2-pybind11-vendor
-        ros-lyrical-pybind11-vendor
-        ros2-rmf-api-msgs
-        ros-lyrical-rmf-api-msgs
-        ros2-rmf-demos-assets
-        ros-lyrical-rmf-demos-assets
-        ros2-roboplan-common
-        ros-lyrical-roboplan-common
-        ros2-sdl2-vendor
-        ros-lyrical-sdl2-vendor
-        ros2-swri-serial-util
-        ros-lyrical-swri-serial-util
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-gz-fuel-tools-vendor:
     name: "18 gz-fuel-tools-vendor gz-physics-vendor gz-rendering-vend…"
@@ -2305,34 +723,9 @@ jobs:
       - ros2-class-loader
       - ros2-yasmin
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-gz-fuel-tools-vendor') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-gz-fuel-tools-vendor
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-gz-fuel-tools-vendor
-        ros-lyrical-gz-fuel-tools-vendor
-        ros2-gz-physics-vendor
-        ros-lyrical-gz-physics-vendor
-        ros2-gz-rendering-vendor
-        ros-lyrical-gz-rendering-vendor
-        ros2-gz-transport-vendor
-        ros-lyrical-gz-transport-vendor
-        ros2-mrpt-graphs
-        ros-lyrical-mrpt-graphs
-        ros2-mrpt-obs
-        ros-lyrical-mrpt-obs
-        ros2-mrpt-opengl
-        ros-lyrical-mrpt-opengl
-        ros2-pluginlib
-        ros-lyrical-pluginlib
-        ros2-rcl-logging-noop
-        ros-lyrical-rcl-logging-noop
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-gz-gui-vendor:
     name: "19 gz-gui-vendor gz-sensors-vendor mola-imu-preintegration …"
@@ -2341,32 +734,9 @@ jobs:
       - ros2-gz-fuel-tools-vendor
       - ros2-rcl-logging-spdlog
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-gz-gui-vendor') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-gz-gui-vendor
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-gz-gui-vendor
-        ros-lyrical-gz-gui-vendor
-        ros2-gz-sensors-vendor
-        ros-lyrical-gz-sensors-vendor
-        ros2-mola-imu-preintegration
-        ros-lyrical-mola-imu-preintegration
-        ros2-mrpt-gui
-        ros-lyrical-mrpt-gui
-        ros2-mrpt-imgui
-        ros-lyrical-mrpt-imgui
-        ros2-mrpt-maps
-        ros-lyrical-mrpt-maps
-        ros2-qt-gui-cpp
-        ros-lyrical-qt-gui-cpp
-        ros2-rcl-logging-implementation
-        ros-lyrical-rcl-logging-implementation
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-gz-sim-vendor:
     name: "20 gz-sim-vendor kdl-parser mola-kernel mola-pose-list"
@@ -2375,24 +745,9 @@ jobs:
       - ros2-gz-gui-vendor
       - ros2-rcl-yaml-param-parser
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-gz-sim-vendor') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-gz-sim-vendor
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-gz-sim-vendor
-        ros-lyrical-gz-sim-vendor
-        ros2-kdl-parser
-        ros-lyrical-kdl-parser
-        ros2-mola-kernel
-        ros-lyrical-mola-kernel
-        ros2-mola-pose-list
-        ros-lyrical-mola-pose-list
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-imu-complementary-filter:
     name: "42 imu-complementary-filter motion-capture-tracking plansys…"
@@ -2401,32 +756,9 @@ jobs:
       - ros2-fuse-graphs
       - ros2-ros2lifecycle
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-imu-complementary-filter') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-imu-complementary-filter
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-imu-complementary-filter
-        ros-lyrical-imu-complementary-filter
-        ros2-motion-capture-tracking
-        ros-lyrical-motion-capture-tracking
-        ros2-plansys2-popf-plan-solver
-        ros-lyrical-plansys2-popf-plan-solver
-        ros2-point-cloud-transport-py
-        ros-lyrical-point-cloud-transport-py
-        ros2-py-trees-ros-tutorials
-        ros-lyrical-py-trees-ros-tutorials
-        ros2-rclc-examples
-        ros-lyrical-rclc-examples
-        ros2-rclcpp-async
-        ros-lyrical-rclcpp-async
-        ros2-rmf-fleet-adapter-python
-        ros-lyrical-rmf-fleet-adapter-python
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-imu-sensor-broadcaster:
     name: "45 imu-sensor-broadcaster joint-state-broadcaster joint-tra…"
@@ -2435,40 +767,9 @@ jobs:
       - ros2-autoware-test-utils
       - ros2-nav2-util
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-imu-sensor-broadcaster') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-imu-sensor-broadcaster
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-imu-sensor-broadcaster
-        ros-lyrical-imu-sensor-broadcaster
-        ros2-joint-state-broadcaster
-        ros-lyrical-joint-state-broadcaster
-        ros2-joint-trajectory-controller
-        ros-lyrical-joint-trajectory-controller
-        ros2-magnetometer-broadcaster
-        ros-lyrical-magnetometer-broadcaster
-        ros2-mecanum-drive-controller
-        ros-lyrical-mecanum-drive-controller
-        ros2-motion-primitives-controllers
-        ros-lyrical-motion-primitives-controllers
-        ros2-moveit-resources-fanuc-moveit-config
-        ros-lyrical-moveit-resources-fanuc-moveit-config
-        ros2-mrpt-libros-bridge
-        ros-lyrical-mrpt-libros-bridge
-        ros2-nav-2d-utils
-        ros-lyrical-nav-2d-utils
-        ros2-nav2-amcl
-        ros-lyrical-nav2-amcl
-        ros2-nav2-behavior-tree
-        ros-lyrical-nav2-behavior-tree
-        ros2-nav2-lifecycle-manager
-        ros-lyrical-nav2-lifecycle-manager
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-laser-geometry:
     name: "40 laser-geometry laser-proc laser-segmentation lifecycle l…"
@@ -2481,32 +782,9 @@ jobs:
       - ros2-rsl
       - ros2-tf2-eigen-kdl
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-laser-geometry') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-laser-geometry
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-laser-geometry
-        ros-lyrical-laser-geometry
-        ros2-laser-proc
-        ros-lyrical-laser-proc
-        ros2-laser-segmentation
-        ros-lyrical-laser-segmentation
-        ros2-lifecycle
-        ros-lyrical-lifecycle
-        ros2-logging-demo
-        ros-lyrical-logging-demo
-        ros2-message-filters
-        ros-lyrical-message-filters
-        ros2-mocap4r2-control
-        ros-lyrical-mocap4r2-control
-        ros2-mocap4r2-marker-publisher
-        ros-lyrical-mocap4r2-marker-publisher
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-launch-pytest:
     name: "14 launch-pytest launch-testing-ament-cmake libmavconn lttn…"
@@ -2518,40 +796,9 @@ jobs:
       - ros2-mrpt-io
       - ros2-rpyutils
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-launch-pytest') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-launch-pytest
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-launch-pytest
-        ros-lyrical-launch-pytest
-        ros2-launch-testing-ament-cmake
-        ros-lyrical-launch-testing-ament-cmake
-        ros2-libmavconn
-        ros-lyrical-libmavconn
-        ros2-lttngpy
-        ros-lyrical-lttngpy
-        ros2-lz4-cmake-module
-        ros-lyrical-lz4-cmake-module
-        ros2-mimick-vendor
-        ros-lyrical-mimick-vendor
-        ros2-mola-common
-        ros-lyrical-mola-common
-        ros2-mrpt-config
-        ros-lyrical-mrpt-config
-        ros2-mrpt-math
-        ros-lyrical-mrpt-math
-        ros2-orocos-kdl-vendor
-        ros-lyrical-orocos-kdl-vendor
-        ros2-osqp-vendor
-        ros-lyrical-osqp-vendor
-        ros2-performance-test-fixture
-        ros-lyrical-performance-test-fixture
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-mavros:
     name: "43 mavros microstrain-inertial-driver mobile-robot-simulato…"
@@ -2562,40 +809,9 @@ jobs:
       - ros2-rmf-reservation-node
       - ros2-rosbag2-storage-mcap
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-mavros') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-mavros
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-mavros
-        ros-lyrical-mavros
-        ros2-microstrain-inertial-driver
-        ros-lyrical-microstrain-inertial-driver
-        ros2-mobile-robot-simulator
-        ros-lyrical-mobile-robot-simulator
-        ros2-mocap4r2-robot-gt
-        ros-lyrical-mocap4r2-robot-gt
-        ros2-nav2-minimal-tb3-sim
-        ros-lyrical-nav2-minimal-tb3-sim
-        ros2-nav2-minimal-tb4-description
-        ros-lyrical-nav2-minimal-tb4-description
-        ros2-nav2-ros-common
-        ros-lyrical-nav2-ros-common
-        ros2-odom-to-tf-ros2
-        ros-lyrical-odom-to-tf-ros2
-        ros2-ouster-ros
-        ros-lyrical-ouster-ros
-        ros2-plansys2-domain-expert
-        ros-lyrical-plansys2-domain-expert
-        ros2-point-cloud-transport-plugins
-        ros-lyrical-point-cloud-transport-plugins
-        ros2-rmf-demos-fleet-adapter
-        ros-lyrical-rmf-demos-fleet-adapter
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-mocap4r2-marker-viz:
     name: "40 mocap4r2-marker-viz mola-msgs moveit-msgs mrpt-nav-inter…"
@@ -2606,30 +822,9 @@ jobs:
       - ros2-rclcpp-lifecycle
       - ros2-tf2-eigen-kdl
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-mocap4r2-marker-viz') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-mocap4r2-marker-viz
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-mocap4r2-marker-viz
-        ros-lyrical-mocap4r2-marker-viz
-        ros2-mola-msgs
-        ros-lyrical-mola-msgs
-        ros2-moveit-msgs
-        ros-lyrical-moveit-msgs
-        ros2-mrpt-nav-interfaces
-        ros-lyrical-mrpt-nav-interfaces
-        ros2-nav2-simple-commander
-        ros-lyrical-nav2-simple-commander
-        ros2-ntrip-client-node
-        ros-lyrical-ntrip-client-node
-        ros2-pal-statistics
-        ros-lyrical-pal-statistics
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-mola-input-rawlog:
     name: "21 mola-input-rawlog mola-input-video mola-launcher mola-vi…"
@@ -2639,32 +834,9 @@ jobs:
       - ros2-mp2p-icp-core
       - ros2-rosidl-typesupport-fastrtps-cpp
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-mola-input-rawlog') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-mola-input-rawlog
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-mola-input-rawlog
-        ros-lyrical-mola-input-rawlog
-        ros2-mola-input-video
-        ros-lyrical-mola-input-video
-        ros2-mola-launcher
-        ros-lyrical-mola-launcher
-        ros2-mola-viz
-        ros-lyrical-mola-viz
-        ros2-mp2p-icp-viz
-        ros-lyrical-mp2p-icp-viz
-        ros2-roboplan-examples
-        ros-lyrical-roboplan-examples
-        ros2-rosidl-typesupport-fastrtps-c
-        ros-lyrical-rosidl-typesupport-fastrtps-c
-        ros2-rosidlcpp-typesupport-fastrtps-c
-        ros-lyrical-rosidlcpp-typesupport-fastrtps-c
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-mola-input-rosbag2:
     name: "46 mola-input-rosbag2 moveit-resources-panda-moveit-config"
@@ -2673,20 +845,9 @@ jobs:
       - ros2-imu-sensor-broadcaster
       - ros2-nav2-loopback-sim
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-mola-input-rosbag2') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-mola-input-rosbag2
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-mola-input-rosbag2
-        ros-lyrical-mola-input-rosbag2
-        ros2-moveit-resources-panda-moveit-config
-        ros-lyrical-moveit-resources-panda-moveit-config
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-mola-metric-maps:
     name: "23 mola-metric-maps mola-relocalization rosidl-generator-py…"
@@ -2694,30 +855,9 @@ jobs:
       - plan
       - ros2-mp2p-icp
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-mola-metric-maps') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-mola-metric-maps
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-mola-metric-maps
-        ros-lyrical-mola-metric-maps
-        ros2-mola-relocalization
-        ros-lyrical-mola-relocalization
-        ros2-rosidl-generator-py
-        ros-lyrical-rosidl-generator-py
-        ros2-rosidl-generator-rs
-        ros-lyrical-rosidl-generator-rs
-        ros2-rosidl-typesupport-cpp
-        ros-lyrical-rosidl-typesupport-cpp
-        ros2-rosidlcpp-generator-py
-        ros-lyrical-rosidlcpp-generator-py
-        ros2-rosidlcpp-typesupport-cpp
-        ros-lyrical-rosidlcpp-typesupport-cpp
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-mola-test-datasets:
     name: "13 mola-test-datasets mrpt-expr"
@@ -2726,20 +866,9 @@ jobs:
       - ros2-ament-cmake-clang-format
       - ros2-ament-cmake-xmllint
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-mola-test-datasets') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-mola-test-datasets
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-mola-test-datasets
-        ros-lyrical-mola-test-datasets
-        ros2-mrpt-expr
-        ros-lyrical-mrpt-expr
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-moveit:
     name: "57 moveit ur ur-simulation-gz"
@@ -2747,22 +876,9 @@ jobs:
       - plan
       - ros2-moveit-runtime
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-moveit') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-moveit
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-moveit
-        ros-lyrical-moveit
-        ros2-ur
-        ros-lyrical-ur
-        ros2-ur-simulation-gz
-        ros-lyrical-ur-simulation-gz
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-moveit-planners-stomp:
     name: "48 moveit-planners-stomp moveit-resources-prbt-ikfast-manip…"
@@ -2770,66 +886,9 @@ jobs:
       - plan
       - ros2-autoware-adapi-adaptors
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-moveit-planners-stomp') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-moveit-planners-stomp
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-moveit-planners-stomp
-        ros-lyrical-moveit-planners-stomp
-        ros2-moveit-resources-prbt-ikfast-manipulator-plugin
-        ros-lyrical-moveit-resources-prbt-ikfast-manipulator-plugin
-        ros2-moveit-ros-occupancy-map-monitor
-        ros-lyrical-moveit-ros-occupancy-map-monitor
-        ros2-moveit-simple-controller-manager
-        ros-lyrical-moveit-simple-controller-manager
-        ros2-nav2-behaviors
-        ros-lyrical-nav2-behaviors
-        ros2-nav2-bt-navigator
-        ros-lyrical-nav2-bt-navigator
-        ros2-nav2-constrained-smoother
-        ros-lyrical-nav2-constrained-smoother
-        ros2-nav2-controller
-        ros-lyrical-nav2-controller
-        ros2-nav2-mppi-controller
-        ros-lyrical-nav2-mppi-controller
-        ros2-nav2-navfn-planner
-        ros-lyrical-nav2-navfn-planner
-        ros2-nav2-planner
-        ros-lyrical-nav2-planner
-        ros2-nav2-route
-        ros-lyrical-nav2-route
-        ros2-nav2-smac-planner
-        ros-lyrical-nav2-smac-planner
-        ros2-nav2-smoother
-        ros-lyrical-nav2-smoother
-        ros2-nav2-theta-star-planner
-        ros-lyrical-nav2-theta-star-planner
-        ros2-nav2-waypoint-follower
-        ros-lyrical-nav2-waypoint-follower
-        ros2-opennav-docking-bt
-        ros-lyrical-opennav-docking-bt
-        ros2-pcl-ros
-        ros-lyrical-pcl-ros
-        ros2-pick-ik
-        ros-lyrical-pick-ik
-        ros2-pilz-industrial-motion-planner-testutils
-        ros-lyrical-pilz-industrial-motion-planner-testutils
-        ros2-plotjuggler-ros
-        ros-lyrical-plotjuggler-ros
-        ros2-rosbag2-py
-        ros-lyrical-rosbag2-py
-        ros2-swri-console
-        ros-lyrical-swri-console
-        ros2-trac-ik-kinematics-plugin
-        ros-lyrical-trac-ik-kinematics-plugin
-        ros2-ur-calibration
-        ros-lyrical-ur-calibration
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-moveit-runtime:
     name: "56 moveit-runtime moveit-setup-assistant moveit-task-constr…"
@@ -2837,24 +896,9 @@ jobs:
       - plan
       - ros2-desktop-full
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-moveit-runtime') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-moveit-runtime
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-moveit-runtime
-        ros-lyrical-moveit-runtime
-        ros2-moveit-setup-assistant
-        ros-lyrical-moveit-setup-assistant
-        ros2-moveit-task-constructor-demo
-        ros-lyrical-moveit-task-constructor-demo
-        ros2-ur-moveit-config
-        ros-lyrical-ur-moveit-config
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-mp2p-icp:
     name: "22 mp2p-icp rmw-zenoh-cpp roboplan rosidl-typesupport-c ros…"
@@ -2863,26 +907,9 @@ jobs:
       - ros2-mola-input-rawlog
       - ros2-rosidl-buffer-backend-registry
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-mp2p-icp') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-mp2p-icp
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-mp2p-icp
-        ros-lyrical-mp2p-icp
-        ros2-rmw-zenoh-cpp
-        ros-lyrical-rmw-zenoh-cpp
-        ros2-roboplan
-        ros-lyrical-roboplan
-        ros2-rosidl-typesupport-c
-        ros-lyrical-rosidl-typesupport-c
-        ros2-rosidlcpp-typesupport-c
-        ros-lyrical-rosidlcpp-typesupport-c
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-mp2p-icp-core:
     name: "20 mp2p-icp-core mrpt-hwdrivers roboplan-cartesian-planning"
@@ -2891,22 +918,9 @@ jobs:
       - ros2-gz-gui-vendor
       - ros2-rcl-yaml-param-parser
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-mp2p-icp-core') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-mp2p-icp-core
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-mp2p-icp-core
-        ros-lyrical-mp2p-icp-core
-        ros2-mrpt-hwdrivers
-        ros-lyrical-mrpt-hwdrivers
-        ros2-roboplan-cartesian-planning
-        ros-lyrical-roboplan-cartesian-planning
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-mrpt-bayes:
     name: "15 mrpt-bayes mrpt-img mrpt-topography qt-dotgraph qt-gui q…"
@@ -2915,28 +929,9 @@ jobs:
       - ros2-launch-pytest
       - ros2-python-cmake-module
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-mrpt-bayes') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-mrpt-bayes
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-mrpt-bayes
-        ros-lyrical-mrpt-bayes
-        ros2-mrpt-img
-        ros-lyrical-mrpt-img
-        ros2-mrpt-topography
-        ros-lyrical-mrpt-topography
-        ros2-qt-dotgraph
-        ros-lyrical-qt-dotgraph
-        ros2-qt-gui
-        ros-lyrical-qt-gui
-        ros2-qt-gui-py-common
-        ros-lyrical-qt-gui-py-common
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-mrpt-core:
     name: "10 mrpt-core"
@@ -2944,18 +939,9 @@ jobs:
       - plan
       - ros2-geometry-tutorials
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-mrpt-core') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-mrpt-core
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-mrpt-core
-        ros-lyrical-mrpt-core
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-mrpt-imgui-vendor:
     name: "10 mrpt-imgui-vendor mrpt-random mrpt-typemeta mujoco-3d-li…"
@@ -2964,30 +950,9 @@ jobs:
       - ros2-ament-mypy
       - ros2-geometry-tutorials
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-mrpt-imgui-vendor') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-mrpt-imgui-vendor
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-mrpt-imgui-vendor
-        ros-lyrical-mrpt-imgui-vendor
-        ros2-mrpt-random
-        ros-lyrical-mrpt-random
-        ros2-mrpt-typemeta
-        ros-lyrical-mrpt-typemeta
-        ros2-mujoco-3d-lidar
-        ros-lyrical-mujoco-3d-lidar
-        ros2-pybind11-json-vendor
-        ros-lyrical-pybind11-json-vendor
-        ros2-roboplan-example-models
-        ros-lyrical-roboplan-example-models
-        ros2-rosidl-cli
-        ros-lyrical-rosidl-cli
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-mrpt-io:
     name: "13 mrpt-io rmf-utils rviz-ogre-vendor"
@@ -2996,22 +961,9 @@ jobs:
       - ros2-ament-cmake-clang-format
       - ros2-ament-cmake-xmllint
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-mrpt-io') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-mrpt-io
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-mrpt-io
-        ros-lyrical-mrpt-io
-        ros2-rmf-utils
-        ros-lyrical-rmf-utils
-        ros2-rviz-ogre-vendor
-        ros-lyrical-rviz-ogre-vendor
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-mrpt-rtti:
     name: "11 mrpt-rtti xacro"
@@ -3021,20 +973,9 @@ jobs:
       - ros2-mrpt-core
       - ros2-mrpt-imgui-vendor
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-mrpt-rtti') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-mrpt-rtti
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-mrpt-rtti
-        ros-lyrical-mrpt-rtti
-        ros2-xacro
-        ros-lyrical-xacro
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-nanoflann-vendor:
     name: "4 nanoflann-vendor ompl osrf-testing-tools-cpp proxsuite py…"
@@ -3042,34 +983,9 @@ jobs:
       - plan
       - ros2-ros-environment
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-nanoflann-vendor') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-nanoflann-vendor
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-nanoflann-vendor
-        ros-lyrical-nanoflann-vendor
-        ros2-ompl
-        ros-lyrical-ompl
-        ros2-osrf-testing-tools-cpp
-        ros-lyrical-osrf-testing-tools-cpp
-        ros2-proxsuite
-        ros-lyrical-proxsuite
-        ros2-py-trees
-        ros-lyrical-py-trees
-        ros2-py-trees-js
-        ros-lyrical-py-trees-js
-        ros2-ros-industrial-cmake-boilerplate
-        ros-lyrical-ros-industrial-cmake-boilerplate
-        ros2-ruckig
-        ros-lyrical-ruckig
-        ros2-sdformat-test-files
-        ros-lyrical-sdformat-test-files
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-nav2-costmap-2d:
     name: "46 nav2-costmap-2d plansys2-executor rmf-visualization robo…"
@@ -3081,34 +997,9 @@ jobs:
       - ros2-rmf-visualization-floorplans
       - ros2-rmf-visualization-rviz2-plugins
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-nav2-costmap-2d') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-nav2-costmap-2d
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-nav2-costmap-2d
-        ros-lyrical-nav2-costmap-2d
-        ros2-plansys2-executor
-        ros-lyrical-plansys2-executor
-        ros2-rmf-visualization
-        ros-lyrical-rmf-visualization
-        ros2-roboplan-ros-franka
-        ros-lyrical-roboplan-ros-franka
-        ros2-roboplan-ros-visualization
-        ros-lyrical-roboplan-ros-visualization
-        ros2-robotiq-description
-        ros-lyrical-robotiq-description
-        ros2-ros-gz-sim-demos
-        ros-lyrical-ros-gz-sim-demos
-        ros2-ros2-control
-        ros-lyrical-ros2-control
-        ros2-rosbag2-compression-zstd
-        ros-lyrical-rosbag2-compression-zstd
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-nav2-loopback-sim:
     name: "45 nav2-loopback-sim nav2-map-server nav2-velocity-smoother…"
@@ -3117,30 +1008,9 @@ jobs:
       - ros2-autoware-test-utils
       - ros2-nav2-util
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-nav2-loopback-sim') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-nav2-loopback-sim
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-nav2-loopback-sim
-        ros-lyrical-nav2-loopback-sim
-        ros2-nav2-map-server
-        ros-lyrical-nav2-map-server
-        ros2-nav2-velocity-smoother
-        ros-lyrical-nav2-velocity-smoother
-        ros2-omni-wheel-drive-controller
-        ros-lyrical-omni-wheel-drive-controller
-        ros2-opennav-coverage-msgs
-        ros-lyrical-opennav-coverage-msgs
-        ros2-parallel-gripper-controller
-        ros-lyrical-parallel-gripper-controller
-        ros2-pid-controller
-        ros-lyrical-pid-controller
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-nav2-rotation-shim-controller:
     name: "50 nav2-rotation-shim-controller opennav-docking realsense2…"
@@ -3148,30 +1018,9 @@ jobs:
       - plan
       - ros2-autoware-object-recognition-utils
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-nav2-rotation-shim-controller') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-nav2-rotation-shim-controller
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-nav2-rotation-shim-controller
-        ros-lyrical-nav2-rotation-shim-controller
-        ros2-opennav-docking
-        ros-lyrical-opennav-docking
-        ros2-realsense2-camera
-        ros-lyrical-realsense2-camera
-        ros2-rosbag2-performance-benchmarking
-        ros-lyrical-rosbag2-performance-benchmarking
-        ros2-rosbag2-tests
-        ros-lyrical-rosbag2-tests
-        ros2-rtabmap-odom
-        ros-lyrical-rtabmap-odom
-        ros2-rtabmap-slam
-        ros-lyrical-rtabmap-slam
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-nav2-util:
     name: "44 nav2-util opennav-docking-core plansys2-problem-expert p…"
@@ -3181,40 +1030,9 @@ jobs:
       - ros2-mavros
       - ros2-roboplan-ros-cpp
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-nav2-util') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-nav2-util
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-nav2-util
-        ros-lyrical-nav2-util
-        ros2-opennav-docking-core
-        ros-lyrical-opennav-docking-core
-        ros2-plansys2-problem-expert
-        ros-lyrical-plansys2-problem-expert
-        ros2-pointcloud-to-laserscan
-        ros-lyrical-pointcloud-to-laserscan
-        ros2-robotiq-controllers
-        ros-lyrical-robotiq-controllers
-        ros2-rosbag2-cpp
-        ros-lyrical-rosbag2-cpp
-        ros2-rtabmap-sync
-        ros-lyrical-rtabmap-sync
-        ros2-rviz-default-plugins
-        ros-lyrical-rviz-default-plugins
-        ros2-stereo-image-proc
-        ros-lyrical-stereo-image-proc
-        ros2-turtlebot3-simulations
-        ros-lyrical-turtlebot3-simulations
-        ros2-warehouse-ros-sqlite
-        ros-lyrical-warehouse-ros-sqlite
-        ros2-yasmin-factory
-        ros-lyrical-yasmin-factory
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-nmea-msgs:
     name: "37 nmea-msgs ouster-sensor-msgs pal-statistics-msgs plotjug…"
@@ -3222,42 +1040,9 @@ jobs:
       - plan
       - ros2-action-tutorials-py
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-nmea-msgs') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-nmea-msgs
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-nmea-msgs
-        ros-lyrical-nmea-msgs
-        ros2-ouster-sensor-msgs
-        ros-lyrical-ouster-sensor-msgs
-        ros2-pal-statistics-msgs
-        ros-lyrical-pal-statistics-msgs
-        ros2-plotjuggler-msgs
-        ros-lyrical-plotjuggler-msgs
-        ros2-polygon-msgs
-        ros-lyrical-polygon-msgs
-        ros2-ros2-socketcan-msgs
-        ros-lyrical-ros2-socketcan-msgs
-        ros2-ros2multicast
-        ros-lyrical-ros2multicast
-        ros2-rosidl-runtime-py
-        ros-lyrical-rosidl-runtime-py
-        ros2-rqt-gui-py
-        ros-lyrical-rqt-gui-py
-        ros2-rtcm-msgs
-        ros-lyrical-rtcm-msgs
-        ros2-rviz-2d-overlay-msgs
-        ros-lyrical-rviz-2d-overlay-msgs
-        ros2-srdfdom
-        ros-lyrical-srdfdom
-        ros2-topic-monitor
-        ros-lyrical-topic-monitor
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-nmea-navsat-driver:
     name: "39 nmea-navsat-driver"
@@ -3265,18 +1050,9 @@ jobs:
       - plan
       - ros2-rqt-robot-steering
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-nmea-navsat-driver') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-nmea-navsat-driver
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-nmea-navsat-driver
-        ros-lyrical-nmea-navsat-driver
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-ntrip-client:
     name: "39 ntrip-client object-recognition-msgs octomap-ros pcl-msg…"
@@ -3286,44 +1062,9 @@ jobs:
       - ros2-radar-msgs
       - ros2-rqt-robot-steering
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-ntrip-client') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-ntrip-client
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-ntrip-client
-        ros-lyrical-ntrip-client
-        ros2-object-recognition-msgs
-        ros-lyrical-object-recognition-msgs
-        ros2-octomap-ros
-        ros-lyrical-octomap-ros
-        ros2-pcl-msgs
-        ros-lyrical-pcl-msgs
-        ros2-plansys2-lifecycle-manager
-        ros-lyrical-plansys2-lifecycle-manager
-        ros2-plansys2-msgs
-        ros-lyrical-plansys2-msgs
-        ros2-point-cloud-interfaces
-        ros-lyrical-point-cloud-interfaces
-        ros2-point-cloud-msg-wrapper
-        ros-lyrical-point-cloud-msg-wrapper
-        ros2-popf
-        ros-lyrical-popf
-        ros2-py-binding-tools
-        ros-lyrical-py-binding-tools
-        ros2-py-trees-ros-interfaces
-        ros-lyrical-py-trees-ros-interfaces
-        ros2-quality-of-service-demo-py
-        ros-lyrical-quality-of-service-demo-py
-        ros2-rclcpp-action
-        ros-lyrical-rclcpp-action
-        ros2-rclcpp-components
-        ros-lyrical-rclcpp-components
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-persist-parameter-server:
     name: "40 persist-parameter-server plansys2-pddl-parser py-trees-r…"
@@ -3335,38 +1076,9 @@ jobs:
       - ros2-ros2param
       - ros2-tf2-eigen-kdl
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-persist-parameter-server') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-persist-parameter-server
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-persist-parameter-server
-        ros-lyrical-persist-parameter-server
-        ros2-plansys2-pddl-parser
-        ros-lyrical-plansys2-pddl-parser
-        ros2-py-trees-ros-viewer
-        ros-lyrical-py-trees-ros-viewer
-        ros2-quality-of-service-demo-cpp
-        ros-lyrical-quality-of-service-demo-cpp
-        ros2-rclc
-        ros-lyrical-rclc
-        ros2-rclcpp-cascade-lifecycle
-        ros-lyrical-rclcpp-cascade-lifecycle
-        ros2-realsense2-description
-        ros-lyrical-realsense2-description
-        ros2-realtime-tools
-        ros-lyrical-realtime-tools
-        ros2-rmf-demos-maps
-        ros-lyrical-rmf-demos-maps
-        ros2-rmf-task-ros2
-        ros-lyrical-rmf-task-ros2
-        ros2-rmf-visualization-fleet-states
-        ros-lyrical-rmf-visualization-fleet-states
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-plansys2-planner:
     name: "45 plansys2-planner pose-broadcaster range-sensor-broadcast…"
@@ -3375,22 +1087,9 @@ jobs:
       - ros2-autoware-test-utils
       - ros2-nav2-util
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-plansys2-planner') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-plansys2-planner
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-plansys2-planner
-        ros-lyrical-plansys2-planner
-        ros2-pose-broadcaster
-        ros-lyrical-pose-broadcaster
-        ros2-range-sensor-broadcaster
-        ros-lyrical-range-sensor-broadcaster
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-python-cmake-module:
     name: "14 python-cmake-module python-qt-binding rmf-traffic rmw-im…"
@@ -3399,42 +1098,9 @@ jobs:
       - ros2-ament-cmake-black
       - ros2-mrpt-io
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-python-cmake-module') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-python-cmake-module
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-python-cmake-module
-        ros-lyrical-python-cmake-module
-        ros2-python-qt-binding
-        ros-lyrical-python-qt-binding
-        ros2-rmf-traffic
-        ros-lyrical-rmf-traffic
-        ros2-rmw-implementation-cmake
-        ros-lyrical-rmw-implementation-cmake
-        ros2-ros2-control-cmake
-        ros-lyrical-ros2-control-cmake
-        ros2-rosidl-adapter
-        ros-lyrical-rosidl-adapter
-        ros2-rosidl-buffer
-        ros-lyrical-rosidl-buffer
-        ros2-rosidl-typesupport-interface
-        ros-lyrical-rosidl-typesupport-interface
-        ros2-rti-connext-dds-cmake-module
-        ros-lyrical-rti-connext-dds-cmake-module
-        ros2-smclib
-        ros-lyrical-smclib
-        ros2-spdlog-vendor
-        ros-lyrical-spdlog-vendor
-        ros2-tango-icons-vendor
-        ros-lyrical-tango-icons-vendor
-        ros2-zstd-cmake-module
-        ros-lyrical-zstd-cmake-module
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-radar-msgs:
     name: "38 radar-msgs rclcpp rmf-building-map-msgs"
@@ -3442,22 +1108,9 @@ jobs:
       - plan
       - ros2-examples-rclpy-minimal-publisher
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-radar-msgs') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-radar-msgs
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-radar-msgs
-        ros-lyrical-radar-msgs
-        ros2-rclcpp
-        ros-lyrical-rclcpp
-        ros2-rmf-building-map-msgs
-        ros-lyrical-rmf-building-map-msgs
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-rcl:
     name: "33 rcl rmw-test-fixture-implementation"
@@ -3465,20 +1118,9 @@ jobs:
       - plan
       - ros2-rmw-implementation
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-rcl') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-rcl
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-rcl
-        ros-lyrical-rcl
-        ros2-rmw-test-fixture-implementation
-        ros-lyrical-rmw-test-fixture-implementation
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-rcl-action:
     name: "34 rcl-action rcl-lifecycle"
@@ -3486,20 +1128,9 @@ jobs:
       - plan
       - ros2-rcl
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-rcl-action') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-rcl-action
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-rcl-action
-        ros-lyrical-rcl-action
-        ros2-rcl-lifecycle
-        ros-lyrical-rcl-lifecycle
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-rcl-logging-spdlog:
     name: "18 rcl-logging-spdlog rmw roboplan-core rosidl-dynamic-type…"
@@ -3507,30 +1138,9 @@ jobs:
       - plan
       - ros2-class-loader
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-rcl-logging-spdlog') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-rcl-logging-spdlog
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-rcl-logging-spdlog
-        ros-lyrical-rcl-logging-spdlog
-        ros2-rmw
-        ros-lyrical-rmw
-        ros2-roboplan-core
-        ros-lyrical-roboplan-core
-        ros2-rosidl-dynamic-typesupport-fastrtps
-        ros-lyrical-rosidl-dynamic-typesupport-fastrtps
-        ros2-rosidl-generator-c
-        ros-lyrical-rosidl-generator-c
-        ros2-rosidlcpp-generator-core
-        ros-lyrical-rosidlcpp-generator-core
-        ros2-rviz-rendering-tests
-        ros-lyrical-rviz-rendering-tests
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-rcl-yaml-param-parser:
     name: "19 rcl-yaml-param-parser rmw-security-common rmw-test-fixtu…"
@@ -3540,46 +1150,9 @@ jobs:
       - ros2-rcl-logging-spdlog
       - ros2-tracetools-image-pipeline
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-rcl-yaml-param-parser') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-rcl-yaml-param-parser
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-rcl-yaml-param-parser
-        ros-lyrical-rcl-yaml-param-parser
-        ros2-rmw-security-common
-        ros-lyrical-rmw-security-common
-        ros2-rmw-test-fixture
-        ros-lyrical-rmw-test-fixture
-        ros2-roboplan-oink
-        ros-lyrical-roboplan-oink
-        ros2-roboplan-rrt
-        ros-lyrical-roboplan-rrt
-        ros2-roboplan-simple-ik
-        ros-lyrical-roboplan-simple-ik
-        ros2-roboplan-toppra
-        ros-lyrical-roboplan-toppra
-        ros2-rosidl-buffer-backend
-        ros-lyrical-rosidl-buffer-backend
-        ros2-rosidl-generator-cpp
-        ros-lyrical-rosidl-generator-cpp
-        ros2-rosidl-typesupport-introspection-c
-        ros-lyrical-rosidl-typesupport-introspection-c
-        ros2-rosidlcpp-generator-c
-        ros-lyrical-rosidlcpp-generator-c
-        ros2-rosidlcpp-generator-cpp
-        ros-lyrical-rosidlcpp-generator-cpp
-        ros2-rosidlcpp-generator-type-description
-        ros-lyrical-rosidlcpp-generator-type-description
-        ros2-rosidlcpp-typesupport-introspection-c
-        ros-lyrical-rosidlcpp-typesupport-introspection-c
-        ros2-urdf
-        ros-lyrical-urdf
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-rclcpp-lifecycle:
     name: "39 rclcpp-lifecycle"
@@ -3587,18 +1160,9 @@ jobs:
       - plan
       - ros2-radar-msgs
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-rclcpp-lifecycle') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-rclcpp-lifecycle
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-rclcpp-lifecycle
-        ros-lyrical-rclcpp-lifecycle
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-rclpy:
     name: "35 rclpy"
@@ -3606,18 +1170,9 @@ jobs:
       - plan
       - ros2-rcl-action
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-rclpy') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-rclpy
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-rclpy
-        ros-lyrical-rclpy
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-rclpy-message-converter:
     name: "39 rclpy-message-converter realsense2-camera-msgs resource-…"
@@ -3627,40 +1182,9 @@ jobs:
       - ros2-ros2action
       - ros2-rqt-robot-steering
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-rclpy-message-converter') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-rclpy-message-converter
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-rclpy-message-converter
-        ros-lyrical-rclpy-message-converter
-        ros2-realsense2-camera-msgs
-        ros-lyrical-realsense2-camera-msgs
-        ros2-resource-retriever-service-plugin
-        ros-lyrical-resource-retriever-service-plugin
-        ros2-rmf-building-map-tools
-        ros-lyrical-rmf-building-map-tools
-        ros2-rmf-traffic-ros2
-        ros-lyrical-rmf-traffic-ros2
-        ros2-rmf-visualization-building-systems
-        ros-lyrical-rmf-visualization-building-systems
-        ros2-rmf-websocket
-        ros-lyrical-rmf-websocket
-        ros2-ros-testing
-        ros-lyrical-ros-testing
-        ros2-ros2-controllers-test-nodes
-        ros-lyrical-ros2-controllers-test-nodes
-        ros2-ros2-fmt-logger
-        ros-lyrical-ros2-fmt-logger
-        ros2-ros2doctor
-        ros-lyrical-ros2doctor
-        ros2-ros2launch
-        ros-lyrical-ros2launch
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-rcutils:
     name: "15 rcutils rmf-battery ros2-control-test-assets rosidl-buff…"
@@ -3670,30 +1194,9 @@ jobs:
       - ros2-launch-pytest
       - ros2-python-cmake-module
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-rcutils') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-rcutils
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-rcutils
-        ros-lyrical-rcutils
-        ros2-rmf-battery
-        ros-lyrical-rmf-battery
-        ros2-ros2-control-test-assets
-        ros-lyrical-ros2-control-test-assets
-        ros2-rosidl-buffer-py
-        ros-lyrical-rosidl-buffer-py
-        ros2-rosidl-parser
-        ros-lyrical-rosidl-parser
-        ros2-tracetools
-        ros-lyrical-tracetools
-        ros2-tracetools-trace
-        ros-lyrical-tracetools-trace
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-resource-retriever-interfaces:
     name: "29 resource-retriever-interfaces rmf-dispenser-msgs rmf-doo…"
@@ -3701,56 +1204,9 @@ jobs:
       - plan
       - ros2-rosidl-default-generators
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-resource-retriever-interfaces') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-resource-retriever-interfaces
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-resource-retriever-interfaces
-        ros-lyrical-resource-retriever-interfaces
-        ros2-rmf-dispenser-msgs
-        ros-lyrical-rmf-dispenser-msgs
-        ros2-rmf-door-msgs
-        ros-lyrical-rmf-door-msgs
-        ros2-rmf-fleet-msgs
-        ros-lyrical-rmf-fleet-msgs
-        ros2-rmf-lift-msgs
-        ros-lyrical-rmf-lift-msgs
-        ros2-rmf-reservation-msgs
-        ros-lyrical-rmf-reservation-msgs
-        ros2-rmf-site-map-msgs
-        ros-lyrical-rmf-site-map-msgs
-        ros2-rmf-traffic-msgs
-        ros-lyrical-rmf-traffic-msgs
-        ros2-rmf-visualization-msgs
-        ros-lyrical-rmf-visualization-msgs
-        ros2-rmw-dds-common
-        ros-lyrical-rmw-dds-common
-        ros2-ros2cli-test-interfaces
-        ros-lyrical-ros2cli-test-interfaces
-        ros2-rosapi-msgs
-        ros-lyrical-rosapi-msgs
-        ros2-rosbag2-interfaces
-        ros-lyrical-rosbag2-interfaces
-        ros2-rosbag2-performance-benchmarking-msgs
-        ros-lyrical-rosbag2-performance-benchmarking-msgs
-        ros2-rosbag2-test-msgdefs
-        ros-lyrical-rosbag2-test-msgdefs
-        ros2-rosbridge-msgs
-        ros-lyrical-rosbridge-msgs
-        ros2-statistics-msgs
-        ros-lyrical-statistics-msgs
-        ros2-std-srvs
-        ros-lyrical-std-srvs
-        ros2-system-modes-msgs
-        ros-lyrical-system-modes-msgs
-        ros2-teleop-tools-msgs
-        ros-lyrical-teleop-tools-msgs
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-rmf-demos-tasks:
     name: "31 rmf-demos-tasks rmw-connextdds rmw-fastrtps-cpp rmw-fast…"
@@ -3759,26 +1215,9 @@ jobs:
       - ros2-cascade-lifecycle-msgs
       - ros2-test-msgs
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-rmf-demos-tasks') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-rmf-demos-tasks
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-rmf-demos-tasks
-        ros-lyrical-rmf-demos-tasks
-        ros2-rmw-connextdds
-        ros-lyrical-rmw-connextdds
-        ros2-rmw-fastrtps-cpp
-        ros-lyrical-rmw-fastrtps-cpp
-        ros2-rmw-fastrtps-dynamic-cpp
-        ros-lyrical-rmw-fastrtps-dynamic-cpp
-        ros2-rmw-stats-shim
-        ros-lyrical-rmw-stats-shim
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-rmf-obstacle-msgs:
     name: "38 rmf-obstacle-msgs ros-gz-interfaces"
@@ -3786,20 +1225,9 @@ jobs:
       - plan
       - ros2-examples-rclpy-minimal-publisher
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-rmf-obstacle-msgs') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-rmf-obstacle-msgs
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-rmf-obstacle-msgs
-        ros-lyrical-rmf-obstacle-msgs
-        ros2-ros-gz-interfaces
-        ros-lyrical-ros-gz-interfaces
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-rmf-reservation-node:
     name: "42 rmf-reservation-node robot-state-publisher ros-gz-image …"
@@ -3809,26 +1237,9 @@ jobs:
       - ros2-ros-gz-bridge
       - ros2-ros2lifecycle
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-rmf-reservation-node') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-rmf-reservation-node
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-rmf-reservation-node
-        ros-lyrical-rmf-reservation-node
-        ros2-robot-state-publisher
-        ros-lyrical-robot-state-publisher
-        ros2-ros-gz-image
-        ros-lyrical-ros-gz-image
-        ros2-ros-gz-sim
-        ros-lyrical-ros-gz-sim
-        ros2-ros2cli-common-extensions
-        ros-lyrical-ros2cli-common-extensions
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-rmf-visualization-floorplans:
     name: "40 rmf-visualization-floorplans rmf-visualization-navgraphs…"
@@ -3840,26 +1251,9 @@ jobs:
       - ros2-rmf-obstacle-msgs
       - ros2-tf2-eigen-kdl
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-rmf-visualization-floorplans') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-rmf-visualization-floorplans
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-rmf-visualization-floorplans
-        ros-lyrical-rmf-visualization-floorplans
-        ros2-rmf-visualization-navgraphs
-        ros-lyrical-rmf-visualization-navgraphs
-        ros2-rmf-visualization-obstacles
-        ros-lyrical-rmf-visualization-obstacles
-        ros2-rmf-visualization-schedule
-        ros-lyrical-rmf-visualization-schedule
-        ros2-roboplan-ros-examples
-        ros-lyrical-roboplan-ros-examples
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-rmf-visualization-rviz2-plugins:
     name: "45 rmf-visualization-rviz2-plugins ros2controlcli rosbag2-c…"
@@ -3868,44 +1262,9 @@ jobs:
       - ros2-autoware-test-utils
       - ros2-nav2-util
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-rmf-visualization-rviz2-plugins') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-rmf-visualization-rviz2-plugins
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-rmf-visualization-rviz2-plugins
-        ros-lyrical-rmf-visualization-rviz2-plugins
-        ros2-ros2controlcli
-        ros-lyrical-ros2controlcli
-        ros2-rosbag2-compression
-        ros-lyrical-rosbag2-compression
-        ros2-rosx-introspection
-        ros-lyrical-rosx-introspection
-        ros2-rqt-controller-manager
-        ros-lyrical-rqt-controller-manager
-        ros2-rtabmap-rviz-plugins
-        ros-lyrical-rtabmap-rviz-plugins
-        ros2-rtabmap-viz
-        ros-lyrical-rtabmap-viz
-        ros2-rviz-satellite
-        ros-lyrical-rviz-satellite
-        ros2-rviz2
-        ros-lyrical-rviz2
-        ros2-state-interfaces-broadcaster
-        ros-lyrical-state-interfaces-broadcaster
-        ros2-steering-controllers-library
-        ros-lyrical-steering-controllers-library
-        ros2-tricycle-controller
-        ros-lyrical-tricycle-controller
-        ros2-yasmin-demos
-        ros-lyrical-yasmin-demos
-        ros2-yasmin-plugins-manager
-        ros-lyrical-yasmin-plugins-manager
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-rmw-implementation:
     name: "32 rmw-implementation"
@@ -3913,18 +1272,9 @@ jobs:
       - plan
       - ros2-rmf-demos-tasks
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-rmw-implementation') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-rmw-implementation
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-rmw-implementation
-        ros-lyrical-rmw-implementation
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-roboplan-ros-cpp:
     name: "43 roboplan-ros-cpp robot-localization ros-core rosbag2-sto…"
@@ -3934,58 +1284,9 @@ jobs:
       - ros2-rmf-reservation-node
       - ros2-rosbag2-storage-mcap
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-roboplan-ros-cpp') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-roboplan-ros-cpp
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-roboplan-ros-cpp
-        ros-lyrical-roboplan-ros-cpp
-        ros2-robot-localization
-        ros-lyrical-robot-localization
-        ros2-ros-core
-        ros-lyrical-ros-core
-        ros2-rosbag2-storage-default-plugins
-        ros-lyrical-rosbag2-storage-default-plugins
-        ros2-rosbridge-suite
-        ros-lyrical-rosbridge-suite
-        ros2-rtabmap-conversions
-        ros-lyrical-rtabmap-conversions
-        ros2-rviz-2d-overlay-plugins
-        ros-lyrical-rviz-2d-overlay-plugins
-        ros2-rviz-imu-plugin
-        ros-lyrical-rviz-imu-plugin
-        ros2-rviz-marker-tools
-        ros-lyrical-rviz-marker-tools
-        ros2-rviz-visual-testing-framework
-        ros-lyrical-rviz-visual-testing-framework
-        ros2-sbg-driver
-        ros-lyrical-sbg-driver
-        ros2-tf2-2d
-        ros-lyrical-tf2-2d
-        ros2-tf2-sensor-msgs
-        ros-lyrical-tf2-sensor-msgs
-        ros2-transmission-interface
-        ros-lyrical-transmission-interface
-        ros2-turtle-tf2-cpp
-        ros-lyrical-turtle-tf2-cpp
-        ros2-turtlebot3-fake-node
-        ros-lyrical-turtlebot3-fake-node
-        ros2-turtlebot3-gazebo
-        ros-lyrical-turtlebot3-gazebo
-        ros2-velodyne
-        ros-lyrical-velodyne
-        ros2-warehouse-ros
-        ros-lyrical-warehouse-ros
-        ros2-webots-ros2-driver
-        ros-lyrical-webots-ros2-driver
-        ros2-yasmin-viewer
-        ros-lyrical-yasmin-viewer
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-ros-environment:
     name: "3 ros-environment ros-workspace"
@@ -3993,20 +1294,9 @@ jobs:
       - plan
       - ros2-ament-cmake-core
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-ros-environment') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-ros-environment
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-ros-environment
-        ros-lyrical-ros-environment
-        ros2-ros-workspace
-        ros-lyrical-ros-workspace
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-ros-gz-bridge:
     name: "40 ros-gz-bridge ros2component"
@@ -4018,20 +1308,9 @@ jobs:
       - ros2-ros2param
       - ros2-twist-stamper
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-ros-gz-bridge') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-ros-gz-bridge
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-ros-gz-bridge
-        ros-lyrical-ros-gz-bridge
-        ros2-ros2component
-        ros-lyrical-ros2component
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-ros2action:
     name: "38 ros2action ros2interface ros2node ros2pkg ros2service ro…"
@@ -4040,42 +1319,9 @@ jobs:
       - ros2-examples-rclpy-minimal-publisher
       - ros2-nmea-msgs
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-ros2action') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-ros2action
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-ros2action
-        ros-lyrical-ros2action
-        ros2-ros2interface
-        ros-lyrical-ros2interface
-        ros2-ros2node
-        ros-lyrical-ros2node
-        ros2-ros2pkg
-        ros-lyrical-ros2pkg
-        ros2-ros2service
-        ros-lyrical-ros2service
-        ros2-ros2test
-        ros-lyrical-ros2test
-        ros2-ros2topic
-        ros-lyrical-ros2topic
-        ros2-rosbridge-test-msgs
-        ros-lyrical-rosbridge-test-msgs
-        ros2-rqt-console
-        ros-lyrical-rqt-console
-        ros2-rqt-graph
-        ros-lyrical-rqt-graph
-        ros2-rqt-plot
-        ros-lyrical-rqt-plot
-        ros2-rqt-publisher
-        ros-lyrical-rqt-publisher
-        ros2-rqt-py-console
-        ros-lyrical-rqt-py-console
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-ros2lifecycle:
     name: "41 ros2lifecycle rosapi rosbag2-storage rosgraph-monitor rq…"
@@ -4087,36 +1333,9 @@ jobs:
       - ros2-ros2lifecycle-test-fixtures
       - ros2-rqt-robot-dashboard
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-ros2lifecycle') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-ros2lifecycle
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-ros2lifecycle
-        ros-lyrical-ros2lifecycle
-        ros2-rosapi
-        ros-lyrical-rosapi
-        ros2-rosbag2-storage
-        ros-lyrical-rosbag2-storage
-        ros2-rosgraph-monitor
-        ros-lyrical-rosgraph-monitor
-        ros2-rqt-mocap4r2-control
-        ros-lyrical-rqt-mocap4r2-control
-        ros2-self-test
-        ros-lyrical-self-test
-        ros2-sros2-cmake
-        ros-lyrical-sros2-cmake
-        ros2-teleop-tools
-        ros-lyrical-teleop-tools
-        ros2-teleop-twist-joy
-        ros-lyrical-teleop-twist-joy
-        ros2-tf2-ros
-        ros-lyrical-tf2-ros
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-ros2lifecycle-test-fixtures:
     name: "40 ros2lifecycle-test-fixtures rosbag2-test-common rosbridg…"
@@ -4130,30 +1349,9 @@ jobs:
       - ros2-rsl
       - ros2-tf2-eigen-kdl
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-ros2lifecycle-test-fixtures') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-ros2lifecycle-test-fixtures
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-ros2lifecycle-test-fixtures
-        ros-lyrical-ros2lifecycle-test-fixtures
-        ros2-rosbag2-test-common
-        ros-lyrical-rosbag2-test-common
-        ros2-rosbridge-library
-        ros-lyrical-rosbridge-library
-        ros2-rplidar-ros
-        ros-lyrical-rplidar-ros
-        ros2-rqt
-        ros-lyrical-rqt
-        ros2-rqt-action
-        ros-lyrical-rqt-action
-        ros2-rqt-joint-trajectory-controller
-        ros-lyrical-rqt-joint-trajectory-controller
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-ros2param:
     name: "39 ros2param ros2plugin ros2run rqt-gui-cpp rqt-msg rqt-rec…"
@@ -4163,34 +1361,9 @@ jobs:
       - ros2-radar-msgs
       - ros2-ros2action
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-ros2param') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-ros2param
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-ros2param
-        ros-lyrical-ros2param
-        ros2-ros2plugin
-        ros-lyrical-ros2plugin
-        ros2-ros2run
-        ros-lyrical-ros2run
-        ros2-rqt-gui-cpp
-        ros-lyrical-rqt-gui-cpp
-        ros2-rqt-msg
-        ros-lyrical-rqt-msg
-        ros2-rqt-reconfigure
-        ros-lyrical-rqt-reconfigure
-        ros2-rqt-robot-monitor
-        ros-lyrical-rqt-robot-monitor
-        ros2-rqt-runtime-monitor
-        ros-lyrical-rqt-runtime-monitor
-        ros2-rqt-topic
-        ros-lyrical-rqt-topic
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-rosbag2-storage-mcap:
     name: "42 rosbag2-storage-mcap rosbag2-storage-sqlite3 rosbridge-s…"
@@ -4200,60 +1373,9 @@ jobs:
       - ros2-ros2lifecycle
       - ros2-tf2-tools
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-rosbag2-storage-mcap') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-rosbag2-storage-mcap
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-rosbag2-storage-mcap
-        ros-lyrical-rosbag2-storage-mcap
-        ros2-rosbag2-storage-sqlite3
-        ros-lyrical-rosbag2-storage-sqlite3
-        ros2-rosbridge-server
-        ros-lyrical-rosbridge-server
-        ros2-rqt-image-view
-        ros-lyrical-rqt-image-view
-        ros2-rqt-tf-tree
-        ros-lyrical-rqt-tf-tree
-        ros2-rviz-common
-        ros-lyrical-rviz-common
-        ros2-sick-scan-xd
-        ros-lyrical-sick-scan-xd
-        ros2-tf2-bullet
-        ros-lyrical-tf2-bullet
-        ros2-tf2-eigen
-        ros-lyrical-tf2-eigen
-        ros2-tf2-geometry-msgs
-        ros-lyrical-tf2-geometry-msgs
-        ros2-tf2-kdl
-        ros-lyrical-tf2-kdl
-        ros2-theora-image-transport
-        ros-lyrical-theora-image-transport
-        ros2-turtle-tf2-py
-        ros-lyrical-turtle-tf2-py
-        ros2-ublox
-        ros-lyrical-ublox
-        ros2-velodyne-driver
-        ros-lyrical-velodyne-driver
-        ros2-velodyne-pointcloud
-        ros-lyrical-velodyne-pointcloud
-        ros2-web-video-server
-        ros-lyrical-web-video-server
-        ros2-yasmin-pcl
-        ros-lyrical-yasmin-pcl
-        ros2-yasmin-ros
-        ros-lyrical-yasmin-ros
-        ros2-zlib-point-cloud-transport
-        ros-lyrical-zlib-point-cloud-transport
-        ros2-zstd-image-transport
-        ros-lyrical-zstd-image-transport
-        ros2-zstd-point-cloud-transport
-        ros-lyrical-zstd-point-cloud-transport
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-rosidl-buffer-backend-registry:
     name: "20 rosidl-buffer-backend-registry"
@@ -4261,18 +1383,9 @@ jobs:
       - plan
       - ros2-rcl-yaml-param-parser
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-rosidl-buffer-backend-registry') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-rosidl-buffer-backend-registry
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-rosidl-buffer-backend-registry
-        ros-lyrical-rosidl-buffer-backend-registry
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-rosidl-core-generators:
     name: "24 rosidl-core-generators rosidl-core-runtime rosidlcpp"
@@ -4280,22 +1393,9 @@ jobs:
       - plan
       - ros2-mola-metric-maps
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-rosidl-core-generators') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-rosidl-core-generators
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-rosidl-core-generators
-        ros-lyrical-rosidl-core-generators
-        ros2-rosidl-core-runtime
-        ros-lyrical-rosidl-core-runtime
-        ros2-rosidlcpp
-        ros-lyrical-rosidlcpp
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-rosidl-default-generators:
     name: "28 rosidl-default-generators rosidl-default-runtime"
@@ -4303,20 +1403,9 @@ jobs:
       - plan
       - ros2-action-msgs
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-rosidl-default-generators') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-rosidl-default-generators
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-rosidl-default-generators
-        ros-lyrical-rosidl-default-generators
-        ros2-rosidl-default-runtime
-        ros-lyrical-rosidl-default-runtime
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-rosidl-typesupport-fastrtps-cpp:
     name: "20 rosidl-typesupport-fastrtps-cpp rosidl-typesupport-intro…"
@@ -4324,26 +1413,9 @@ jobs:
       - plan
       - ros2-rcl-yaml-param-parser
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-rosidl-typesupport-fastrtps-cpp') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-rosidl-typesupport-fastrtps-cpp
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-rosidl-typesupport-fastrtps-cpp
-        ros-lyrical-rosidl-typesupport-fastrtps-cpp
-        ros2-rosidl-typesupport-introspection-cpp
-        ros-lyrical-rosidl-typesupport-introspection-cpp
-        ros2-rosidlcpp-typesupport-fastrtps-cpp
-        ros-lyrical-rosidlcpp-typesupport-fastrtps-cpp
-        ros2-rosidlcpp-typesupport-introspection-cpp
-        ros-lyrical-rosidlcpp-typesupport-introspection-cpp
-        ros2-sdformat-urdf
-        ros-lyrical-sdformat-urdf
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-rpyutils:
     name: "10 rpyutils"
@@ -4351,18 +1423,9 @@ jobs:
       - plan
       - ros2-ament-mypy
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-rpyutils') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-rpyutils
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-rpyutils
-        ros-lyrical-rpyutils
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-rqt-moveit:
     name: "40 rqt-moveit"
@@ -4371,18 +1434,9 @@ jobs:
       - ros2-ros2param
       - ros2-rqt-robot-steering
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-rqt-moveit') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-rqt-moveit
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-rqt-moveit
-        ros-lyrical-rqt-moveit
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-rqt-robot-dashboard:
     name: "40 rqt-robot-dashboard rqt-srv rslidar-sdk rtabmap rtest se…"
@@ -4398,52 +1452,9 @@ jobs:
       - ros2-tf2-eigen-kdl
       - ros2-tracetools-launch
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-rqt-robot-dashboard') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-rqt-robot-dashboard
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-rqt-robot-dashboard
-        ros-lyrical-rqt-robot-dashboard
-        ros2-rqt-srv
-        ros-lyrical-rqt-srv
-        ros2-rslidar-sdk
-        ros-lyrical-rslidar-sdk
-        ros2-rtabmap
-        ros-lyrical-rtabmap
-        ros2-rtest
-        ros-lyrical-rtest
-        ros2-serial-driver
-        ros-lyrical-serial-driver
-        ros2-spacenav
-        ros-lyrical-spacenav
-        ros2-sros2
-        ros-lyrical-sros2
-        ros2-system-modes
-        ros-lyrical-system-modes
-        ros2-tf2-ros-py
-        ros-lyrical-tf2-ros-py
-        ros2-topic-tools
-        ros-lyrical-topic-tools
-        ros2-turtlesim
-        ros-lyrical-turtlesim
-        ros2-ublox-dgnss-node
-        ros-lyrical-ublox-dgnss-node
-        ros2-ublox-nav-sat-fix-hp-node
-        ros-lyrical-ublox-nav-sat-fix-hp-node
-        ros2-udp-driver
-        ros-lyrical-udp-driver
-        ros2-ur-msgs
-        ros-lyrical-ur-msgs
-        ros2-velodyne-laserscan
-        ros-lyrical-velodyne-laserscan
-        ros2-vision-opencv
-        ros-lyrical-vision-opencv
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-rqt-robot-steering:
     name: "38 rqt-robot-steering rqt-service-caller rqt-shell sensor-m…"
@@ -4452,40 +1463,9 @@ jobs:
       - ros2-examples-rclpy-minimal-publisher
       - ros2-nmea-msgs
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-rqt-robot-steering') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-rqt-robot-steering
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-rqt-robot-steering
-        ros-lyrical-rqt-robot-steering
-        ros2-rqt-service-caller
-        ros-lyrical-rqt-service-caller
-        ros2-rqt-shell
-        ros-lyrical-rqt-shell
-        ros2-sensor-msgs
-        ros-lyrical-sensor-msgs
-        ros2-shape-msgs
-        ros-lyrical-shape-msgs
-        ros2-simulation-interfaces
-        ros-lyrical-simulation-interfaces
-        ros2-slg-msgs
-        ros-lyrical-slg-msgs
-        ros2-teleop-twist-keyboard
-        ros-lyrical-teleop-twist-keyboard
-        ros2-tf2
-        ros-lyrical-tf2
-        ros2-tf2-msgs
-        ros-lyrical-tf2-msgs
-        ros2-trajectory-msgs
-        ros-lyrical-trajectory-msgs
-        ros2-turtlebot3-msgs
-        ros-lyrical-turtlebot3-msgs
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-rsl:
     name: "39 rsl rslidar-msg rtabmap-msgs sensor-msgs-py sick-safetys…"
@@ -4494,28 +1474,9 @@ jobs:
       - ros2-radar-msgs
       - ros2-rqt-robot-steering
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-rsl') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-rsl
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-rsl
-        ros-lyrical-rsl
-        ros2-rslidar-msg
-        ros-lyrical-rslidar-msg
-        ros2-rtabmap-msgs
-        ros-lyrical-rtabmap-msgs
-        ros2-sensor-msgs-py
-        ros-lyrical-sensor-msgs-py
-        ros2-sick-safetyscanners2-interfaces
-        ros-lyrical-sick-safetyscanners2-interfaces
-        ros2-stereo-msgs
-        ros-lyrical-stereo-msgs
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-rviz-visual-tools:
     name: "46 rviz-visual-tools sick-safetyscanners2"
@@ -4523,20 +1484,9 @@ jobs:
       - plan
       - ros2-rmf-visualization-rviz2-plugins
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-rviz-visual-tools') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-rviz-visual-tools
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-rviz-visual-tools
-        ros-lyrical-rviz-visual-tools
-        ros2-sick-safetyscanners2
-        ros-lyrical-sick-safetyscanners2
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-sick-safetyscanners-base:
     name: "4 sick-safetyscanners-base test-interface-files urdfdom-hea…"
@@ -4544,24 +1494,9 @@ jobs:
       - plan
       - ros2-ros-environment
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-sick-safetyscanners-base') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-sick-safetyscanners-base
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-sick-safetyscanners-base
-        ros-lyrical-sick-safetyscanners-base
-        ros2-test-interface-files
-        ros-lyrical-test-interface-files
-        ros2-urdfdom-headers
-        ros-lyrical-urdfdom-headers
-        ros2-visp
-        ros-lyrical-visp
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-slam-toolbox:
     name: "46 slam-toolbox tricycle-steering-controller ur-controllers…"
@@ -4571,32 +1506,9 @@ jobs:
       - ros2-nav2-loopback-sim
       - ros2-rmf-visualization-rviz2-plugins
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-slam-toolbox') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-slam-toolbox
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-slam-toolbox
-        ros-lyrical-slam-toolbox
-        ros2-tricycle-steering-controller
-        ros-lyrical-tricycle-steering-controller
-        ros2-ur-controllers
-        ros-lyrical-ur-controllers
-        ros2-ur-description
-        ros-lyrical-ur-description
-        ros2-urdf-launch
-        ros-lyrical-urdf-launch
-        ros2-vision-msgs-rviz-plugins
-        ros-lyrical-vision-msgs-rviz-plugins
-        ros2-yasmin-editor
-        ros-lyrical-yasmin-editor
-        ros2-zed-description
-        ros-lyrical-zed-description
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-tcb-span:
     name: "9 tcb-span tinyxml2-vendor toppra ublox-serialization uncru…"
@@ -4604,32 +1516,9 @@ jobs:
       - plan
       - ros2-ament-cmake
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-tcb-span') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-tcb-span
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-tcb-span
-        ros-lyrical-tcb-span
-        ros2-tinyxml2-vendor
-        ros-lyrical-tinyxml2-vendor
-        ros2-toppra
-        ros-lyrical-toppra
-        ros2-ublox-serialization
-        ros-lyrical-ublox-serialization
-        ros2-uncrustify-vendor
-        ros-lyrical-uncrustify-vendor
-        ros2-ur-client-library
-        ros-lyrical-ur-client-library
-        ros2-urg-c
-        ros-lyrical-urg-c
-        ros2-yaml-cpp-vendor
-        ros-lyrical-yaml-cpp-vendor
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-test-msgs:
     name: "29 test-msgs topic-tools-interfaces turtlesim-msgs twist-mu…"
@@ -4637,30 +1526,9 @@ jobs:
       - plan
       - ros2-rosidl-default-generators
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-test-msgs') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-test-msgs
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-test-msgs
-        ros-lyrical-test-msgs
-        ros2-topic-tools-interfaces
-        ros-lyrical-topic-tools-interfaces
-        ros2-turtlesim-msgs
-        ros-lyrical-turtlesim-msgs
-        ros2-twist-mux-msgs
-        ros-lyrical-twist-mux-msgs
-        ros2-ublox-ubx-interfaces
-        ros-lyrical-ublox-ubx-interfaces
-        ros2-ur-dashboard-msgs
-        ros-lyrical-ur-dashboard-msgs
-        ros2-yasmin-msgs
-        ros-lyrical-yasmin-msgs
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-tf2-eigen-kdl:
     name: "39 tf2-eigen-kdl tf2-py trac-ik-lib ublox-msgs visualizatio…"
@@ -4670,30 +1538,9 @@ jobs:
       - ros2-rqt-robot-steering
       - ros2-twist-stamper
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-tf2-eigen-kdl') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-tf2-eigen-kdl
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-tf2-eigen-kdl
-        ros-lyrical-tf2-eigen-kdl
-        ros2-tf2-py
-        ros-lyrical-tf2-py
-        ros2-trac-ik-lib
-        ros-lyrical-trac-ik-lib
-        ros2-ublox-msgs
-        ros-lyrical-ublox-msgs
-        ros2-visualization-msgs
-        ros-lyrical-visualization-msgs
-        ros2-webots-ros2-msgs
-        ros-lyrical-webots-ros2-msgs
-        ros2-zed-msgs
-        ros-lyrical-zed-msgs
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-tf2-tools:
     name: "41 tf2-tools twist-mux ublox-dgnss ublox-gps urg-node"
@@ -4704,26 +1551,9 @@ jobs:
       - ros2-mocap4r2-marker-viz
       - ros2-rqt-robot-dashboard
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-tf2-tools') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-tf2-tools
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-tf2-tools
-        ros-lyrical-tf2-tools
-        ros2-twist-mux
-        ros-lyrical-twist-mux
-        ros2-ublox-dgnss
-        ros-lyrical-ublox-dgnss
-        ros2-ublox-gps
-        ros-lyrical-ublox-gps
-        ros2-urg-node
-        ros-lyrical-urg-node
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-tracetools-image-pipeline:
     name: "16 tracetools-image-pipeline urdf-parser-plugin"
@@ -4732,20 +1562,9 @@ jobs:
       - ros2-ament-cmake-ros
       - ros2-sick-safetyscanners-base
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-tracetools-image-pipeline') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-tracetools-image-pipeline
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-tracetools-image-pipeline
-        ros-lyrical-tracetools-image-pipeline
-        ros2-urdf-parser-plugin
-        ros-lyrical-urdf-parser-plugin
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-tracetools-launch:
     name: "37 tracetools-launch ublox-ubx-msgs"
@@ -4753,20 +1572,9 @@ jobs:
       - plan
       - ros2-action-tutorials-py
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-tracetools-launch') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-tracetools-launch
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-tracetools-launch
-        ros-lyrical-tracetools-launch
-        ros2-ublox-ubx-msgs
-        ros-lyrical-ublox-ubx-msgs
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-twist-stamper:
     name: "38 twist-stamper vision-msgs"
@@ -4774,20 +1582,9 @@ jobs:
       - plan
       - ros2-examples-rclpy-minimal-publisher
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-twist-stamper') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-twist-stamper
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-twist-stamper
-        ros-lyrical-twist-stamper
-        ros2-vision-msgs
-        ros-lyrical-vision-msgs
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-udp-msgs:
     name: "37 udp-msgs urg-node-msgs velodyne-msgs"
@@ -4795,22 +1592,9 @@ jobs:
       - plan
       - ros2-action-tutorials-py
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-udp-msgs') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-udp-msgs
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-udp-msgs
-        ros-lyrical-udp-msgs
-        ros2-urg-node-msgs
-        ros-lyrical-urg-node-msgs
-        ros2-velodyne-msgs
-        ros-lyrical-velodyne-msgs
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-urdf-tutorial:
     name: "47 urdf-tutorial yasmin-cli"
@@ -4818,20 +1602,9 @@ jobs:
       - plan
       - ros2-slam-toolbox
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-urdf-tutorial') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-urdf-tutorial
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-urdf-tutorial
-        ros-lyrical-urdf-tutorial
-        ros2-yasmin-cli
-        ros-lyrical-yasmin-cli
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-urdfdom:
     name: "16 urdfdom"
@@ -4840,18 +1613,9 @@ jobs:
       - ros2-autoware-utils-math
       - ros2-sick-safetyscanners-base
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-urdfdom') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-urdfdom
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-urdfdom
-        ros-lyrical-urdfdom
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   ros2-yasmin:
     name: "9 yasmin zenoh-cpp-vendor"
@@ -4859,20 +1623,9 @@ jobs:
       - plan
       - ros2-ament-cmake
     if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.todo), 'ros2-yasmin') }}
-    uses: ./.github/workflows/stage-job.yaml
-    secrets: inherit
-    with:
-      distro: lyrical
-      platform: osx-arm64
-      os: macos-15
-      job: ros2-yasmin
-      upload: ${{ inputs.upload }}
-      token_secret: ANACONDA_API_TOKEN_LYRICAL
-      recipes: |
-        ros2-yasmin
-        ros-lyrical-yasmin
-        ros2-zenoh-cpp-vendor
-        ros-lyrical-zenoh-cpp-vendor
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo stage job
 
   collect:
     needs:
