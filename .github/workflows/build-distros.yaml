@@ -19,76 +19,6 @@ on:
         type: boolean
 
 jobs:
-  humble-linux-64:
-    if: contains(fromJSON(inputs.distros), 'humble') && contains(fromJSON(inputs.platforms), 'linux-64')
-    uses: ./.github/workflows/build-humble-linux-64.yaml
-    secrets: inherit
-    with:
-      upload: ${{ inputs.upload }}
-
-  humble-linux-aarch64:
-    if: contains(fromJSON(inputs.distros), 'humble') && contains(fromJSON(inputs.platforms), 'linux-aarch64')
-    uses: ./.github/workflows/build-humble-linux-aarch64.yaml
-    secrets: inherit
-    with:
-      upload: ${{ inputs.upload }}
-
-  humble-osx-64:
-    if: contains(fromJSON(inputs.distros), 'humble') && contains(fromJSON(inputs.platforms), 'osx-64')
-    uses: ./.github/workflows/build-humble-osx-64.yaml
-    secrets: inherit
-    with:
-      upload: ${{ inputs.upload }}
-
-  humble-osx-arm64:
-    if: contains(fromJSON(inputs.distros), 'humble') && contains(fromJSON(inputs.platforms), 'osx-arm64')
-    uses: ./.github/workflows/build-humble-osx-arm64.yaml
-    secrets: inherit
-    with:
-      upload: ${{ inputs.upload }}
-
-  humble-win-64:
-    if: contains(fromJSON(inputs.distros), 'humble') && contains(fromJSON(inputs.platforms), 'win-64')
-    uses: ./.github/workflows/build-humble-win-64.yaml
-    secrets: inherit
-    with:
-      upload: ${{ inputs.upload }}
-
-  jazzy-linux-64:
-    if: contains(fromJSON(inputs.distros), 'jazzy') && contains(fromJSON(inputs.platforms), 'linux-64')
-    uses: ./.github/workflows/build-jazzy-linux-64.yaml
-    secrets: inherit
-    with:
-      upload: ${{ inputs.upload }}
-
-  jazzy-linux-aarch64:
-    if: contains(fromJSON(inputs.distros), 'jazzy') && contains(fromJSON(inputs.platforms), 'linux-aarch64')
-    uses: ./.github/workflows/build-jazzy-linux-aarch64.yaml
-    secrets: inherit
-    with:
-      upload: ${{ inputs.upload }}
-
-  jazzy-osx-64:
-    if: contains(fromJSON(inputs.distros), 'jazzy') && contains(fromJSON(inputs.platforms), 'osx-64')
-    uses: ./.github/workflows/build-jazzy-osx-64.yaml
-    secrets: inherit
-    with:
-      upload: ${{ inputs.upload }}
-
-  jazzy-osx-arm64:
-    if: contains(fromJSON(inputs.distros), 'jazzy') && contains(fromJSON(inputs.platforms), 'osx-arm64')
-    uses: ./.github/workflows/build-jazzy-osx-arm64.yaml
-    secrets: inherit
-    with:
-      upload: ${{ inputs.upload }}
-
-  jazzy-win-64:
-    if: contains(fromJSON(inputs.distros), 'jazzy') && contains(fromJSON(inputs.platforms), 'win-64')
-    uses: ./.github/workflows/build-jazzy-win-64.yaml
-    secrets: inherit
-    with:
-      upload: ${{ inputs.upload }}
-
   lyrical-linux-64:
     if: contains(fromJSON(inputs.distros), 'lyrical') && contains(fromJSON(inputs.platforms), 'linux-64')
     uses: ./.github/workflows/build-lyrical-linux-64.yaml
@@ -103,58 +33,9 @@ jobs:
     with:
       upload: ${{ inputs.upload }}
 
-  lyrical-osx-64:
-    if: contains(fromJSON(inputs.distros), 'lyrical') && contains(fromJSON(inputs.platforms), 'osx-64')
-    uses: ./.github/workflows/build-lyrical-osx-64.yaml
-    secrets: inherit
-    with:
-      upload: ${{ inputs.upload }}
-
-  lyrical-osx-arm64:
-    if: contains(fromJSON(inputs.distros), 'lyrical') && contains(fromJSON(inputs.platforms), 'osx-arm64')
-    uses: ./.github/workflows/build-lyrical-osx-arm64.yaml
-    secrets: inherit
-    with:
-      upload: ${{ inputs.upload }}
-
   lyrical-win-64:
     if: contains(fromJSON(inputs.distros), 'lyrical') && contains(fromJSON(inputs.platforms), 'win-64')
     uses: ./.github/workflows/build-lyrical-win-64.yaml
-    secrets: inherit
-    with:
-      upload: ${{ inputs.upload }}
-
-  rolling-linux-64:
-    if: contains(fromJSON(inputs.distros), 'rolling') && contains(fromJSON(inputs.platforms), 'linux-64')
-    uses: ./.github/workflows/build-rolling-linux-64.yaml
-    secrets: inherit
-    with:
-      upload: ${{ inputs.upload }}
-
-  rolling-linux-aarch64:
-    if: contains(fromJSON(inputs.distros), 'rolling') && contains(fromJSON(inputs.platforms), 'linux-aarch64')
-    uses: ./.github/workflows/build-rolling-linux-aarch64.yaml
-    secrets: inherit
-    with:
-      upload: ${{ inputs.upload }}
-
-  rolling-osx-64:
-    if: contains(fromJSON(inputs.distros), 'rolling') && contains(fromJSON(inputs.platforms), 'osx-64')
-    uses: ./.github/workflows/build-rolling-osx-64.yaml
-    secrets: inherit
-    with:
-      upload: ${{ inputs.upload }}
-
-  rolling-osx-arm64:
-    if: contains(fromJSON(inputs.distros), 'rolling') && contains(fromJSON(inputs.platforms), 'osx-arm64')
-    uses: ./.github/workflows/build-rolling-osx-arm64.yaml
-    secrets: inherit
-    with:
-      upload: ${{ inputs.upload }}
-
-  rolling-win-64:
-    if: contains(fromJSON(inputs.distros), 'rolling') && contains(fromJSON(inputs.platforms), 'win-64')
-    uses: ./.github/workflows/build-rolling-win-64.yaml
     secrets: inherit
     with:
       upload: ${{ inputs.upload }}
