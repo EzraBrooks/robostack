@@ -6,10 +6,10 @@ rosdistro_additional_recipes: rosdistro_additional_recipes.yaml
 # Qt5 for the Qt5 rosdep keys (see robostack.yaml); layered over shared/robostack.yaml
 conda_index: [robostack.yaml]
 
-build_number: 22
+build_number: 25
 
 mutex_package:
-  version: "0.11.0"
+  version: "0.12.0"
 
 packages_exclude:
   - rtabmap_rviz_plugins  # links PCL, whose VTK is Qt 6 on conda-forge, into a Qt 5 RViz plugin (humble's RViz is Qt 5)

@@ -13,4 +13,4 @@ pinning_overrides:
   # xsimd (14), which no xtensor >= 0.25 accepts, and falls back to xtensor 0.23.9, whose
   # xtensor_simd.hpp doesn't build with it. 0.25 brings a matching xsimd (as in jazzy).
   xtensor: [0.25.0]
-rosdistro_sync: humble/2026-10-12
+rosdistro_sync: humble/2026-11-16

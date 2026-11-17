@@ -105,19 +105,3 @@ urdfdom_headers:
 # Remove build_number fields below on new full rebuild
 zenoh_cpp_vendor:
   additional_cmake_args: "-DAMENT_VENDOR_POLICY=NEVER_VENDOR_IGNORE_SATISFIED_CHECK -DUSE_SYSTEM_ZENOH=ON"
-ament_cmake_gmock:  # as ament_cmake_gtest
-  build_number: 23
-ament_cmake_gtest:  # uses conda-forge's gtest instead of gtest_vendor's sources
-  build_number: 23
-aruco_ros:  # its recipe test stops the node for sure (package tests hung on macOS)
-  build_number: 23
-mrpt_gui:
-  build_number: 24
-rtabmap_slam:  # its recipe test stops the node for sure (package tests hung on macOS)
-  build_number: 23
-spatio_temporal_voxel_layer:
-  build_number: 23
-urdf:  # drop deprecated urdf_world/types.h include (ros2/urdf#54) for headers 3.x
-  build_number: 23
-urdf_parser_plugin:  # use urdf_model/types.h (ros2/urdf#54) for headers 3.x
-  build_number: 23
