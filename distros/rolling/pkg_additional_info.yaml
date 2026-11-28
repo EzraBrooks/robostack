@@ -55,8 +55,6 @@ proxsuite:
     dep_name: proxsuite
     max_pin: 'x.x'
     override_version: '0.7.3'
-rtabmap:
-  additional_cmake_args: -DBUILD_TESTING=OFF
 urdfdom:
   generate_dummy_package_with_run_deps:
     dep_name: urdfdom
@@ -73,14 +71,229 @@ zenoh_cpp_vendor:
   additional_cmake_args: "-DAMENT_VENDOR_POLICY=NEVER_VENDOR_IGNORE_SATISFIED_CHECK -DUSE_SYSTEM_ZENOH=ON"
 aruco_ros:  # its recipe test stops the node for sure (package tests hung on macOS)
   build_number: 33
+chomp_motion_planner:
+  build_number: 36
+coal:
+  build_number: 36
+desktop_full:
+  build_number: 36
+easynav_octomap_maps_manager:
+  build_number: 36
+easynav_playground_kobuki:
+  build_number: 36
+easynav_playground_kobuki_worlds:
+  build_number: 36
+easynav_playground_omni:
+  build_number: 36
+easynav_playground_omni_worlds:
+  build_number: 36
+easynav_playground_summit:
+  build_number: 36
+easynav_playground_summit_worlds:
+  build_number: 36
+easynav_playground_tiago:
+  build_number: 36
+easynav_playground_tiago_worlds:
+  build_number: 36
 fuse_viz:
   build_number: 33
+geometric_shapes:
+  build_number: 36
+gz_dartsim_vendor:
+  build_number: 36
+gz_gui_vendor:
+  build_number: 36
+gz_ogre_next_vendor:
+  build_number: 36
+gz_physics_vendor:
+  build_number: 36
+gz_rendering_vendor:
+  build_number: 36
+gz_ros2_control:
+  build_number: 36
+gz_ros2_control_demos:
+  build_number: 36
+gz_sensors_vendor:
+  build_number: 36
+gz_sim_vendor:
+  build_number: 36
+kinova_gen3_6dof_robotiq_2f_85_moveit_config:
+  build_number: 36
+kinova_gen3_7dof_robotiq_2f_85_moveit_config:
+  build_number: 36
+kinova_gen3_lite_moveit_config:
+  build_number: 36
+kortex_bringup:
+  build_number: 36
+kortex_description:
+  build_number: 36
+mola:
+  build_number: 36
+mola_bridge_ros2:
+  build_number: 36
+mola_input_rawlog:
+  build_number: 36
+mola_input_rosbag2:
+  build_number: 36
+mola_input_video:
+  build_number: 36
+mola_kernel:
+  build_number: 36
+mola_launcher:
+  build_number: 36
+mola_metric_maps:
+  build_number: 36
+mola_pose_list:
+  build_number: 36
+mola_relocalization:
+  build_number: 36
+mola_viz:
+  build_number: 36
+moveit:
+  build_number: 36
+moveit_core:
+  build_number: 36
+moveit_hybrid_planning:
+  build_number: 36
+moveit_kinematics:
+  build_number: 36
+moveit_planners:
+  build_number: 36
+moveit_planners_chomp:
+  build_number: 36
+moveit_planners_ompl:
+  build_number: 36
+moveit_planners_stomp:
+  build_number: 36
+moveit_plugins:
+  build_number: 36
+moveit_py:
+  build_number: 36
+moveit_resources_prbt_ikfast_manipulator_plugin:
+  build_number: 36
+moveit_resources_prbt_moveit_config:
+  build_number: 36
+moveit_resources_prbt_pg70_support:
+  build_number: 36
+moveit_ros:
+  build_number: 36
+moveit_ros_benchmarks:
+  build_number: 36
+moveit_ros_control_interface:
+  build_number: 36
+moveit_ros_move_group:
+  build_number: 36
+moveit_ros_occupancy_map_monitor:
+  build_number: 36
+moveit_ros_perception:
+  build_number: 36
+moveit_ros_planning:
+  build_number: 36
+moveit_ros_planning_interface:
+  build_number: 36
+moveit_ros_robot_interaction:
+  build_number: 36
+moveit_ros_trajectory_cache:
+  build_number: 36
 moveit_ros_visualization:
-  build_number: 33
+  build_number: 36
+moveit_ros_warehouse:
+  build_number: 36
+moveit_runtime:
+  build_number: 36
+moveit_servo:
+  build_number: 36
+moveit_setup_app_plugins:
+  build_number: 36
+moveit_setup_assistant:
+  build_number: 36
+moveit_setup_controllers:
+  build_number: 36
+moveit_setup_core_plugins:
+  build_number: 36
+moveit_setup_framework:
+  build_number: 36
+moveit_setup_srdf_plugins:
+  build_number: 36
+moveit_simple_controller_manager:
+  build_number: 36
+moveit_task_constructor_capabilities:
+  build_number: 36
+moveit_task_constructor_core:
+  build_number: 36
+moveit_task_constructor_demo:
+  build_number: 36
 moveit_task_constructor_visualization:
-  build_number: 33
+  build_number: 36
+moveit_visual_tools:
+  build_number: 36
+mp2p_icp:
+  build_number: 36
+mp2p_icp_core:
+  build_number: 36
+mp2p_icp_viz:
+  build_number: 36
 mrpt_gui:
-  build_number: 35
+  build_number: 36
+mrpt_hwdrivers:
+  build_number: 36
+mrpt_libros_bridge:
+  build_number: 36
+mrpt_maps:
+  build_number: 36
+nav2_minimal_tb3_sim:
+  build_number: 36
+nav2_minimal_tb4_sim:
+  build_number: 36
+octomap_ros:
+  build_number: 36
+octomap_server:
+  build_number: 36
+onnxruntime_vendor:
+  build_number: 36
+pick_ik:
+  build_number: 36
+pilz_industrial_motion_planner:
+  build_number: 36
+pilz_industrial_motion_planner_testutils:
+  build_number: 36
+pinocchio:
+  build_number: 36
+roboplan:
+  build_number: 36
+roboplan_cartesian_planning:
+  build_number: 36
+roboplan_core:
+  build_number: 36
+roboplan_examples:
+  build_number: 36
+roboplan_oink:
+  build_number: 36
+roboplan_ros_cpp:
+  build_number: 36
+roboplan_ros_examples:
+  build_number: 36
+roboplan_ros_franka:
+  build_number: 36
+roboplan_ros_py:
+  build_number: 36
+roboplan_ros_visualization:
+  build_number: 36
+roboplan_rrt:
+  build_number: 36
+roboplan_simple_ik:
+  build_number: 36
+roboplan_toppra:
+  build_number: 36
+ros_gz:
+  build_number: 36
+ros_gz_sim:
+  build_number: 36
+ros_gz_sim_demos:
+  build_number: 36
+rtabmap:
+  additional_cmake_args: -DBUILD_TESTING=OFF
+  build_number: 36
 rviz_2d_overlay_plugins:
   build_number: 33
 rviz_common:
@@ -96,3 +309,21 @@ rviz_rendering:
   build_number: 33
 rviz_satellite:
   build_number: 33
+simulation:
+  build_number: 36
+trac_ik:
+  build_number: 36
+trac_ik_kinematics_plugin:
+  build_number: 36
+turtlebot3_gazebo:
+  build_number: 36
+turtlebot3_simulations:
+  build_number: 36
+ur:
+  build_number: 36
+ur_moveit_config:
+  build_number: 36
+ur_simulation_gz:
+  build_number: 36
+visp:
+  build_number: 36

@@ -55,45 +55,14 @@ proxsuite:
     dep_name: proxsuite
     max_pin: 'x.x'
     override_version: '0.7.3'
-roboplan:
-  generate_dummy_package_with_run_deps:
-    dep_name: roboplan-python
-    max_pin: 'x.x'
-roboplan_cartesian_planning:
-  generate_dummy_package_with_run_deps:
-    dep_name: roboplan-cartesian-planning-python
-    max_pin: 'x.x'
 roboplan_common:
   generate_dummy_package_with_run_deps:
     dep_name: roboplan-common
-    max_pin: 'x.x'
-roboplan_core:
-  generate_dummy_package_with_run_deps:
-    dep_name: roboplan-core-python
     max_pin: 'x.x'
 roboplan_example_models:
   generate_dummy_package_with_run_deps:
     dep_name: roboplan-example-models-python
     max_pin: 'x.x'
-roboplan_oink:
-  generate_dummy_package_with_run_deps:
-    dep_name: roboplan-oink-python
-    max_pin: 'x.x'
-roboplan_rrt:
-  generate_dummy_package_with_run_deps:
-    dep_name: roboplan-rrt-python
-    max_pin: 'x.x'
-roboplan_simple_ik:
-  generate_dummy_package_with_run_deps:
-    dep_name: roboplan-simple-ik-python
-    max_pin: 'x.x'
-roboplan_toppra:
-  generate_dummy_package_with_run_deps:
-    dep_name: roboplan-toppra-python
-    max_pin: 'x.x'
-rtabmap:
-  # its tests (corelib/test) don't build with MSVC (as in jazzy, same 0.23.13)
-  additional_cmake_args: -DBUILD_TESTING=OFF
 toppra:
   generate_dummy_package_with_run_deps:
     dep_name: toppra-python
@@ -115,30 +84,315 @@ zenoh_cpp_vendor:
 # Remove build_number fields below on new full rebuild
 aruco_ros:  # its recipe test stops the node for sure (package tests hung on macOS)
   build_number: 31
+chomp_motion_planner:
+  build_number: 35
+coal:
+  build_number: 35
+desktop_full:
+  build_number: 35
+easynav_octomap_maps_manager:
+  build_number: 35
+easynav_playground_kobuki:
+  build_number: 35
+easynav_playground_kobuki_worlds:
+  build_number: 35
+easynav_playground_omni:
+  build_number: 35
+easynav_playground_omni_worlds:
+  build_number: 35
+easynav_playground_summit:
+  build_number: 35
+easynav_playground_summit_worlds:
+  build_number: 35
+easynav_playground_tiago:
+  build_number: 35
+easynav_playground_tiago_worlds:
+  build_number: 35
 fuse_viz:
   build_number: 31
+geometric_shapes:
+  build_number: 35
 grid_map_rviz_plugin:
   build_number: 31
+gz_dartsim_vendor:
+  build_number: 35
 gz_gui_vendor:
-  build_number: 33
+  build_number: 35
+gz_ogre_next_vendor:
+  build_number: 35
+gz_physics_vendor:
+  build_number: 35
+gz_rendering_vendor:
+  build_number: 35
+gz_ros2_control:
+  build_number: 35
+gz_ros2_control_demos:
+  build_number: 35
 gz_sensors_vendor:
-  build_number: 33
+  build_number: 35
 gz_sim_vendor:
-  build_number: 33
+  build_number: 35
 gz_transport_vendor:
   build_number: 33
+kinova_gen3_6dof_robotiq_2f_85_moveit_config:
+  build_number: 35
+kinova_gen3_7dof_robotiq_2f_85_moveit_config:
+  build_number: 35
+kinova_gen3_lite_moveit_config:
+  build_number: 35
+kortex_bringup:
+  build_number: 35
+kortex_description:
+  build_number: 35
+mola:
+  build_number: 35
+mola_bridge_ros2:
+  build_number: 35
+mola_input_rawlog:
+  build_number: 35
+mola_input_rosbag2:
+  build_number: 35
+mola_input_video:
+  build_number: 35
+mola_kernel:
+  build_number: 35
+mola_launcher:
+  build_number: 35
+mola_metric_maps:
+  build_number: 35
+mola_pose_list:
+  build_number: 35
+mola_relocalization:
+  build_number: 35
+mola_viz:
+  build_number: 35
+moveit:
+  build_number: 35
+moveit_core:
+  build_number: 35
+moveit_hybrid_planning:
+  build_number: 35
+moveit_kinematics:
+  build_number: 35
+moveit_planners:
+  build_number: 35
+moveit_planners_chomp:
+  build_number: 35
+moveit_planners_ompl:
+  build_number: 35
+moveit_planners_stomp:
+  build_number: 35
+moveit_plugins:
+  build_number: 35
+moveit_py:
+  build_number: 35
+moveit_resources_prbt_ikfast_manipulator_plugin:
+  build_number: 35
+moveit_resources_prbt_moveit_config:
+  build_number: 35
+moveit_resources_prbt_pg70_support:
+  build_number: 35
+moveit_ros:
+  build_number: 35
+moveit_ros_benchmarks:
+  build_number: 35
+moveit_ros_control_interface:
+  build_number: 35
+moveit_ros_move_group:
+  build_number: 35
+moveit_ros_occupancy_map_monitor:
+  build_number: 35
+moveit_ros_perception:
+  build_number: 35
+moveit_ros_planning:
+  build_number: 35
+moveit_ros_planning_interface:
+  build_number: 35
+moveit_ros_robot_interaction:
+  build_number: 35
+moveit_ros_trajectory_cache:
+  build_number: 35
 moveit_ros_visualization:
-  build_number: 31
+  build_number: 35
+moveit_ros_warehouse:
+  build_number: 35
+moveit_runtime:
+  build_number: 35
+moveit_servo:
+  build_number: 35
+moveit_setup_app_plugins:
+  build_number: 35
+moveit_setup_assistant:
+  build_number: 35
+moveit_setup_controllers:
+  build_number: 35
+moveit_setup_core_plugins:
+  build_number: 35
+moveit_setup_framework:
+  build_number: 35
+moveit_setup_srdf_plugins:
+  build_number: 35
+moveit_simple_controller_manager:
+  build_number: 35
+moveit_task_constructor_capabilities:
+  build_number: 35
+moveit_task_constructor_core:
+  build_number: 35
+moveit_task_constructor_demo:
+  build_number: 35
 moveit_task_constructor_visualization:
-  build_number: 31
+  build_number: 35
+moveit_visual_tools:
+  build_number: 35
+mp2p_icp:
+  build_number: 35
+mp2p_icp_core:
+  build_number: 35
+mp2p_icp_viz:
+  build_number: 35
 mrpt_gui:
-  build_number: 34
+  build_number: 35
+mrpt_hwdrivers:
+  build_number: 35
+mrpt_libros_bridge:
+  build_number: 35
+mrpt_maps:
+  build_number: 35
+nav2_bringup:
+  build_number: 35
+nav2_minimal_tb3_sim:
+  build_number: 35
+nav2_minimal_tb4_sim:
+  build_number: 35
+nav2_route:
+  build_number: 35
 nav2_rviz_plugins:
-  build_number: 31
+  build_number: 35
+navigation2:
+  build_number: 35
+octomap_ros:
+  build_number: 35
+octomap_server:
+  build_number: 35
+onnxruntime_vendor:
+  build_number: 35
+pick_ik:
+  build_number: 35
+pilz_industrial_motion_planner:
+  build_number: 35
+pilz_industrial_motion_planner_testutils:
+  build_number: 35
+pinocchio:
+  build_number: 35
+rmf_battery:
+  build_number: 35
+rmf_demos:
+  build_number: 35
+rmf_demos_fleet_adapter:
+  build_number: 35
+rmf_fleet_adapter:
+  build_number: 35
+rmf_fleet_adapter_python:
+  build_number: 35
+rmf_reservation_node:
+  build_number: 35
+rmf_task:
+  build_number: 35
+rmf_task_ros2:
+  build_number: 35
+rmf_task_sequence:
+  build_number: 35
+rmf_traffic:
+  build_number: 35
+rmf_traffic_ros2:
+  build_number: 35
+rmf_visualization:
+  build_number: 35
+rmf_visualization_navgraphs:
+  build_number: 35
+rmf_visualization_rviz2_plugins:
+  build_number: 35
+rmf_visualization_schedule:
+  build_number: 35
+roboplan:
+  generate_dummy_package_with_run_deps:
+    dep_name: roboplan-python
+    max_pin: 'x.x'
+  build_number: 35
+roboplan_cartesian_planning:
+  generate_dummy_package_with_run_deps:
+    dep_name: roboplan-cartesian-planning-python
+    max_pin: 'x.x'
+  build_number: 35
+roboplan_core:
+  generate_dummy_package_with_run_deps:
+    dep_name: roboplan-core-python
+    max_pin: 'x.x'
+  build_number: 35
+roboplan_examples:
+  build_number: 35
+roboplan_oink:
+  generate_dummy_package_with_run_deps:
+    dep_name: roboplan-oink-python
+    max_pin: 'x.x'
+  build_number: 35
+roboplan_ros_cpp:
+  build_number: 35
+roboplan_ros_examples:
+  build_number: 35
+roboplan_ros_franka:
+  build_number: 35
+roboplan_ros_py:
+  build_number: 35
+roboplan_ros_visualization:
+  build_number: 35
+roboplan_rrt:
+  generate_dummy_package_with_run_deps:
+    dep_name: roboplan-rrt-python
+    max_pin: 'x.x'
+  build_number: 35
+roboplan_simple_ik:
+  generate_dummy_package_with_run_deps:
+    dep_name: roboplan-simple-ik-python
+    max_pin: 'x.x'
+  build_number: 35
+roboplan_toppra:
+  generate_dummy_package_with_run_deps:
+    dep_name: roboplan-toppra-python
+    max_pin: 'x.x'
+  build_number: 35
+ros_gz:
+  build_number: 35
+ros_gz_sim:
+  build_number: 35
+ros_gz_sim_demos:
+  build_number: 35
+rtabmap:
+  # its tests (corelib/test) don't build with MSVC (as in jazzy, same 0.23.13)
+  additional_cmake_args: -DBUILD_TESTING=OFF
+  build_number: 35
+rtabmap_conversions:
+  build_number: 35
+rtabmap_demos:
+  build_number: 35
+rtabmap_examples:
+  build_number: 35
+rtabmap_launch:
+  build_number: 35
+rtabmap_odom:
+  build_number: 35
+rtabmap_ros:
+  build_number: 35
 rtabmap_rviz_plugins:
-  build_number: 31
+  build_number: 35
 rtabmap_slam:  # its recipe test stops the node for sure (package tests hung on macOS)
-  build_number: 31
+  build_number: 35
+rtabmap_sync:
+  build_number: 35
+rtabmap_util:
+  build_number: 35
+rtabmap_viz:
+  build_number: 35
 rviz_2d_overlay_plugins:
   build_number: 31
 rviz_common:
@@ -154,5 +408,25 @@ rviz_rendering:
   build_number: 31
 rviz_satellite:
   build_number: 31
+simulation:
+  build_number: 35
+slam_toolbox:
+  build_number: 35
 spatio_temporal_voxel_layer:
   build_number: 31
+trac_ik:
+  build_number: 35
+trac_ik_kinematics_plugin:
+  build_number: 35
+turtlebot3_gazebo:
+  build_number: 35
+turtlebot3_simulations:
+  build_number: 35
+ur:
+  build_number: 35
+ur_moveit_config:
+  build_number: 35
+ur_simulation_gz:
+  build_number: 35
+visp:
+  build_number: 35

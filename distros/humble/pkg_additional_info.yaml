@@ -86,11 +86,6 @@ py_trees:
     dep_name: py-trees
     max_pin: 'x.x.x'
     override_version: 2.6.0
-rtabmap:
-  additional_cmake_args:
-    if: win
-    then: "-DWITH_QT=OFF -DBUILD_TOOLS=OFF -DBUILD_EXAMPLES=OFF -DWITH_GTSAM=OFF"
-    else: "-DWITH_QT=OFF -DBUILD_TOOLS=OFF -DBUILD_EXAMPLES=OFF"
 urdfdom:
   generate_dummy_package_with_run_deps:
     dep_name: urdfdom
@@ -111,13 +106,253 @@ ament_cmake_gtest:  # uses conda-forge's gtest instead of gtest_vendor's sources
   build_number: 23
 aruco_ros:  # its recipe test stops the node for sure (package tests hung on macOS)
   build_number: 23
+chomp_motion_planner:
+  build_number: 27
+clearpath_common:
+  build_number: 27
+clearpath_generator_common:
+  build_number: 27
+clearpath_manipulators:
+  build_number: 27
+coal:
+  build_number: 27
+easynav_octomap_maps_manager:
+  build_number: 27
+franka_bringup:
+  build_number: 27
+franka_example_controllers:
+  build_number: 27
+franka_fr3_moveit_config:
+  build_number: 27
+franka_gazebo_bringup:
+  build_number: 27
+franka_gripper:
+  build_number: 27
+franka_hardware:
+  build_number: 27
+franka_ign_ros2_control:
+  build_number: 27
+franka_robot_state_broadcaster:
+  build_number: 27
+franka_ros2:
+  build_number: 27
+franka_semantic_components:
+  build_number: 27
+geometric_shapes:
+  build_number: 27
+grid_map:
+  build_number: 27
+grid_map_demos:
+  build_number: 27
+iiwa14_moveit_config:
+  build_number: 27
+iiwa7_moveit_config:
+  build_number: 27
+kinova_gen3_6dof_robotiq_2f_85_moveit_config:
+  build_number: 27
+kinova_gen3_7dof_robotiq_2f_85_moveit_config:
+  build_number: 27
+kinova_gen3_lite_moveit_config:
+  build_number: 27
+lbr_bringup:
+  build_number: 27
+lbr_demos_cpp:
+  build_number: 27
+lbr_demos_py:
+  build_number: 27
+lbr_fri_ros2_stack:
+  build_number: 27
+lbr_moveit_cpp:
+  build_number: 27
+libfranka:
+  build_number: 27
+med14_moveit_config:
+  build_number: 27
+med7_moveit_config:
+  build_number: 27
+mola:
+  build_number: 27
+mola_bridge_ros2:
+  build_number: 27
+mola_input_rawlog:
+  build_number: 27
+mola_input_rosbag2:
+  build_number: 27
+mola_input_video:
+  build_number: 27
+mola_kernel:
+  build_number: 27
+mola_launcher:
+  build_number: 27
+mola_metric_maps:
+  build_number: 27
+mola_pose_list:
+  build_number: 27
+mola_relocalization:
+  build_number: 27
+mola_viz:
+  build_number: 27
+moveit:
+  build_number: 27
+moveit_chomp_optimizer_adapter:
+  build_number: 27
+moveit_core:
+  build_number: 27
+moveit_hybrid_planning:
+  build_number: 27
+moveit_kinematics:
+  build_number: 27
+moveit_planners:
+  build_number: 27
+moveit_planners_chomp:
+  build_number: 27
+moveit_planners_ompl:
+  build_number: 27
+moveit_plugins:
+  build_number: 27
+moveit_py:
+  build_number: 27
+moveit_resources_prbt_ikfast_manipulator_plugin:
+  build_number: 27
+moveit_resources_prbt_moveit_config:
+  build_number: 27
+moveit_resources_prbt_pg70_support:
+  build_number: 27
+moveit_ros:
+  build_number: 27
+moveit_ros_benchmarks:
+  build_number: 27
+moveit_ros_control_interface:
+  build_number: 27
+moveit_ros_move_group:
+  build_number: 27
+moveit_ros_occupancy_map_monitor:
+  build_number: 27
+moveit_ros_perception:
+  build_number: 27
+moveit_ros_planning:
+  build_number: 27
+moveit_ros_planning_interface:
+  build_number: 27
+moveit_ros_robot_interaction:
+  build_number: 27
+moveit_ros_visualization:
+  build_number: 27
+moveit_ros_warehouse:
+  build_number: 27
+moveit_runtime:
+  build_number: 27
+moveit_servo:
+  build_number: 27
+moveit_setup_app_plugins:
+  build_number: 27
+moveit_setup_assistant:
+  build_number: 27
+moveit_setup_controllers:
+  build_number: 27
+moveit_setup_core_plugins:
+  build_number: 27
+moveit_setup_framework:
+  build_number: 27
+moveit_setup_srdf_plugins:
+  build_number: 27
+moveit_simple_controller_manager:
+  build_number: 27
+moveit_task_constructor_capabilities:
+  build_number: 27
+moveit_task_constructor_core:
+  build_number: 27
+moveit_task_constructor_demo:
+  build_number: 27
+moveit_visual_tools:
+  build_number: 27
+mp2p_icp:
+  build_number: 27
+mp2p_icp_core:
+  build_number: 27
+mp2p_icp_viz:
+  build_number: 27
 mrpt_gui:
   build_number: 24
+mrpt_hwdrivers:
+  build_number: 27
+mrpt_libros_bridge:
+  build_number: 27
+mrpt_maps:
+  build_number: 27
+nav2_bringup:
+  build_number: 27
+nav2_mppi_controller:
+  build_number: 27
+nav2_route:
+  build_number: 27
+navigation2:
+  build_number: 27
+octomap_ros:
+  build_number: 27
+octomap_rviz_plugins:
+  build_number: 27
+octomap_server:
+  build_number: 27
+onnxruntime_vendor:
+  build_number: 27
+pick_ik:
+  build_number: 27
+pilz_industrial_motion_planner:
+  build_number: 27
+pilz_industrial_motion_planner_testutils:
+  build_number: 27
+pinocchio:
+  build_number: 27
+rtabmap:
+  additional_cmake_args:
+    if: win
+    then: "-DWITH_QT=OFF -DBUILD_TOOLS=OFF -DBUILD_EXAMPLES=OFF -DWITH_GTSAM=OFF"
+    else: "-DWITH_QT=OFF -DBUILD_TOOLS=OFF -DBUILD_EXAMPLES=OFF"
+  build_number: 27
+rtabmap_conversions:
+  build_number: 27
+rtabmap_demos:
+  build_number: 27
+rtabmap_examples:
+  build_number: 27
+rtabmap_launch:
+  build_number: 27
+rtabmap_odom:
+  build_number: 27
+rtabmap_ros:
+  build_number: 27
 rtabmap_slam:  # its recipe test stops the node for sure (package tests hung on macOS)
-  build_number: 23
+  build_number: 27
+rtabmap_sync:
+  build_number: 27
+rtabmap_util:
+  build_number: 27
 spatio_temporal_voxel_layer:
   build_number: 23
+turtlebot3:
+  build_number: 27
+turtlebot3_navigation2:
+  build_number: 27
+turtlebot4_ignition_bringup:
+  build_number: 27
+turtlebot4_navigation:
+  build_number: 27
+turtlebot4_python_tutorials:
+  build_number: 27
+turtlebot4_simulator:
+  build_number: 27
+turtlebot4_tutorials:
+  build_number: 27
+ur:
+  build_number: 27
+ur_moveit_config:
+  build_number: 27
+ur_simulation_gz:
+  build_number: 27
 urdf:  # drop deprecated urdf_world/types.h include (ros2/urdf#54) for headers 3.x
   build_number: 23
 urdf_parser_plugin:  # use urdf_model/types.h (ros2/urdf#54) for headers 3.x
   build_number: 23
+visp:
+  build_number: 27
